@@ -11,8 +11,13 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from backend.app.config import Settings, get_settings
-from backend.app.api import events, interview, submissions
+from backend.app.api import encyclopedia, events, interview, submissions
 from backend.app.services.coverage import CoverageModel
+from backend.app.services.encyclopedia import (
+    EncyclopediaService,
+    EncyclopediaStore,
+    build_encyclopedia_store,
+)
 from backend.app.services.interview_engine import InterviewEngine
 from backend.app.services.llm import build_llm
 from backend.app.services.persistence import build_persistence
@@ -25,9 +30,12 @@ from backend.app.services.validation import RateLimiter
 def create_app(
     settings: Settings | None = None,
     store: SubmissionStore | None = None,
+    encyclopedia_store: EncyclopediaStore | None = None,
 ) -> FastAPI:
     settings = settings or get_settings()
     store = store if store is not None else build_store(settings)
+    if encyclopedia_store is None:
+        encyclopedia_store = build_encyclopedia_store(settings)
 
     app = FastAPI(title="Ulti-pedia Intake API", version="0.1.0")
     app.state.settings = settings
@@ -49,6 +57,10 @@ def create_app(
     app.state.sessions = SessionStore(persistence=persistence)
     app.state.interview_engine = InterviewEngine(registry, coverage, kb, build_llm())
 
+    # Read-only encyclopedia facade (ADR-6); status='published' gating lives
+    # inside the service itself, not in the API handlers.
+    app.state.encyclopedia = EncyclopediaService(encyclopedia_store)
+
     app.add_middleware(
         CORSMiddleware,
         allow_origins=list(settings.allowed_origins),
@@ -59,6 +71,7 @@ def create_app(
     app.include_router(submissions.router)
     app.include_router(events.router)
     app.include_router(interview.router)
+    app.include_router(encyclopedia.router)
 
     @app.get("/health")
     async def health() -> dict[str, str]:
