@@ -19,8 +19,8 @@ wheels/
 .env.local
 *.env.local
 
-# Local-only Claude settings
-.claude/settings.local.json
+# Local-only Claude config (skills symlink into .cicadas-skill/)
+.claude/
 
 # Cicadas state (local to the main checkout by design)
 .cicadas/
