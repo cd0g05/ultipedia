@@ -5,9 +5,11 @@
 import { createBrowserRouter, RouterProvider, type RouteObject } from "react-router-dom";
 import IntakeApp from "./intake/App";
 import { Home } from "./Home";
+import { Search } from "./encyclopedia/pages/Search";
 
 export const routes: RouteObject[] = [
   { path: "/", element: <Home /> },
+  { path: "/search", element: <Search /> },
   { path: "/contribute/*", element: <IntakeApp /> },
 ];
 
