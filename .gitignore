@@ -1,0 +1,30 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+.pytest_cache/
+
+# Virtual environments
+.venv
+
+# IDE / OS
+.idea/
+.DS_Store
+
+# Secrets / local env
+.env
+.env.local
+*.env.local
+
+# Local-only Claude settings
+.claude/settings.local.json
+
+# Cicadas state (local to the main checkout by design)
+.cicadas/
+
+# Cicadas per-worktree helpers (regenerated per branch)
+context.md
+.cicadas-skill
