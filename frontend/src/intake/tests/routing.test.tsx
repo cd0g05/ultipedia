@@ -41,23 +41,32 @@ describe("routing", () => {
     expect(screen.getByRole("button", { name: "Begin" })).toBeInTheDocument();
   });
 
-  it("renders the placeholder encyclopedia shell at /", () => {
+  // Note (Partition 3): the temporary root placeholder was replaced by the
+  // encyclopedia Home page, so these two assertions target the real hero/CTA.
+  it("renders the encyclopedia home at /", async () => {
     renderAt("/");
 
-    expect(screen.getByRole("heading", { name: "Ulti-pedia" })).toBeInTheDocument();
     expect(
-      screen.getByRole("link", { name: "Share a drill or strategy" })
+      screen.getByRole("heading", {
+        name: "Everything your team needs to run a great practice.",
+      })
+    ).toBeInTheDocument();
+    expect(
+      screen.getAllByRole("link", { name: "Submit a Drill" })[0]
     ).toHaveAttribute("href", "/contribute");
+    // Let the (stubbed, failing) featured-entries fetch settle inside act.
+    expect(
+      await screen.findByText("Nothing published yet — check back soon")
+    ).toBeInTheDocument();
   });
 
-  it("navigates from the root placeholder into the intake flow", async () => {
+  it("navigates from the encyclopedia home into the intake flow", async () => {
     const user = userEvent.setup();
     renderAt("/");
 
-    await user.click(screen.getByRole("link", { name: "Share a drill or strategy" }));
+    await user.click(screen.getAllByRole("link", { name: "Submit a Drill" })[0]);
 
     expect(screen.getByRole("button", { name: "Begin" })).toBeInTheDocument();
-    expect(screen.queryByRole("heading", { name: "Ulti-pedia" })).not.toBeInTheDocument();
   });
 
   it("restores a persisted draft when loading /contribute directly (refresh survival)", () => {
