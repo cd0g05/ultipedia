@@ -9,6 +9,8 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { fetchEntries } from "../api/client";
 import { EntryCard } from "../components/EntryCard";
+import { SkeletonGrid } from "../components/Skeletons";
+import { pageTitle, Seo } from "../seo/Seo";
 import type { EntrySummary } from "../types";
 import { SECTIONS } from "../types";
 
@@ -16,7 +18,6 @@ const FEATURED_COUNT = 6;
 
 type LoadState =
   | { status: "loading" }
-  | { status: "error" }
   | { status: "ready"; entries: EntrySummary[] };
 
 /** Interleave per-type result lists so the featured grid spans types. */
@@ -36,7 +37,7 @@ export function interleaveFeatured(
 
 function Hero() {
   return (
-    <section className="border-b border-zinc-300 bg-white">
+    <section className="border-b border-film-border bg-white">
       <div className="mx-auto flex max-w-[1400px] flex-col gap-8 px-6 py-16 lg:py-24">
         <h1 className="max-w-4xl text-5xl font-bold uppercase leading-none tracking-tight text-zinc-900 lg:text-7xl">
           Everything your team needs to run a great practice.
@@ -49,13 +50,13 @@ function Hero() {
         <div className="flex flex-col gap-4 pt-2 sm:flex-row">
           <Link
             to="/drills"
-            className="bg-pink-700 px-8 py-4 text-center font-mono text-sm font-bold uppercase tracking-wider text-white transition-colors hover:bg-pink-800"
+            className="bg-film-accentPink px-8 py-4 text-center font-mono text-sm font-bold uppercase tracking-wider text-white transition-colors hover:bg-film-accentPinkDark"
           >
             Browse the Encyclopedia
           </Link>
           <Link
             to="/contribute"
-            className="border border-zinc-300 bg-zinc-100 px-8 py-4 text-center font-mono text-sm uppercase tracking-wider text-zinc-900 transition-colors hover:border-zinc-400"
+            className="border border-film-border bg-film-panel px-8 py-4 text-center font-mono text-sm uppercase tracking-wider text-zinc-900 transition-colors hover:border-zinc-400"
           >
             Submit a Drill
           </Link>
@@ -75,7 +76,7 @@ function SectionTiles() {
         <Link
           key={section.path}
           to={`/${section.path}`}
-          className="border border-zinc-300 bg-white px-4 py-6 text-center font-mono text-sm font-bold uppercase tracking-wider text-zinc-900 transition-colors hover:border-pink-700 hover:text-pink-700"
+          className="border border-film-border bg-white px-4 py-6 text-center font-mono text-sm font-bold uppercase tracking-wider text-zinc-900 transition-colors hover:border-film-accentPink hover:text-film-accentPink"
         >
           {section.label}
         </Link>
@@ -89,22 +90,21 @@ export function Home() {
 
   useEffect(() => {
     let cancelled = false;
+    // Each per-type fetch degrades to [] on failure so one failing type never
+    // blanks the whole grid — and Promise.all therefore cannot reject: the
+    // grid's worst case is the "nothing published" empty state, and the five
+    // section tiles above remain the recovery path. No retry UI needed here.
     Promise.all(
       SECTIONS.map((section) =>
-        // A failing type must not blank the whole grid — degrade per type.
         fetchEntries(section.type).catch(() => [] as EntrySummary[])
       )
-    )
-      .then((perType) => {
-        if (cancelled) return;
-        setState({
-          status: "ready",
-          entries: interleaveFeatured(perType, FEATURED_COUNT),
-        });
-      })
-      .catch(() => {
-        if (!cancelled) setState({ status: "error" });
+    ).then((perType) => {
+      if (cancelled) return;
+      setState({
+        status: "ready",
+        entries: interleaveFeatured(perType, FEATURED_COUNT),
       });
+    });
     return () => {
       cancelled = true;
     };
@@ -112,9 +112,14 @@ export function Home() {
 
   return (
     <div>
+      <Seo
+        title={pageTitle("The Ultimate Frisbee Encyclopedia")}
+        description="A free encyclopedia of ultimate frisbee drills, strategies, formations, plays, and skills — built for coaches and captains. Search, filter, and run a better practice."
+      />
+
       <Hero />
 
-      <section className="border-b border-zinc-300 bg-zinc-100">
+      <section className="border-b border-film-border bg-film-panel">
         <div className="mx-auto max-w-[1400px] px-6 py-12">
           <SectionTiles />
         </div>
@@ -124,21 +129,11 @@ export function Home() {
         aria-label="Popular Resources"
         className="mx-auto max-w-[1400px] px-6 py-12"
       >
-        <h2 className="mb-8 border-l-4 border-pink-700 pl-3 text-2xl font-bold uppercase tracking-wide text-zinc-900">
+        <h2 className="mb-8 border-l-4 border-film-accentPink pl-3 text-2xl font-bold uppercase tracking-wide text-zinc-900">
           Popular Resources
         </h2>
 
-        {state.status === "loading" && (
-          <p className="font-mono text-sm uppercase tracking-wider text-zinc-500">
-            Loading resources…
-          </p>
-        )}
-
-        {state.status === "error" && (
-          <p className="font-mono text-sm uppercase tracking-wider text-zinc-600">
-            Something went wrong loading results
-          </p>
-        )}
+        {state.status === "loading" && <SkeletonGrid label="Loading resources" />}
 
         {state.status === "ready" && state.entries.length === 0 && (
           <p className="text-lg text-zinc-600">

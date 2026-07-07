@@ -10,6 +10,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { HelmetProvider } from "react-helmet-async";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import type { EntrySummary, SearchQuery, SearchResponse } from "../api/search";
 import { SearchBar } from "../components/SearchBar";
@@ -32,6 +33,7 @@ function entry(title: string, overrides: Partial<EntrySummary> = {}): EntrySumma
     title,
     shortDescription: `${title} description`,
     skillLevel: "beginner",
+    attributes: {},
     tags: [{ name: "throwing", category: "focus" }],
     ...overrides,
   };
@@ -49,12 +51,16 @@ function lastQuery(): SearchQuery {
 }
 
 function renderSearchAt(url: string) {
+  // HelmetProvider: Search renders <Seo /> — provided by Layout in the real
+  // route tree, supplied directly here since the page mounts standalone.
   render(
-    <MemoryRouter initialEntries={[url]}>
-      <Routes>
-        <Route path="/search" element={<Search />} />
-      </Routes>
-    </MemoryRouter>
+    <HelmetProvider>
+      <MemoryRouter initialEntries={[url]}>
+        <Routes>
+          <Route path="/search" element={<Search />} />
+        </Routes>
+      </MemoryRouter>
+    </HelmetProvider>
   );
 }
 

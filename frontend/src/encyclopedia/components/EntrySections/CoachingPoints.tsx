@@ -18,7 +18,7 @@ export function CoachingPoints({
         {points.map((point, i) => (
           <li
             key={i}
-            className="border border-zinc-300 bg-zinc-100 p-4 text-sm leading-relaxed text-zinc-700 transition-colors hover:border-emerald-700"
+            className="border border-film-border bg-film-panel p-4 text-sm leading-relaxed text-zinc-700 transition-colors hover:border-film-accentGreen"
           >
             {point}
           </li>

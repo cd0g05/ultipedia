@@ -63,20 +63,20 @@ function FilterGroups({
     <div className="space-y-5">
       {FILTER_CATEGORIES.map((category) => (
         <fieldset key={category}>
-          <legend className="font-mono text-xs font-semibold uppercase tracking-wider text-gray-500">
+          <legend className="font-mono text-xs font-bold uppercase tracking-wider text-zinc-900">
             {FILTER_CATEGORY_LABELS[category]}
           </legend>
           <div className="mt-2 space-y-1">
             {optionsFor(category, active).map((value) => (
               <label
                 key={value}
-                className="flex min-h-[2.75rem] cursor-pointer items-center gap-2.5 rounded-lg px-1 text-sm capitalize text-gray-700 hover:bg-cream lg:min-h-0 lg:py-1"
+                className="flex min-h-[2.75rem] cursor-pointer items-center gap-2.5 px-1 text-sm capitalize text-zinc-700 hover:bg-film-panel lg:min-h-0 lg:py-1"
               >
                 <input
                   type="checkbox"
                   checked={active[category].includes(value)}
                   onChange={() => onToggle(category, value)}
-                  className="h-4 w-4 rounded border-gray-300 accent-clay"
+                  className="h-4 w-4 border-film-border accent-film-accentPink"
                 />
                 {filterValueLabel(value)}
               </label>
@@ -106,14 +106,14 @@ export function FilterPanel({
         aria-expanded={open}
         aria-controls="filter-panel-groups"
         onClick={() => setOpen((v) => !v)}
-        className="flex min-h-[2.75rem] w-full items-center justify-between rounded-xl border border-gray-300 bg-white px-4 py-2.5 font-semibold text-gray-800 lg:hidden"
+        className="flex min-h-[2.75rem] w-full items-center justify-between border border-film-border bg-white px-4 py-2.5 font-mono text-sm font-bold uppercase tracking-wider text-zinc-900 lg:hidden"
       >
         <span>Filters</span>
         <span className="flex items-center gap-2">
           {count > 0 && (
             <span
               aria-label={`${count} active`}
-              className="rounded-full bg-clay px-2 py-0.5 text-xs font-bold text-white"
+              className="bg-film-accentPink px-2 py-0.5 font-mono text-xs font-bold text-white"
             >
               {count}
             </span>
@@ -126,9 +126,9 @@ export function FilterPanel({
           disclosure opens), always-visible sidebar content on lg+. */}
       <div
         id="filter-panel-groups"
-        className={`${open ? "mt-3 block" : "hidden"} rounded-xl border border-gray-200 bg-white p-4 lg:mt-0 lg:block lg:border-0 lg:bg-transparent lg:p-0`}
+        className={`${open ? "mt-3 block" : "hidden"} border border-film-border bg-white p-4 lg:mt-0 lg:block lg:border-0 lg:bg-transparent lg:p-0`}
       >
-        <h2 className="mb-4 hidden font-bold text-gray-900 lg:block">Filters</h2>
+        <h2 className="mb-4 hidden border-b border-film-border pb-2 font-mono text-xs font-bold uppercase tracking-widest text-zinc-600 lg:block">Filters</h2>
         <FilterGroups active={active} onToggle={onToggle} />
       </div>
     </div>

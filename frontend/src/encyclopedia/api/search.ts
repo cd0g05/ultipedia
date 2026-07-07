@@ -1,26 +1,14 @@
 // Typed wrapper for GET /api/search (Partition 4).
 //
 // Wire format is snake_case (backend/app/schemas/encyclopedia.py); this module
-// maps it to the camelCase shapes below. NOTE: `EntrySummary`/`Tag` are a
-// deliberate, minimal duplication of Partition 3's `types.ts` (built in
-// parallel on feat/encyclopedia-browse) — consolidation happens in Partition 5.
+// maps it to the shared camelCase domain types in ../types.ts (the Partition 5
+// consolidation of the parallel-build duplication). Search-specific shapes
+// (SearchResponse, SortOption, filter categories/helpers) stay here.
 
-export type EntryType = "drill" | "strategy" | "formation" | "play" | "skill";
+import type { EntrySummary, EntryType, Tag } from "../types";
 
-export interface Tag {
-  name: string;
-  category: string;
-}
-
-export interface EntrySummary {
-  id: string;
-  slug: string;
-  type: EntryType;
-  title: string;
-  shortDescription: string;
-  skillLevel: string | null;
-  tags: Tag[];
-}
+// Re-exported so search consumers keep one import site for entry shapes.
+export type { EntrySummary, EntryType, Tag } from "../types";
 
 export interface SearchResponse {
   results: EntrySummary[];
@@ -144,7 +132,8 @@ interface WireEntrySummary {
   title: string;
   short_description: string;
   skill_level: string | null;
-  tags: { name: string; category: string }[];
+  attributes: Record<string, unknown>;
+  tags: Tag[]; // wire tag shape is identical to the domain Tag
 }
 
 interface WireSearchResult {
@@ -162,6 +151,7 @@ function toEntrySummary(wire: WireEntrySummary): EntrySummary {
     title: wire.title,
     shortDescription: wire.short_description,
     skillLevel: wire.skill_level ?? null,
+    attributes: wire.attributes ?? {},
     tags: (wire.tags ?? []).map((t) => ({ name: t.name, category: t.category })),
   };
 }

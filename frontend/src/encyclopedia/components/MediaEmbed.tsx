@@ -45,8 +45,8 @@ function VideoAdapter({ media, src }: { media: MediaItem; src: string }) {
 
 export function MediaEmbed({ media }: { media: MediaItem }) {
   return (
-    <figure className="border border-zinc-300 bg-white">
-      <div className="aspect-video bg-zinc-100">
+    <figure className="border border-film-border bg-white">
+      <div className="aspect-video bg-film-panel">
         {media.type === "youtube" ? (
           <VideoAdapter media={media} src={youTubeEmbedUrl(media.url)} />
         ) : media.type === "vimeo" ? (
@@ -56,7 +56,7 @@ export function MediaEmbed({ media }: { media: MediaItem }) {
         )}
       </div>
       {media.caption && (
-        <figcaption className="border-t border-zinc-200 px-3 py-2 font-mono text-[10px] uppercase tracking-widest text-zinc-500">
+        <figcaption className="border-t border-zinc-200 px-3 py-2 font-mono text-[10px] uppercase tracking-widest text-zinc-600">
           {media.caption}
         </figcaption>
       )}

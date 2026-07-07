@@ -69,3 +69,16 @@ export function sectionByType(type: EntryType): SectionMeta {
 export function entryUrl(entry: Pick<EntrySummary, "type" | "slug">): string {
   return `/${sectionByType(entry.type).path}/${entry.slug}`;
 }
+
+/**
+ * Split an entry body into instruction steps: one step per non-empty line,
+ * with any leading manual numbering ("1." / "2)") stripped. Single source of
+ * truth shared by the rendered numbered list (EntryDetail) and the JSON-LD
+ * HowTo steps (seo/Seo.tsx) so the two never drift.
+ */
+export function instructionSteps(body: string): string[] {
+  return body
+    .split(/\r?\n+/)
+    .map((line) => line.replace(/^\s*\d+[.)]\s*/, "").trim())
+    .filter(Boolean);
+}

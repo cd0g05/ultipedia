@@ -14,7 +14,7 @@ export function TagPill({ tag }: { tag: Tag }) {
   return (
     <Link
       to={tagSearchUrl(tag)}
-      className="inline-flex min-h-[44px] items-center border border-zinc-300 bg-zinc-50 px-3 py-1.5 font-mono text-xs font-bold uppercase tracking-wider text-emerald-700 transition-colors hover:border-pink-700 hover:text-pink-700"
+      className="inline-flex min-h-[44px] items-center border border-film-border bg-zinc-50 px-3 py-1.5 font-mono text-xs font-bold uppercase tracking-wider text-film-accentGreen transition-colors hover:border-film-accentPink hover:text-film-accentPink"
     >
       {tag.name}
     </Link>

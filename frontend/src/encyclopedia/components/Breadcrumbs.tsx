@@ -12,7 +12,7 @@ export function Breadcrumbs({ crumbs }: { crumbs: Crumb[] }) {
   return (
     <nav
       aria-label="Breadcrumb"
-      className="font-mono text-xs uppercase tracking-widest text-zinc-400"
+      className="font-mono text-xs uppercase tracking-widest text-zinc-600"
     >
       <ol className="flex flex-wrap items-center gap-2">
         {crumbs.map((crumb, i) => {
@@ -23,7 +23,7 @@ export function Breadcrumbs({ crumbs }: { crumbs: Crumb[] }) {
               {crumb.to && !isLast ? (
                 <Link
                   to={crumb.to}
-                  className="transition-colors hover:text-pink-700"
+                  className="transition-colors hover:text-film-accentPink"
                 >
                   {crumb.label}
                 </Link>

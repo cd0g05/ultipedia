@@ -8,6 +8,8 @@ import { useParams } from "react-router-dom";
 import { fetchEntries } from "../api/client";
 import { Breadcrumbs } from "../components/Breadcrumbs";
 import { EntryCard } from "../components/EntryCard";
+import { InlineError, SkeletonGrid } from "../components/Skeletons";
+import { pageTitle, Seo } from "../seo/Seo";
 import type { EntrySummary, SectionMeta } from "../types";
 import { sectionByPath } from "../types";
 import { NotFound } from "./NotFound";
@@ -17,8 +19,13 @@ type LoadState =
   | { status: "error" }
   | { status: "ready"; entries: EntrySummary[] };
 
+function sectionDescription(section: SectionMeta): string {
+  return `Browse ultimate frisbee ${section.label.toLowerCase()} — setup, instructions, coaching points, and variations. Free, no login required.`;
+}
+
 function SectionContent({ section }: { section: SectionMeta }) {
   const [state, setState] = useState<LoadState>({ status: "loading" });
+  const [retryToken, setRetryToken] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -33,32 +40,36 @@ function SectionContent({ section }: { section: SectionMeta }) {
     return () => {
       cancelled = true;
     };
-  }, [section.type]);
+  }, [section.type, retryToken]);
 
   return (
     <div className="mx-auto max-w-[1400px] px-6 py-10">
+      <Seo
+        title={pageTitle(section.label)}
+        description={sectionDescription(section)}
+      />
+
       <div className="mb-6">
         <Breadcrumbs
           crumbs={[{ label: "Home", to: "/" }, { label: section.label }]}
         />
       </div>
 
-      <div className="mb-8 border-b border-zinc-300 pb-3">
-        <h1 className="inline-block border-b-2 border-pink-700 pb-3 text-4xl font-bold uppercase tracking-wide text-zinc-900">
+      <div className="mb-8 border-b border-film-border pb-3">
+        <h1 className="inline-block border-b-2 border-film-accentPink pb-3 text-4xl font-bold uppercase tracking-wide text-zinc-900">
           {section.label}
         </h1>
       </div>
 
       {state.status === "loading" && (
-        <p className="font-mono text-sm uppercase tracking-wider text-zinc-500">
-          Loading {section.label.toLowerCase()}…
-        </p>
+        <SkeletonGrid label={`Loading ${section.label.toLowerCase()}`} />
       )}
 
       {state.status === "error" && (
-        <p className="font-mono text-sm uppercase tracking-wider text-zinc-600">
-          Something went wrong loading results
-        </p>
+        <InlineError
+          message="Something went wrong loading results"
+          onRetry={() => setRetryToken((t) => t + 1)}
+        />
       )}
 
       {state.status === "ready" && state.entries.length === 0 && (

@@ -15,9 +15,11 @@ import { CommonMistakes } from "../components/EntrySections/CommonMistakes";
 import { Variations } from "../components/EntrySections/Variations";
 import { MediaEmbed } from "../components/MediaEmbed";
 import { SimilarEntries } from "../components/SimilarEntries";
+import { EntryDetailSkeleton, InlineError } from "../components/Skeletons";
 import { TagPill } from "../components/TagPill";
+import { entryDescription, entryTitle, howToJsonLd, Seo } from "../seo/Seo";
 import type { EntryDetail as EntryDetailData, SectionMeta } from "../types";
-import { sectionByPath } from "../types";
+import { instructionSteps, sectionByPath } from "../types";
 import { NotFound } from "./NotFound";
 
 type LoadState =
@@ -41,7 +43,7 @@ function metaBadges(entry: EntryDetailData): { label: string; className: string 
   if (duration) {
     badges.push({
       label: duration.name,
-      className: "bg-zinc-50 border-zinc-300 text-emerald-700",
+      className: "bg-zinc-50 border-film-border text-film-accentGreen",
     });
   }
 
@@ -58,7 +60,7 @@ function metaBadges(entry: EntryDetailData): { label: string; className: string 
   if (teamSize) {
     badges.push({
       label: teamSize,
-      className: "bg-zinc-50 border-zinc-300 text-emerald-700",
+      className: "bg-zinc-50 border-film-border text-film-accentGreen",
     });
   }
 
@@ -67,17 +69,14 @@ function metaBadges(entry: EntryDetailData): { label: string; className: string 
 
 /** Numbered instructions: multi-line bodies render as an ordered list. */
 function InstructionsBody({ body }: { body: string }) {
-  const steps = body
-    .split(/\r?\n+/)
-    .map((line) => line.replace(/^\s*\d+[.)]\s*/, "").trim())
-    .filter(Boolean);
+  const steps = instructionSteps(body);
 
   if (steps.length === 0) return null;
 
   return (
     <section aria-label="Setup & Instructions">
-      <div className="mb-6 flex items-center gap-3 border-b border-zinc-300 pb-2">
-        <span className="bg-pink-700 px-2 py-1 font-mono text-[10px] text-white">
+      <div className="mb-6 flex items-center gap-3 border-b border-film-border pb-2">
+        <span className="bg-film-accentPink px-2 py-1 font-mono text-[10px] text-white">
           01
         </span>
         <h2 className="font-mono text-sm font-bold uppercase tracking-widest text-zinc-900">
@@ -107,6 +106,7 @@ function EntryDetailContent({
   slug: string;
 }) {
   const [state, setState] = useState<LoadState>({ status: "loading" });
+  const [retryToken, setRetryToken] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -122,26 +122,19 @@ function EntryDetailContent({
     return () => {
       cancelled = true;
     };
-  }, [section.type, slug]);
+  }, [section.type, slug, retryToken]);
 
-  if (state.status === "loading") {
-    return (
-      <div className="mx-auto max-w-[1400px] px-6 py-10">
-        <p className="font-mono text-sm uppercase tracking-wider text-zinc-500">
-          Loading entry…
-        </p>
-      </div>
-    );
-  }
+  if (state.status === "loading") return <EntryDetailSkeleton />;
 
   if (state.status === "not-found") return <NotFound section={section} />;
 
   if (state.status === "error") {
     return (
       <div className="mx-auto max-w-[1400px] px-6 py-10">
-        <p className="font-mono text-sm uppercase tracking-wider text-zinc-600">
-          Something went wrong loading this entry
-        </p>
+        <InlineError
+          message="Something went wrong loading this entry"
+          onRetry={() => setRetryToken((t) => t + 1)}
+        />
       </div>
     );
   }
@@ -151,6 +144,14 @@ function EntryDetailContent({
 
   return (
     <article className="mx-auto max-w-[1400px] px-6 py-10">
+      {/* Unique per-entry title/description; drills also emit HowTo JSON-LD
+          (PRD FR-5.3) built from the same parsed steps rendered below. */}
+      <Seo
+        title={entryTitle(entry)}
+        description={entryDescription(entry)}
+        jsonLd={howToJsonLd(entry)}
+      />
+
       {/* Breadcrumbs + type badge */}
       <div className="mb-6 flex flex-wrap items-center gap-3">
         <span className="bg-zinc-900 px-2 py-1 font-mono text-[10px] font-bold uppercase text-white">
@@ -170,7 +171,8 @@ function EntryDetailContent({
         {entry.title}
       </h1>
 
-      {/* Badges / duration / team-size row (above the fold) */}
+      {/* Badges / duration / team-size row (above the fold). Every badge
+          carries its text label — color is never the only signal. */}
       <div className="mb-8 flex flex-wrap gap-2 font-mono text-xs font-bold uppercase tracking-wider">
         {metaBadges(entry).map((badge) => (
           <span
@@ -193,7 +195,7 @@ function EntryDetailContent({
         {/* Scrollable info column */}
         <div className={primaryMedia ? "w-full md:w-7/12" : "w-full max-w-3xl"}>
           {entry.shortDescription && (
-            <p className="mb-12 border-l-4 border-pink-700 pl-5 text-lg leading-relaxed text-zinc-600">
+            <p className="mb-12 border-l-4 border-film-accentPink pl-5 text-lg leading-relaxed text-zinc-600">
               {entry.shortDescription}
             </p>
           )}

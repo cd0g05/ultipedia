@@ -1,15 +1,23 @@
-// Persistent encyclopedia search bar (Partition 4, task 50).
+// Persistent encyclopedia search bar (Partition 4, task 50). Mounted in the
+// shared Layout header (desktop) and page-mounted full-width on /search;
+// below md the header shows an icon link to /search instead (Partition 5).
 //
 // Self-contained: submitting navigates to /search?q=... . When already on
 // /search it preserves the active filter params so refining a query never
-// silently drops the user's narrowing. The shared header/shell is being built
-// on feat/encyclopedia-browse in parallel — mounting this component in that
-// header is deferred to the merge/Partition 5 (flagged in Reflect).
+// silently drops the user's narrowing. Styled per the Light Film Room system
+// (film-* tokens).
 
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
-export function SearchBar({ className = "" }: { className?: string }) {
+export function SearchBar({
+  className = "",
+  label = "Search",
+}: {
+  className?: string;
+  /** Accessible name for the search landmark (must be unique per page). */
+  label?: string;
+}) {
   const navigate = useNavigate();
   const location = useLocation();
   const currentQ =
@@ -43,6 +51,7 @@ export function SearchBar({ className = "" }: { className?: string }) {
   return (
     <form
       role="search"
+      aria-label={label}
       onSubmit={handleSubmit}
       className={`flex w-full max-w-xl items-center gap-2 ${className}`}
     >
@@ -52,11 +61,11 @@ export function SearchBar({ className = "" }: { className?: string }) {
         onChange={(e) => setValue(e.target.value)}
         placeholder="Search drills, strategies, plays..."
         aria-label="Search the encyclopedia"
-        className="w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-gray-900 placeholder:text-gray-400 focus:border-clay focus:outline-none focus:ring-1 focus:ring-clay"
+        className="w-full border border-film-border bg-white px-4 py-2 text-zinc-900 placeholder:text-zinc-500 focus:border-film-accentPink focus:outline-none focus:ring-1 focus:ring-film-accentPink"
       />
       <button
         type="submit"
-        className="rounded-xl bg-clay px-5 py-2.5 font-semibold text-white"
+        className="bg-film-accentPink px-5 py-2 font-mono text-sm font-bold uppercase tracking-wider text-white transition-colors hover:bg-film-accentPinkDark"
       >
         Search
       </button>

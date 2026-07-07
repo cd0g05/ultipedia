@@ -33,7 +33,7 @@ export function FilterChips({
             type="button"
             onClick={() => onRemove(category, value)}
             aria-label={`Remove filter ${FILTER_CATEGORY_LABELS[category]}: ${filterValueLabel(value)}`}
-            className="flex min-h-[2.25rem] items-center gap-1.5 rounded-full border border-clay/40 bg-cream px-3 py-1 font-mono text-xs uppercase tracking-wider text-clay hover:border-clay"
+            className="flex min-h-[2.25rem] items-center gap-1.5 border border-film-accentPink bg-white px-3 py-1 font-mono text-xs font-bold uppercase tracking-wider text-film-accentPink transition-colors hover:bg-film-accentPink hover:text-white"
           >
             {filterValueLabel(value)}
             <span aria-hidden="true" className="font-sans text-sm leading-none">
@@ -47,7 +47,7 @@ export function FilterChips({
           <button
             type="button"
             onClick={onClearAll}
-            className="min-h-[2.25rem] px-2 py-1 text-xs font-semibold text-gray-500 underline underline-offset-2 hover:text-gray-800"
+            className="min-h-[2.25rem] px-2 py-1 font-mono text-xs font-bold uppercase tracking-wider text-zinc-600 underline underline-offset-2 hover:text-zinc-900"
           >
             Clear all
           </button>

@@ -39,18 +39,20 @@ export function EntryCard({ entry }: { entry: EntrySummary }) {
   return (
     <Link
       to={entryUrl(entry)}
-      className="group block border border-zinc-300 bg-white transition-colors hover:border-pink-700"
+      className="group block border border-film-border bg-white transition-colors hover:border-film-accentPink"
       data-testid="entry-card"
     >
-      <div className="relative border-b border-zinc-300 bg-zinc-100 px-3 py-2">
+      <div className="relative border-b border-film-border bg-film-panel px-3 py-2">
         <span className="bg-zinc-900 px-2 py-1 font-mono text-[10px] font-bold uppercase text-white">
           {entry.type}
         </span>
       </div>
       <div className="p-4">
-        <h3 className="mb-1 truncate text-lg font-bold uppercase tracking-wide text-zinc-900">
+        {/* h2, not h3: cards sit directly under a page h1 on section pages —
+            an h3 would skip a heading level (axe: heading-order). */}
+        <h2 className="mb-1 truncate text-lg font-bold uppercase tracking-wide text-zinc-900">
           {entry.title}
-        </h3>
+        </h2>
         <p className="mb-3 line-clamp-2 text-xs text-zinc-600">
           {entry.shortDescription}
         </p>
@@ -65,7 +67,7 @@ export function EntryCard({ entry }: { entry: EntrySummary }) {
           {cardTags.map((tag) => (
             <span
               key={`${tag.category}:${tag.name}`}
-              className="border border-zinc-300 bg-zinc-50 px-1.5 py-0.5 text-emerald-700"
+              className="border border-film-border bg-zinc-50 px-1.5 py-0.5 text-film-accentGreen"
             >
               {tag.name}
             </span>

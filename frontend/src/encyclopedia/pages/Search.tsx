@@ -1,4 +1,6 @@
-// /search results page (Partition 4, tasks 53–56).
+// /search results page (Partition 4, tasks 53–56; restyled to the Light Film
+// Room system in Partition 5 — white/zinc base, film-* accent tokens, square
+// corners, mono uppercase micro-copy — so /search matches the browse pages).
 //
 // The URL's search params are the single source of truth for query, filters,
 // sort, and page — so every filtered view is shareable, back/forward works,
@@ -17,7 +19,6 @@ import { Link, useSearchParams } from "react-router-dom";
 import {
   type ActiveFilters,
   type EntrySummary,
-  type EntryType,
   type FilterCategory,
   type SortOption,
   FILTER_CATEGORIES,
@@ -27,9 +28,13 @@ import {
   searchEntries,
   withoutFilter,
 } from "../api/search";
+import { skillBadgeClass } from "../components/EntryCard";
 import { FilterChips } from "../components/FilterChips";
 import { FilterPanel, filterValueLabel } from "../components/FilterPanel";
 import { SearchBar } from "../components/SearchBar";
+import { InlineError, SkeletonGrid } from "../components/Skeletons";
+import { pageTitle, Seo } from "../seo/Seo";
+import { entryUrl } from "../types";
 
 const SORT_OPTIONS: { value: SortOption; label: string }[] = [
   { value: "relevance", label: "Relevance" },
@@ -38,13 +43,7 @@ const SORT_OPTIONS: { value: SortOption; label: string }[] = [
   { value: "newest", label: "Newest" },
 ];
 
-const SECTION_PATHS: Record<EntryType, string> = {
-  drill: "/drills",
-  strategy: "/strategies",
-  formation: "/formations",
-  play: "/plays",
-  skill: "/skills",
-};
+const RESULTS_GRID = "grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3";
 
 interface EmptyState {
   /** Present when ≥1 filter was active: the (category, value) whose removal
@@ -103,54 +102,46 @@ async function buildEmptyState(
   return { mostRestrictive: pairs[best], closeMatches };
 }
 
-function SkillBadge({ skillLevel }: { skillLevel: string | null }) {
-  if (!skillLevel) return null;
-  return (
-    <span className="rounded-full bg-amber/20 px-2.5 py-0.5 font-mono text-xs uppercase tracking-wider text-clay">
-      {skillLevel}
-    </span>
-  );
-}
-
+/** Result card in the EntryCard visual frame (type strip → title →
+ * description → badges). Only the title is a link so assistive tech (and the
+ * sort-order tests) read one clean link per card. */
 function ResultCard({ entry }: { entry: EntrySummary }) {
   return (
-    <li className="rounded-2xl border border-gray-200 bg-white p-5">
-      <div className="flex items-start justify-between gap-3">
+    <li className="border border-film-border bg-white transition-colors hover:border-film-accentPink">
+      <div className="border-b border-film-border bg-film-panel px-3 py-2">
+        <span className="bg-zinc-900 px-2 py-1 font-mono text-[10px] font-bold uppercase text-white">
+          {entry.type}
+        </span>
+      </div>
+      <div className="p-4">
         <Link
-          to={`${SECTION_PATHS[entry.type]}/${entry.slug}`}
-          className="font-bold text-gray-900 hover:text-clay"
+          to={entryUrl(entry)}
+          className="text-lg font-bold uppercase tracking-wide text-zinc-900 hover:text-film-accentPink"
         >
           {entry.title}
         </Link>
-        <SkillBadge skillLevel={entry.skillLevel} />
-      </div>
-      <p className="mt-2 text-sm text-gray-600">{entry.shortDescription}</p>
-      {entry.tags.length > 0 && (
-        <p className="mt-3 flex flex-wrap gap-2">
+        <p className="mb-3 mt-1 line-clamp-2 text-xs text-zinc-600">
+          {entry.shortDescription}
+        </p>
+        <div className="flex flex-wrap gap-1.5 font-mono text-[10px] font-bold uppercase tracking-wider">
+          {entry.skillLevel && (
+            <span
+              className={`border px-1.5 py-0.5 ${skillBadgeClass(entry.skillLevel)}`}
+            >
+              {entry.skillLevel}
+            </span>
+          )}
           {entry.tags.slice(0, 3).map((tag) => (
             <span
               key={`${tag.category}:${tag.name}`}
-              className="font-mono text-xs uppercase tracking-wider text-gray-500"
+              className="border border-film-border bg-zinc-50 px-1.5 py-0.5 text-film-accentGreen"
             >
               {tag.name}
             </span>
           ))}
-        </p>
-      )}
+        </div>
+      </div>
     </li>
-  );
-}
-
-function SkeletonGrid() {
-  return (
-    <div aria-hidden="true" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-      {[0, 1, 2, 3, 4, 5].map((i) => (
-        <div
-          key={i}
-          className="h-36 animate-pulse rounded-2xl border border-gray-200 bg-white"
-        />
-      ))}
-    </div>
   );
 }
 
@@ -265,141 +256,140 @@ export function Search() {
   }, [updateParams]);
 
   return (
-    <div className="min-h-screen bg-cream">
-      <main className="mx-auto max-w-6xl px-4 py-6">
-        <h1 className="text-2xl font-bold text-gray-900">Search</h1>
-        {/* Persistent search bar — page-level mount until the shared header
-            shell (Partition 3) can host it (see Reflect notes). */}
-        <div className="mt-4">
-          <SearchBar />
-        </div>
+    <div className="mx-auto max-w-[1400px] px-6 py-10">
+      <Seo
+        title={q ? pageTitle(`Search: ${q}`) : pageTitle("Search")}
+        description="Search and filter the full ultimate frisbee encyclopedia — drills, strategies, formations, plays, and skills — by skill level, team size, duration, and focus."
+      />
 
-        <div className="mt-6 flex flex-col gap-6 lg:flex-row">
-          <aside aria-label="Filter results" className="lg:w-64 lg:shrink-0">
-            <FilterPanel active={filters} onToggle={toggleFilter} />
-          </aside>
+      <div className="mb-8 border-b border-film-border pb-3">
+        <h1 className="inline-block border-b-2 border-film-accentPink pb-3 text-4xl font-bold uppercase tracking-wide text-zinc-900">
+          Search
+        </h1>
+      </div>
 
-          <section aria-label="Search results" className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <p className="text-sm text-gray-600" role="status">
-                {state.status === "populated" &&
-                  `${state.total} result${state.total === 1 ? "" : "s"}${q ? ` for "${q}"` : ""}`}
-                {state.status === "empty" && "0 results"}
-                {state.status === "loading" && "Searching…"}
-              </p>
-              <label className="flex items-center gap-2 text-sm text-gray-600">
-                Sort by
-                <select
-                  value={sort ?? "relevance"}
-                  onChange={(e) => setSort(e.target.value)}
-                  className="rounded-lg border border-gray-300 bg-white px-2 py-1.5 text-sm text-gray-800"
-                >
-                  {SORT_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            </div>
+      {/* Page-level full-width bar (the header bar is compact/desktop-only). */}
+      <SearchBar />
 
-            <div className="mt-3">
-              <FilterChips
-                active={filters}
-                onRemove={removeFilter}
-                onClearAll={clearAllFilters}
+      <div className="mt-8 flex flex-col gap-8 lg:flex-row">
+        <aside aria-label="Filter results" className="lg:w-64 lg:shrink-0">
+          <FilterPanel active={filters} onToggle={toggleFilter} />
+        </aside>
+
+        <section aria-label="Search results" className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p
+              className="font-mono text-sm uppercase tracking-wider text-zinc-600"
+              role="status"
+            >
+              {state.status === "populated" &&
+                `${state.total} result${state.total === 1 ? "" : "s"}${q ? ` for "${q}"` : ""}`}
+              {state.status === "empty" && "0 results"}
+              {state.status === "loading" && "Searching…"}
+            </p>
+            <label className="flex items-center gap-2 font-mono text-sm uppercase tracking-wider text-zinc-600">
+              Sort by
+              <select
+                value={sort ?? "relevance"}
+                onChange={(e) => setSort(e.target.value)}
+                className="border border-film-border bg-white px-2 py-1.5 font-mono text-sm text-zinc-900"
+              >
+                {SORT_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+
+          <div className="mt-3">
+            <FilterChips
+              active={filters}
+              onRemove={removeFilter}
+              onClearAll={clearAllFilters}
+            />
+          </div>
+
+          <div className="mt-4">
+            {state.status === "loading" && (
+              <SkeletonGrid gridClassName={RESULTS_GRID} />
+            )}
+
+            {state.status === "error" && (
+              <InlineError
+                message="Something went wrong loading results"
+                onRetry={() => setRetryToken((t) => t + 1)}
               />
-            </div>
+            )}
 
-            <div className="mt-4">
-              {state.status === "loading" && <SkeletonGrid />}
+            {state.status === "populated" && (
+              <ul className={`${RESULTS_GRID} list-none`}>
+                {state.results.map((entry) => (
+                  <ResultCard key={entry.id} entry={entry} />
+                ))}
+              </ul>
+            )}
 
-              {state.status === "error" && (
-                <div
-                  role="alert"
-                  className="rounded-2xl border border-coral/40 bg-white p-6"
-                >
-                  <p className="font-semibold text-gray-900">
-                    Something went wrong loading results
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => setRetryToken((t) => t + 1)}
-                    className="mt-3 rounded-xl bg-clay px-4 py-2 font-semibold text-white"
-                  >
-                    Retry
-                  </button>
-                </div>
-              )}
-
-              {state.status === "populated" && (
-                <ul className="grid list-none gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                  {state.results.map((entry) => (
-                    <ResultCard key={entry.id} entry={entry} />
-                  ))}
-                </ul>
-              )}
-
-              {state.status === "empty" && (
-                <div className="rounded-2xl border border-gray-200 bg-white p-6">
-                  {state.empty.mostRestrictive ? (
-                    <>
-                      <h2 className="text-lg font-bold text-gray-900">
-                        No exact matches for these filters
-                      </h2>
-                      <p className="mt-1 text-sm text-gray-600">
-                        {`Your most restrictive filter is ${FILTER_CATEGORY_LABELS[state.empty.mostRestrictive[0]]}: ${filterValueLabel(state.empty.mostRestrictive[1])}.`}
-                      </p>
+            {state.status === "empty" && (
+              <div className="border border-film-border bg-white p-6">
+                {state.empty.mostRestrictive ? (
+                  <>
+                    <h2 className="text-lg font-bold uppercase tracking-wide text-zinc-900">
+                      No exact matches for these filters
+                    </h2>
+                    <p className="mt-1 text-sm text-zinc-600">
+                      {`Your most restrictive filter is ${FILTER_CATEGORY_LABELS[state.empty.mostRestrictive[0]]}: ${filterValueLabel(state.empty.mostRestrictive[1])}.`}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        removeFilter(
+                          state.empty.mostRestrictive![0],
+                          state.empty.mostRestrictive![1]
+                        )
+                      }
+                      className="mt-3 bg-film-accentPink px-4 py-2 font-mono text-sm font-bold uppercase tracking-wider text-white transition-colors hover:bg-film-accentPinkDark"
+                    >
+                      {`Remove "${filterValueLabel(state.empty.mostRestrictive[1])}" to see more`}
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <h2 className="text-lg font-bold uppercase tracking-wide text-zinc-900">
+                      {q
+                        ? `No results for "${q}"`
+                        : "Nothing published here yet — check back soon"}
+                    </h2>
+                    {q && (
                       <button
                         type="button"
-                        onClick={() =>
-                          removeFilter(
-                            state.empty.mostRestrictive![0],
-                            state.empty.mostRestrictive![1]
-                          )
-                        }
-                        className="mt-3 rounded-xl bg-clay px-4 py-2 font-semibold text-white"
+                        onClick={clearQuery}
+                        className="mt-3 bg-film-accentPink px-4 py-2 font-mono text-sm font-bold uppercase tracking-wider text-white transition-colors hover:bg-film-accentPinkDark"
                       >
-                        {`Remove "${filterValueLabel(state.empty.mostRestrictive[1])}" to see more`}
+                        Clear search
                       </button>
-                    </>
-                  ) : (
-                    <>
-                      <h2 className="text-lg font-bold text-gray-900">
-                        {q
-                          ? `No results for "${q}"`
-                          : "Nothing published here yet — check back soon"}
-                      </h2>
-                      {q && (
-                        <button
-                          type="button"
-                          onClick={clearQuery}
-                          className="mt-3 rounded-xl bg-clay px-4 py-2 font-semibold text-white"
-                        >
-                          Clear search
-                        </button>
-                      )}
-                    </>
-                  )}
+                    )}
+                  </>
+                )}
 
-                  {state.empty.closeMatches.length > 0 && (
-                    <div className="mt-6">
-                      <h3 className="font-mono text-xs font-semibold uppercase tracking-wider text-gray-500">
-                        Close matches
-                      </h3>
-                      <ul className="mt-3 grid list-none gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                        {state.empty.closeMatches.map((entry) => (
-                          <ResultCard key={entry.id} entry={entry} />
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          </section>
-        </div>
-      </main>
+                {state.empty.closeMatches.length > 0 && (
+                  <div className="mt-6">
+                    <h3 className="font-mono text-xs font-bold uppercase tracking-wider text-zinc-600">
+                      Close matches
+                    </h3>
+                    <ul className={`mt-3 list-none ${RESULTS_GRID}`}>
+                      {state.empty.closeMatches.map((entry) => (
+                        <ResultCard key={entry.id} entry={entry} />
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </section>
+      </div>
     </div>
   );
 }
