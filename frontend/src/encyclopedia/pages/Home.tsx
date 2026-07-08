@@ -39,7 +39,7 @@ function Hero() {
   return (
     <section className="border-b border-film-border bg-white">
       <div className="mx-auto flex max-w-[1400px] flex-col gap-8 px-6 py-16 lg:py-24">
-        <h1 className="max-w-4xl text-5xl font-bold uppercase leading-none tracking-tight text-zinc-900 lg:text-7xl">
+        <h1 className="font-heading max-w-4xl text-5xl font-bold uppercase leading-none tracking-tight text-zinc-900 lg:text-7xl">
           Everything your team needs to run a great practice.
         </h1>
         <p className="max-w-lg text-xl text-zinc-600">
@@ -129,7 +129,7 @@ export function Home() {
         aria-label="Popular Resources"
         className="mx-auto max-w-[1400px] px-6 py-12"
       >
-        <h2 className="mb-8 border-l-4 border-film-accentPink pl-3 text-2xl font-bold uppercase tracking-wide text-zinc-900">
+        <h2 className="font-heading mb-8 border-l-4 border-film-accentPink pl-3 text-2xl font-bold uppercase tracking-wide text-zinc-900">
           Popular Resources
         </h2>
 

@@ -59,7 +59,7 @@ export function SearchBar({
         type="search"
         value={value}
         onChange={(e) => setValue(e.target.value)}
-        placeholder="Search drills, strategies, plays..."
+        placeholder="Search"
         aria-label="Search the encyclopedia"
         className="w-full border border-film-border bg-white px-4 py-2 text-zinc-900 placeholder:text-zinc-500 focus:border-film-accentPink focus:outline-none focus:ring-1 focus:ring-film-accentPink"
       />

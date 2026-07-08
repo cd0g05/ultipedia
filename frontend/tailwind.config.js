@@ -24,6 +24,14 @@ export default {
           accentGreen: "#047857",
         },
       },
+      fontFamily: {
+        heading: [
+          '"DrukaatieBurti"',
+          '"Oswald"',
+          '"Arial Narrow"',
+          'sans-serif',
+        ],
+      },
     },
   },
   plugins: [],
