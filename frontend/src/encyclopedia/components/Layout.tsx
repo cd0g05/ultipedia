@@ -87,7 +87,9 @@ function MobileSearchLink() {
 export function Layout() {
   return (
     <HelmetProvider>
-      <div className="flex min-h-screen flex-col bg-white text-zinc-900">
+      {/* .film-room (index.css): Helvetica body voice + hard-corner rule,
+          scoped here so /contribute keeps its own visual system. */}
+      <div className="film-room flex min-h-screen flex-col bg-white text-zinc-900">
         <header className="sticky top-0 z-50 border-b border-film-border bg-white">
           <div className="mx-auto flex h-16 max-w-[1400px] items-center justify-between gap-4 px-4 sm:px-6 md:gap-6">
             <div className="flex items-center gap-10">
@@ -122,12 +124,27 @@ export function Layout() {
             <div className="text-xl font-bold uppercase tracking-widest text-zinc-900">
               Ultipedia<span className="text-film-accentPink">.</span>
             </div>
-            <Link
-              to="/contribute"
-              className="font-mono text-xs font-bold uppercase tracking-wider text-zinc-600 transition-colors hover:text-film-accentPink"
+            {/* Slash-separated link row per mockup footer. */}
+            <nav
+              aria-label="Footer"
+              className="flex flex-wrap items-center justify-center gap-3 font-mono text-xs font-bold uppercase tracking-wider text-zinc-600"
             >
-              Submit a Drill
-            </Link>
+              <Link to="/about" className="transition-colors hover:text-film-accentPink">
+                About
+              </Link>
+              <span aria-hidden="true" className="text-zinc-400">/</span>
+              <Link to="/contact" className="transition-colors hover:text-film-accentPink">
+                Contact
+              </Link>
+              <span aria-hidden="true" className="text-zinc-400">/</span>
+              <Link to="/contribute" className="transition-colors hover:text-film-accentPink">
+                Submit a Drill
+              </Link>
+              <span aria-hidden="true" className="text-zinc-400">/</span>
+              <Link to="/privacy" className="transition-colors hover:text-film-accentPink">
+                Privacy
+              </Link>
+            </nav>
             <div className="font-mono text-xs text-zinc-600">
               © 2026 Ultipedia
             </div>

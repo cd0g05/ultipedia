@@ -26,11 +26,17 @@ export default {
       },
       fontFamily: {
         heading: [
+          '"Druk"',
           '"DrukaatieBurti"',
           '"Oswald"',
           '"Arial Narrow"',
           'sans-serif',
         ],
+        // Mockup config: mono is the "film room / spec sheet" UI voice
+        // (nav, pills, buttons, badges); sans is body prose. Self-hosted
+        // JetBrains Mono via @font-face in index.css.
+        mono: ['"JetBrains Mono"', "monospace"],
+        sans: ['"Helvetica Neue"', "Arial", "sans-serif"],
       },
     },
   },

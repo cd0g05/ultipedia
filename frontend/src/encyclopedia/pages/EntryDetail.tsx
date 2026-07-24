@@ -67,6 +67,33 @@ function metaBadges(entry: EntryDetailData): { label: string; className: string 
   return badges;
 }
 
+/** Graph-paper media pane with the mockup's mini "diagram frame" window —
+ * the empty/loading state for the media slot until an entry has real media
+ * (or the future Drill Visualizer renders here). */
+function DiagramPlaceholder() {
+  return (
+    <div
+      aria-hidden="true"
+      className="graph-paper flex items-center justify-center border border-film-border bg-film-panel p-8"
+    >
+      <div className="flex aspect-square w-full max-w-md flex-col border border-zinc-300 bg-white shadow-sm">
+        <div className="flex h-8 items-center justify-between border-b border-zinc-200 bg-zinc-50 px-3">
+          <span className="font-mono text-[10px] text-zinc-500">
+            PLAYBOOK_VIEW_V1
+          </span>
+          <div className="flex gap-1">
+            <div className="h-2 w-2 bg-zinc-300" />
+            <div className="h-2 w-2 bg-zinc-300" />
+          </div>
+        </div>
+        <div className="flex flex-1 items-center justify-center font-mono text-sm text-zinc-400">
+          [ DIAGRAM COMING SOON ]
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /** Numbered instructions: multi-line bodies render as an ordered list. */
 function InstructionsBody({ body }: { body: string }) {
   const steps = instructionSteps(body);
@@ -185,15 +212,19 @@ function EntryDetailContent({
       </div>
 
       <div className="flex flex-col gap-12 md:flex-row md:items-start">
-        {/* Primary media (sticky visual focus on desktop, per mockup) */}
-        {primaryMedia && (
-          <div className="w-full md:sticky md:top-20 md:w-5/12">
+        {/* Primary media (sticky visual focus on desktop, per mockup); when
+            an entry has no media yet, the mockup's graph-paper "diagram
+            frame" holds the slot so the two-column layout stays intact. */}
+        <div className="w-full md:sticky md:top-20 md:w-5/12">
+          {primaryMedia ? (
             <MediaEmbed media={primaryMedia} />
-          </div>
-        )}
+          ) : (
+            <DiagramPlaceholder />
+          )}
+        </div>
 
         {/* Scrollable info column */}
-        <div className={primaryMedia ? "w-full md:w-7/12" : "w-full max-w-3xl"}>
+        <div className="w-full md:w-7/12">
           {entry.shortDescription && (
             <p className="mb-12 border-l-4 border-film-accentPink pl-5 text-lg leading-relaxed text-zinc-600">
               {entry.shortDescription}
@@ -221,6 +252,19 @@ function EntryDetailContent({
                 </div>
               </section>
             )}
+
+            {/* Mockup's closing action block; disabled until the practice
+                planner exists (mockup-parity plan #11). */}
+            <div className="pt-2">
+              <button
+                type="button"
+                disabled
+                title="Coming soon"
+                className="w-full cursor-not-allowed border-2 border-zinc-300 bg-white py-4 font-mono text-sm font-bold uppercase tracking-widest text-zinc-400"
+              >
+                + Add to Current Practice Plan (Coming Soon)
+              </button>
+            </div>
           </div>
         </div>
       </div>

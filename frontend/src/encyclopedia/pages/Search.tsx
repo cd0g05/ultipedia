@@ -108,19 +108,24 @@ async function buildEmptyState(
 function ResultCard({ entry }: { entry: EntrySummary }) {
   return (
     <li className="border border-film-border bg-white transition-colors hover:border-film-accentPink">
-      <div className="border-b border-film-border bg-film-panel px-3 py-2">
-        <span className="bg-zinc-900 px-2 py-1 font-mono text-[10px] font-bold uppercase text-white">
+      {/* Same card anatomy as EntryCard (media placeholder + panel content),
+          but only the title is a link — see docstring above. */}
+      <div className="relative flex aspect-video items-center justify-center overflow-hidden border-b border-film-border bg-zinc-100">
+        <span className="absolute left-0 top-0 z-10 bg-zinc-900 px-2 py-1 font-mono text-[10px] font-bold uppercase text-white">
           {entry.type}
         </span>
+        <span aria-hidden="true" className="font-mono text-xs text-zinc-400">
+          [ IMAGE ]
+        </span>
       </div>
-      <div className="p-4">
+      <div className="bg-film-panel p-4">
         <Link
           to={entryUrl(entry)}
-          className="text-lg font-bold uppercase tracking-wide text-zinc-900 hover:text-film-accentPink"
+          className="font-heading text-lg uppercase tracking-wide text-zinc-900 hover:text-film-accentPink"
         >
           {entry.title}
         </Link>
-        <p className="mb-3 mt-1 line-clamp-2 text-xs text-zinc-600">
+        <p className="mb-4 mt-2 line-clamp-2 text-xs text-zinc-600">
           {entry.shortDescription}
         </p>
         <div className="flex flex-wrap gap-1.5 font-mono text-[10px] font-bold uppercase tracking-wider">
@@ -134,7 +139,7 @@ function ResultCard({ entry }: { entry: EntrySummary }) {
           {entry.tags.slice(0, 3).map((tag) => (
             <span
               key={`${tag.category}:${tag.name}`}
-              className="border border-film-border bg-zinc-50 px-1.5 py-0.5 text-film-accentGreen"
+              className="border border-film-border bg-white px-1.5 py-0.5 text-film-accentGreen"
             >
               {tag.name}
             </span>

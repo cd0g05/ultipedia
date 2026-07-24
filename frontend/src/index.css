@@ -1,3 +1,23 @@
+/* Druk (Commercial Type) — TRIAL builds from fonts/Druk_Collection; license
+   the real cuts before production. DrukaatieBurti kept below as fallback. */
+@font-face {
+  font-family: "Druk";
+  font-weight: 400;
+  src: url("/fonts/Druk-Medium-Trial.otf") format("opentype");
+}
+
+@font-face {
+  font-family: "Druk";
+  font-weight: 700;
+  src: url("/fonts/Druk-Bold-Trial.otf") format("opentype");
+}
+
+@font-face {
+  font-family: "Druk";
+  font-weight: 900;
+  src: url("/fonts/Druk-Super-Trial.otf") format("opentype");
+}
+
 @font-face {
   font-family: "DrukaatieBurti";
   font-weight: 400;
@@ -16,6 +36,18 @@
   src: url("/fonts/DrukaatieBurti-Heavy.ttf") format("truetype");
 }
 
+@font-face {
+  font-family: "JetBrains Mono";
+  font-weight: 400;
+  src: url("/fonts/JetBrainsMono-Regular.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "JetBrains Mono";
+  font-weight: 700;
+  src: url("/fonts/JetBrainsMono-Bold.ttf") format("truetype");
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -24,7 +56,27 @@
   color-scheme: light;
 }
 
+/* Nunito stack is the intake app's (/contribute) body voice; the
+   encyclopedia shell overrides it via .film-room below. */
 body {
   margin: 0;
   font-family: "Nunito", "Inter", system-ui, -apple-system, sans-serif;
+}
+
+/* "Light Film Room" scope (encyclopedia shell root, Layout.tsx):
+   Helvetica body voice + hard corners everywhere — the mockups' global
+   `border-radius: 0` rule, scoped so the intake app keeps its rounding. */
+.film-room {
+  font-family: "Helvetica Neue", Arial, sans-serif;
+}
+.film-room * {
+  border-radius: 0;
+}
+
+/* Graph-paper background for media/diagram placeholder panes (mockup's
+   "tactical board" empty state). */
+.graph-paper {
+  background-image: linear-gradient(to right, #e4e4e7 1px, transparent 1px),
+    linear-gradient(to bottom, #e4e4e7 1px, transparent 1px);
+  background-size: 2rem 2rem;
 }
