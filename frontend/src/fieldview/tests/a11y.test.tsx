@@ -3,12 +3,18 @@
 // is disabled per the same rationale as encyclopedia/tests/a11y.test.tsx:
 // jsdom does not paint, so axe cannot compute real contrast.
 
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
 import axe from "axe-core";
 import { MemoryRouter } from "react-router-dom";
 import { Whiteboard } from "../pages/Whiteboard";
 import { Designer } from "../pages/Designer";
+
+// Overlay prefs persist in localStorage, so each case must start from a
+// known rail state rather than inheriting the previous test's.
+beforeEach(() => {
+  localStorage.clear();
+});
 
 async function expectNoViolations(container: Element) {
   const results = await axe.run(container, {
@@ -28,6 +34,19 @@ describe("axe-core audit", () => {
 
   it("/field-view/designer has no violations", async () => {
     const { container } = render(<MemoryRouter><Designer /></MemoryRouter>);
+    await expectNoViolations(container);
+  });
+
+  it("/field-view has no violations with the space overlay on", async () => {
+    const { container } = render(<MemoryRouter><Whiteboard /></MemoryRouter>);
+    fireEvent.click(screen.getByRole("button", { name: "Space" }));
+    fireEvent.click(screen.getByRole("button", { name: /Tuning/ }));
+    await expectNoViolations(container);
+  });
+
+  it("/field-view/designer has no violations with the space overlay on", async () => {
+    const { container } = render(<MemoryRouter><Designer /></MemoryRouter>);
+    fireEvent.click(screen.getByRole("button", { name: "Space" }));
     await expectNoViolations(container);
   });
 

@@ -19,7 +19,23 @@ function getSvgDimensions(svg: SVGSVGElement): { width: number; height: number }
   return { width: svg.clientWidth, height: svg.clientHeight };
 }
 
-export async function exportFrameAsPng(svg: SVGSVGElement, filename = "field-view.png"): Promise<void> {
+export interface ExportOverlay {
+  // The live heatmap canvas, and where it sits inside the SVG's viewBox —
+  // the export has to reproduce the stacking, or the PNG shows a field with
+  // the map missing while the screen shows it painted.
+  canvas: HTMLCanvasElement;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  alpha: number;
+}
+
+export async function exportFrameAsPng(
+  svg: SVGSVGElement,
+  filename = "field-view.png",
+  overlay?: ExportOverlay,
+): Promise<void> {
   const { width, height } = getSvgDimensions(svg);
 
   const serializer = new XMLSerializer();
@@ -42,6 +58,15 @@ export async function exportFrameAsPng(svg: SVGSVGElement, filename = "field-vie
     if (!ctx) throw new Error("Canvas 2D context is unavailable.");
     ctx.fillStyle = EXPORT_TOKENS.background;
     ctx.fillRect(0, 0, width, height);
+
+    // Same order as the screen: heatmap first, then the SVG (whose field
+    // markings and pieces are drawn over it).
+    if (overlay && overlay.canvas.width > 0 && overlay.canvas.height > 0) {
+      ctx.globalAlpha = overlay.alpha;
+      ctx.drawImage(overlay.canvas, overlay.x, overlay.y, overlay.width, overlay.height);
+      ctx.globalAlpha = 1;
+    }
+
     ctx.drawImage(image, 0, 0, width, height);
 
     const pngUrl = canvas.toDataURL("image/png");

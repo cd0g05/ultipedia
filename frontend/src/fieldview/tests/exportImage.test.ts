@@ -41,4 +41,35 @@ describe("exportFrameAsPng", () => {
     expect(clickSpy).toHaveBeenCalledTimes(1);
     expect(HTMLCanvasElement.prototype.toDataURL).toHaveBeenCalledWith("image/png");
   });
+
+  it("composites the heatmap beneath the SVG so the PNG matches the screen", async () => {
+    const svg = makeFakeSvg();
+    const heatmap = document.createElement("canvas");
+    heatmap.width = 880;
+    heatmap.height = 320;
+
+    await exportFrameAsPng(svg, "test.png", {
+      canvas: heatmap,
+      x: 20,
+      y: 30,
+      width: 880,
+      height: 320,
+      alpha: 0.78,
+    });
+
+    const ctx = (HTMLCanvasElement.prototype.getContext as ReturnType<typeof vi.fn>).mock.results[0]
+      .value as { drawImage: ReturnType<typeof vi.fn> };
+    // Heatmap first, SVG second — same stacking as ADR-3's live layers.
+    expect(ctx.drawImage).toHaveBeenCalledTimes(2);
+    expect(ctx.drawImage.mock.calls[0][0]).toBe(heatmap);
+  });
+
+  it("omits the heatmap when the overlay is off", async () => {
+    const svg = makeFakeSvg();
+    await exportFrameAsPng(svg, "test.png");
+
+    const ctx = (HTMLCanvasElement.prototype.getContext as ReturnType<typeof vi.fn>).mock.results[0]
+      .value as { drawImage: ReturnType<typeof vi.fn> };
+    expect(ctx.drawImage).toHaveBeenCalledTimes(1);
+  });
 });

@@ -11,10 +11,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { createSceneStore } from "../scene/store";
 import { getPreset } from "../scene/presets";
 import type { Scene } from "../scene/types";
-import { FIELD } from "../scene/field";
-import { FIELD_PX_HEIGHT, FIELD_PX_WIDTH, FieldLayer } from "../render/fieldLayer";
-import { PieceLayer } from "../render/pieceLayer";
-import { getStageViewBox, viewBoxToString } from "../render/coords";
 import type { PlayEntity, PlayKeyframe } from "../play/format";
 import { FilePlayStore, entitiesOf, fromPlayFile, keyframeOf, toPlayFile } from "../play/serialize";
 import { PlayValidationError } from "../play/validate";
@@ -22,6 +18,11 @@ import { samplePositions, sceneFrom } from "../play/tween";
 import { takeScene } from "../play/modeHandoff";
 import { DEFAULT_KEYFRAME_GAP, Timeline } from "../ui/Timeline";
 import { PlayMeta } from "../ui/PlayMeta";
+import { FieldCanvas } from "../ui/FieldCanvas";
+import { OverlayRail } from "../ui/OverlayRail";
+import { CellReadout } from "../ui/CellReadout";
+import type { CellReadoutHandle } from "../ui/CellReadout";
+import { useOverlayState } from "../ui/prefs";
 
 const UNDO_WINDOW_MS = 5000;
 // Timestamps are compared with a tolerance because scrubbing produces
@@ -35,6 +36,8 @@ function cloneScene(scene: Scene): Scene {
 
 export function Designer() {
   const svgRef = useRef<SVGSVGElement | null>(null);
+  const readoutRef = useRef<CellReadoutHandle | null>(null);
+  const overlay = useOverlayState();
 
   // The whiteboard scene if the user switched modes; otherwise the default
   // preset, so a direct link to /field-view/designer still works.
@@ -277,7 +280,6 @@ export function Designer() {
     }
   }
 
-  const viewBox = viewBoxToString(getStageViewBox(FIELD_PX_WIDTH, FIELD_PX_HEIGHT));
   const editable = selectedIndex !== null && !playing;
   const keyframes = keyframesRef.current.slice(0, keyframeCount);
 
@@ -321,21 +323,31 @@ export function Designer() {
         </div>
       )}
 
-      <svg
-        ref={svgRef}
-        role="group"
-        aria-label={`Ultimate field, ${FIELD.length} by ${FIELD.width} yards`}
-        viewBox={viewBox}
-        className="h-auto w-full max-w-4xl"
-      >
-        <FieldLayer />
-        <PieceLayer
-          players={entities}
-          store={store}
-          getSvg={() => svgRef.current}
-          disabled={!editable}
+      <FieldCanvas
+        store={store}
+        players={entities}
+        svgRef={svgRef}
+        overlay={overlay}
+        readoutRef={readoutRef}
+        disabled={!editable}
+      />
+
+      <div className="flex w-full flex-col gap-4 lg:flex-row">
+        <OverlayRail
+          on={overlay.on}
+          lens={overlay.lens}
+          layers={overlay.layers}
+          params={overlay.params}
+          tuningExpanded={overlay.tuningExpanded}
+          onToggle={overlay.setOn}
+          onLensChange={overlay.setLens}
+          onLayerChange={overlay.setLayer}
+          onParamChange={overlay.setParam}
+          onTuningExpandedChange={overlay.setTuningExpanded}
+          onResetParams={overlay.resetParams}
         />
-      </svg>
+        <CellReadout ref={readoutRef} />
+      </div>
 
       <Timeline
         keyframes={keyframes}

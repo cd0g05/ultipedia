@@ -10,12 +10,16 @@ import type { Scene } from "../scene/types";
 import { createPresetRegistry } from "../scene/presetRegistry";
 import { presetToScene } from "../scene/presetFormat";
 import type { PresetFile } from "../scene/presetFormat";
-import { FIELD } from "../scene/field";
-import { FIELD_PX_HEIGHT, FIELD_PX_WIDTH, FieldLayer } from "../render/fieldLayer";
-import { PieceLayer } from "../render/pieceLayer";
-import { getStageViewBox, viewBoxToString } from "../render/coords";
 import { exportFrameAsPng } from "../render/exportImage";
+import { HEATMAP_ALPHA } from "../render/heatmap";
+import { STAGE_MARGIN } from "../render/coords";
+import { FIELD_PX_HEIGHT, FIELD_PX_WIDTH } from "../render/fieldLayer";
 import { PresetMenu } from "../ui/PresetMenu";
+import { FieldCanvas } from "../ui/FieldCanvas";
+import { OverlayRail } from "../ui/OverlayRail";
+import { CellReadout } from "../ui/CellReadout";
+import type { CellReadoutHandle } from "../ui/CellReadout";
+import { useOverlayState } from "../ui/prefs";
 
 function identityOf(scene: Scene) {
   return scene.players.map((p) => ({ id: p.id, team: p.team, role: p.role, label: p.label }));
@@ -35,6 +39,9 @@ function scenesEqual(a: Scene, b: Scene): boolean {
 
 export function Whiteboard() {
   const svgRef = useRef<SVGSVGElement | null>(null);
+  const readoutRef = useRef<CellReadoutHandle | null>(null);
+  const heatmapCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const overlay = useOverlayState();
   const initialScene = useMemo(() => getPreset("vertStackForceSide"), []);
   const storeRef = useRef(createSceneStore(initialScene));
   const store = storeRef.current;
@@ -131,10 +138,23 @@ export function Whiteboard() {
   }
 
   function handleExportFrame() {
-    if (svgRef.current) void exportFrameAsPng(svgRef.current);
+    if (!svgRef.current) return;
+    // The exported PNG must match what is on screen — including the heatmap,
+    // which lives on its own canvas beneath the SVG.
+    const canvas = heatmapCanvasRef.current;
+    const overlayLayer =
+      overlay.on && canvas
+        ? {
+            canvas,
+            x: STAGE_MARGIN.left,
+            y: STAGE_MARGIN.top,
+            width: FIELD_PX_WIDTH,
+            height: FIELD_PX_HEIGHT,
+            alpha: HEATMAP_ALPHA,
+          }
+        : undefined;
+    void exportFrameAsPng(svgRef.current, "field-view.png", overlayLayer);
   }
-
-  const viewBox = viewBoxToString(getStageViewBox(FIELD_PX_WIDTH, FIELD_PX_HEIGHT));
 
   return (
     <div className="mx-auto flex max-w-6xl flex-col items-center gap-6 px-4 py-10">
@@ -218,19 +238,31 @@ export function Whiteboard() {
         </div>
       )}
 
-      {/* role="group", not "img" — this field contains interactive,
-          keyboard-focusable pieces, so an image role (which implies no
-          interactive descendants) would fail axe's nested-interactive rule. */}
-      <svg
-        ref={svgRef}
-        role="group"
-        aria-label={`Ultimate field, ${FIELD.length} by ${FIELD.width} yards`}
-        viewBox={viewBox}
-        className="h-auto w-full max-w-4xl"
-      >
-        <FieldLayer />
-        <PieceLayer players={identity} store={store} getSvg={() => svgRef.current} />
-      </svg>
+      <FieldCanvas
+        store={store}
+        players={identity}
+        svgRef={svgRef}
+        overlay={overlay}
+        readoutRef={readoutRef}
+        canvasRef={heatmapCanvasRef}
+      />
+
+      <div className="flex w-full flex-col gap-4 lg:flex-row">
+        <OverlayRail
+          on={overlay.on}
+          lens={overlay.lens}
+          layers={overlay.layers}
+          params={overlay.params}
+          tuningExpanded={overlay.tuningExpanded}
+          onToggle={overlay.setOn}
+          onLensChange={overlay.setLens}
+          onLayerChange={overlay.setLayer}
+          onParamChange={overlay.setParam}
+          onTuningExpandedChange={overlay.setTuningExpanded}
+          onResetParams={overlay.resetParams}
+        />
+        <CellReadout ref={readoutRef} />
+      </div>
     </div>
   );
 }
