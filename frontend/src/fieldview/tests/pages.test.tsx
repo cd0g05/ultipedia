@@ -24,8 +24,10 @@ describe("Designer", () => {
         <Designer />
       </MemoryRouter>,
     );
-    const field = screen.getByRole("img", { name: /ultimate field/i });
-    const pieces = field.querySelector('[data-testid="pieces"]');
-    expect(pieces?.children).toHaveLength(14);
+    // role="group", not "img": the Designer's pieces are interactive now
+    // (P4), and an image role forbids interactive descendants.
+    const field = screen.getByRole("group", { name: /ultimate field/i });
+    const pieces = field.querySelectorAll('[data-testid="pieces"] > [role="button"]');
+    expect(pieces).toHaveLength(14);
   });
 });

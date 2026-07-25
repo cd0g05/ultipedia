@@ -2,7 +2,9 @@
 // and keyboard nudge in full (approach.md Partition 2).
 
 import { useMemo, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import { createSceneStore } from "../scene/store";
+import { stashScene } from "../play/modeHandoff";
 import { getPreset } from "../scene/presets";
 import type { Scene } from "../scene/types";
 import { createPresetRegistry } from "../scene/presetRegistry";
@@ -150,13 +152,25 @@ export function Whiteboard() {
           onExport={exportPreset}
           onImportFile={importFile}
         />
-        <button
-          type="button"
-          onClick={handleExportFrame}
-          className="border border-film-accentPink px-4 py-1.5 font-mono text-sm uppercase tracking-wider text-film-accentPink hover:bg-film-accentPink hover:text-white"
-        >
-          Export frame
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={handleExportFrame}
+            className="border border-film-accentPink px-4 py-1.5 font-mono text-sm uppercase tracking-wider text-film-accentPink hover:bg-film-accentPink hover:text-white"
+          >
+            Export frame
+          </button>
+          {/* The current arrangement becomes keyframe 1 in Designer mode —
+              stashed on the way out rather than pushed continuously, so the
+              whiteboard stays free of designer concerns. */}
+          <Link
+            to="/field-view/designer"
+            onClick={() => stashScene(store.getScene())}
+            className="border border-zinc-400 px-4 py-1.5 font-mono text-sm uppercase tracking-wider text-zinc-700 hover:border-film-accentPink hover:text-film-accentPink"
+          >
+            Designer
+          </Link>
+        </div>
       </div>
 
       {notice && (
