@@ -35,27 +35,32 @@ function buildScene(params: {
 }
 
 // Vertical stack, force side: cutters lined up single-file downfield of the
-// thrower on the center line; the mark sets up offset to one side (the
-// force), defenders trail each cutter on the closed side.
+// thrower on the center line; the mark angles upfield-lateral so its shadow
+// takes away the break-side downfield wedge (the force); defenders are
+// matched and shading open/under, with one sag into each mid-depth half
+// (bracket look) and the deep-most defender playing true last-back — as a
+// real vert defense does. (The sags and last-back are what make the §8.1
+// acceptance geometry hold: without them the empty mid-depth wings and the
+// deep third outscore the near-thrower open lane.)
 const VERT_STACK_FORCE_SIDE = buildScene({
   throwerX: 40,
   throwerY: 20,
-  markOffset: { x: -1, y: 3 },
+  markOffset: { x: 1, y: 3 },
   cutters: [
     { x: 50, y: 20 },
+    { x: 52, y: 20 },
     { x: 54, y: 20 },
+    { x: 56, y: 20 },
     { x: 58, y: 20 },
-    { x: 62, y: 20 },
-    { x: 66, y: 20 },
-    { x: 70, y: 20 },
+    { x: 60, y: 20 },
   ],
   defenderOffsets: [
-    { x: -2, y: 2 },
-    { x: -2, y: -2 },
-    { x: -2, y: 2 },
-    { x: -2, y: -2 },
-    { x: -2, y: 2 },
-    { x: -2, y: -2 },
+    { x: 10, y: -6 }, // sagging off the front of the stack onto the open shoulder
+    { x: -1, y: 0 }, // matched tight, playing the under
+    { x: 0, y: 10 }, // sagging into the break-side mid space
+    { x: -1, y: 0 }, // matched tight, playing the under
+    { x: 4, y: 3 }, // bracket behind the stack, break side
+    { x: 10, y: 0 }, // last back — deep centre, hang time gives him both corners
   ],
 });
 
