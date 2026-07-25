@@ -102,6 +102,12 @@ export function Layout() {
               <SearchBar label="Header search" className="hidden md:flex md:max-w-sm lg:max-w-md" />
               <MobileSearchLink />
               <Link
+                to="/field-view"
+                className="hidden whitespace-nowrap font-mono text-sm uppercase tracking-wider text-zinc-600 transition-colors hover:text-film-accentPink sm:inline"
+              >
+                Field View
+              </Link>
+              <Link
                 to="/contribute"
                 className="whitespace-nowrap border border-film-accentPink px-4 py-1.5 font-mono text-sm uppercase tracking-wider text-film-accentPink transition-colors hover:bg-film-accentPink hover:text-white"
               >

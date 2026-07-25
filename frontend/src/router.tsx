@@ -12,6 +12,8 @@ import { Section } from "./encyclopedia/pages/Section";
 import { EntryDetail } from "./encyclopedia/pages/EntryDetail";
 import { About, Contact, Privacy } from "./encyclopedia/pages/InfoPages";
 import { NotFound } from "./encyclopedia/pages/NotFound";
+import { Whiteboard } from "./fieldview/pages/Whiteboard";
+import { Designer } from "./fieldview/pages/Designer";
 
 export const routes: RouteObject[] = [
   {
@@ -22,9 +24,11 @@ export const routes: RouteObject[] = [
       { path: "/about", element: <About /> },
       { path: "/contact", element: <Contact /> },
       { path: "/privacy", element: <Privacy /> },
+      { path: "/field-view", element: <Whiteboard /> },
+      { path: "/field-view/designer", element: <Designer /> },
       // One Section/EntryDetail component serves all five sections (Template
       // Method); Section itself 404s unknown segments. Explicit static routes
-      // (/search above) outrank these dynamic segments.
+      // (/search, /field-view above) outrank these dynamic segments.
       { path: "/:section", element: <Section /> },
       { path: "/:section/:slug", element: <EntryDetail /> },
       { path: "*", element: <NotFound /> },
