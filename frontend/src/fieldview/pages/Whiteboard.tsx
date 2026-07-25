@@ -15,6 +15,7 @@ import { HEATMAP_ALPHA } from "../render/heatmap";
 import { STAGE_MARGIN } from "../render/coords";
 import { FIELD_PX_HEIGHT, FIELD_PX_WIDTH } from "../render/fieldLayer";
 import { PresetMenu } from "../ui/PresetMenu";
+import { SmallScreenNotice } from "../ui/SmallScreenNotice";
 import { FieldCanvas } from "../ui/FieldCanvas";
 import { OverlayRail } from "../ui/OverlayRail";
 import { CellReadout } from "../ui/CellReadout";
@@ -157,7 +158,9 @@ export function Whiteboard() {
   }
 
   return (
-    <div className="mx-auto flex max-w-6xl flex-col items-center gap-6 px-4 py-10">
+    <>
+      <SmallScreenNotice />
+      <div className="mx-auto hidden max-w-7xl flex-col items-center gap-6 px-4 py-10 md:flex">
       <h1 className="font-heading text-2xl font-bold uppercase tracking-widest text-zinc-900">
         Field View
       </h1>
@@ -238,31 +241,37 @@ export function Whiteboard() {
         </div>
       )}
 
-      <FieldCanvas
-        store={store}
-        players={identity}
-        svgRef={svgRef}
-        overlay={overlay}
-        readoutRef={readoutRef}
-        canvasRef={heatmapCanvasRef}
-      />
-
-      <div className="flex w-full flex-col gap-4 lg:flex-row">
-        <OverlayRail
-          on={overlay.on}
-          lens={overlay.lens}
-          layers={overlay.layers}
-          params={overlay.params}
-          tuningExpanded={overlay.tuningExpanded}
-          onToggle={overlay.setOn}
-          onLensChange={overlay.setLens}
-          onLayerChange={overlay.setLayer}
-          onParamChange={overlay.setParam}
-          onTuningExpandedChange={overlay.setTuningExpanded}
-          onResetParams={overlay.resetParams}
+      {/* Tablet: field full-width, controls stacked beneath as a horizontal
+          bar. Desktop (xl, 1280+): controls move into a rail beside the
+          field. The field keeps the width until there is enough for both. */}
+      <div className="flex w-full flex-col items-center gap-6 xl:flex-row xl:items-start">
+        <FieldCanvas
+          store={store}
+          players={identity}
+          svgRef={svgRef}
+          overlay={overlay}
+          readoutRef={readoutRef}
+          canvasRef={heatmapCanvasRef}
         />
-        <CellReadout ref={readoutRef} />
+
+        <div className="flex w-full flex-col gap-4 xl:w-80 xl:shrink-0">
+          <OverlayRail
+            on={overlay.on}
+            lens={overlay.lens}
+            layers={overlay.layers}
+            params={overlay.params}
+            tuningExpanded={overlay.tuningExpanded}
+            onToggle={overlay.setOn}
+            onLensChange={overlay.setLens}
+            onLayerChange={overlay.setLayer}
+            onParamChange={overlay.setParam}
+            onTuningExpandedChange={overlay.setTuningExpanded}
+            onResetParams={overlay.resetParams}
+          />
+          <CellReadout ref={readoutRef} />
+        </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 }

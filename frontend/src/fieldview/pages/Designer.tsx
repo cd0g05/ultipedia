@@ -23,6 +23,7 @@ import { OverlayRail } from "../ui/OverlayRail";
 import { CellReadout } from "../ui/CellReadout";
 import type { CellReadoutHandle } from "../ui/CellReadout";
 import { useOverlayState } from "../ui/prefs";
+import { SmallScreenNotice } from "../ui/SmallScreenNotice";
 
 const UNDO_WINDOW_MS = 5000;
 // Timestamps are compared with a tolerance because scrubbing produces
@@ -284,7 +285,9 @@ export function Designer() {
   const keyframes = keyframesRef.current.slice(0, keyframeCount);
 
   return (
-    <div className="mx-auto flex max-w-6xl flex-col items-center gap-6 px-4 py-10">
+    <>
+      <SmallScreenNotice />
+      <div className="mx-auto hidden max-w-7xl flex-col items-center gap-6 px-4 py-10 md:flex">
       <h1 className="font-heading text-2xl font-bold uppercase tracking-widest text-zinc-900">
         Field View — Designer
       </h1>
@@ -323,30 +326,34 @@ export function Designer() {
         </div>
       )}
 
-      <FieldCanvas
-        store={store}
-        players={entities}
-        svgRef={svgRef}
-        overlay={overlay}
-        readoutRef={readoutRef}
-        disabled={!editable}
-      />
-
-      <div className="flex w-full flex-col gap-4 lg:flex-row">
-        <OverlayRail
-          on={overlay.on}
-          lens={overlay.lens}
-          layers={overlay.layers}
-          params={overlay.params}
-          tuningExpanded={overlay.tuningExpanded}
-          onToggle={overlay.setOn}
-          onLensChange={overlay.setLens}
-          onLayerChange={overlay.setLayer}
-          onParamChange={overlay.setParam}
-          onTuningExpandedChange={overlay.setTuningExpanded}
-          onResetParams={overlay.resetParams}
+      {/* Same split as the whiteboard; the timeline stays full-width along
+          the bottom at every breakpoint, since it is the play's spine. */}
+      <div className="flex w-full flex-col items-center gap-6 xl:flex-row xl:items-start">
+        <FieldCanvas
+          store={store}
+          players={entities}
+          svgRef={svgRef}
+          overlay={overlay}
+          readoutRef={readoutRef}
+          disabled={!editable}
         />
-        <CellReadout ref={readoutRef} />
+
+        <div className="flex w-full flex-col gap-4 xl:w-80 xl:shrink-0">
+          <OverlayRail
+            on={overlay.on}
+            lens={overlay.lens}
+            layers={overlay.layers}
+            params={overlay.params}
+            tuningExpanded={overlay.tuningExpanded}
+            onToggle={overlay.setOn}
+            onLensChange={overlay.setLens}
+            onLayerChange={overlay.setLayer}
+            onParamChange={overlay.setParam}
+            onTuningExpandedChange={overlay.setTuningExpanded}
+            onResetParams={overlay.resetParams}
+          />
+          <CellReadout ref={readoutRef} />
+        </div>
       </div>
 
       <Timeline
@@ -362,6 +369,7 @@ export function Designer() {
         onTogglePlay={togglePlay}
         onInsertAtPlayhead={insertAtPlayhead}
       />
-    </div>
+      </div>
+    </>
   );
 }

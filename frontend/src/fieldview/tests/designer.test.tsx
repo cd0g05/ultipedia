@@ -370,10 +370,14 @@ describe("Designer import/export", () => {
       expect(cutterId).toBeDefined();
       // Cutter 1 starts at x = 50 in the vert preset; Shift-Right moves it 5 yd.
       expect(play.keyframes[0].positions[cutterId!].x).toBeCloseTo(55, 5);
-      // The SVG has not repainted yet — the export ran before the rAF that
-      // would have captured the keyframe. That is the exact race, and the
-      // 55 above is only correct because export flushes synchronously.
-      expect(cutter.getAttribute("transform")).toBe(before);
+      // Deliberately no rAF is awaited before the export above: the keyframe
+      // is normally captured on the next frame, so exporting in the same tick
+      // is exactly the case that used to lose the move. The 55 is only
+      // correct because export flushes synchronously.
+      //
+      // (Asserting "the SVG has not repainted yet" here would be a race — on
+      // a loaded machine the frame can land first — so the flush is proven by
+      // the exported value, not by DOM timing.)
       await nextFrame();
       expect(cutter.getAttribute("transform")).not.toBe(before);
     } finally {

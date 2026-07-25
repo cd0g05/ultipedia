@@ -23,6 +23,13 @@ function seconds(value: number): string {
   return Number.isFinite(value) ? `${value.toFixed(2)} s` : "—";
 }
 
+// The `hidden` attribute is `display: none` at the lowest specificity, so a
+// Tailwind display utility (`flex`) on the same element silently beats it and
+// the "hidden" skeleton stays on screen. Inline style wins over both.
+function show(el: HTMLElement, visible: boolean, display = "block"): void {
+  el.style.display = visible ? display : "none";
+}
+
 export const CellReadout = forwardRef<CellReadoutHandle>(function CellReadout(_props, ref) {
   const idleRef = useRef<HTMLParagraphElement | null>(null);
   const bodyRef = useRef<HTMLDListElement | null>(null);
@@ -39,14 +46,14 @@ export const CellReadout = forwardRef<CellReadoutHandle>(function CellReadout(_p
         if (!idle || !body) return;
 
         if (!explain) {
-          idle.hidden = false;
-          body.hidden = true;
+          show(idle, true);
+          show(body, false, "flex");
           if (liveRef.current) liveRef.current.textContent = "";
           return;
         }
 
-        idle.hidden = true;
-        body.hidden = false;
+        show(idle, false);
+        show(body, true, "flex");
 
         const set = (key: string, text: string) => {
           const el = cells.current[key];
@@ -64,7 +71,7 @@ export const CellReadout = forwardRef<CellReadoutHandle>(function CellReadout(_p
         const cutterRow = cutterRowRef.current;
         if (cutterRow) {
           const showCutter = lens === "offense" && explain.bestCutterEffectiveArrival !== null;
-          cutterRow.hidden = !showCutter;
+          show(cutterRow, showCutter, "flex");
           if (showCutter) set("cutter", seconds(explain.bestCutterEffectiveArrival!));
         }
 
@@ -99,7 +106,8 @@ export const CellReadout = forwardRef<CellReadoutHandle>(function CellReadout(_p
         {IDLE_TEXT}
       </p>
 
-      <dl ref={bodyRef} hidden className="flex flex-col">
+      {/* Starts hidden by inline style, for the same specificity reason. */}
+      <dl ref={bodyRef} style={{ display: "none" }} className="flex flex-col">
         {row("distance", "Distance")}
         {row("flight", "Flight time")}
         {row("defender", "Nearest defender arrives")}

@@ -58,9 +58,12 @@ export function OverlayRail({
   onResetParams,
 }: OverlayRailProps) {
   return (
+    // Tablet (768–1279): a horizontal control bar under the field. Desktop
+    // (>= 1280, Tailwind `xl`): a vertical rail beside it. The field is the
+    // thing that wants the width, so it gets it until there is enough for both.
     <aside
       aria-label="Space overlay controls"
-      className="flex w-full flex-col gap-3 border border-zinc-300 bg-white px-4 py-3"
+      className="flex w-full flex-row flex-wrap items-start gap-x-8 gap-y-3 border border-zinc-300 bg-white px-4 py-3 xl:flex-col xl:gap-3"
     >
       <button
         type="button"
@@ -76,6 +79,9 @@ export function OverlayRail({
       </button>
 
       {on && (
+        // A fragment, not a wrapper div: the fieldsets, legend, and tuning
+        // panel must be direct flex children of the rail, or they would stack
+        // inside a box and defeat the horizontal tablet bar.
         <>
           <fieldset className="flex flex-col gap-1">
             <legend className="font-mono text-xs uppercase tracking-wider text-zinc-500">Lens</legend>
