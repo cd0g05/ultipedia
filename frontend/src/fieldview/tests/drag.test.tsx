@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
 import { Whiteboard } from "../pages/Whiteboard";
 import { getStageViewBox } from "../render/coords";
 import { FIELD_PX_HEIGHT, FIELD_PX_WIDTH } from "../render/fieldLayer";
@@ -39,7 +40,7 @@ beforeEach(() => {
 
 describe("piece drag", () => {
   it("moves a cutter continuously under the pointer, not on release", async () => {
-    render(<Whiteboard />);
+    render(<MemoryRouter><Whiteboard /></MemoryRouter>);
     const svg = screen.getByRole("group", { name: /ultimate field/i }) as unknown as SVGSVGElement;
     mockSvgRect(svg);
     const cutter = screen.getByRole("button", { name: "offense cutter 1" });
@@ -60,7 +61,7 @@ describe("piece drag", () => {
   });
 
   it("carries the mark by the same delta when the thrower is dragged", async () => {
-    render(<Whiteboard />);
+    render(<MemoryRouter><Whiteboard /></MemoryRouter>);
     const svg = screen.getByRole("group", { name: /ultimate field/i }) as unknown as SVGSVGElement;
     mockSvgRect(svg);
 
@@ -84,7 +85,7 @@ describe("piece drag", () => {
   });
 
   it("clamps a piece dragged past the field boundary", async () => {
-    render(<Whiteboard />);
+    render(<MemoryRouter><Whiteboard /></MemoryRouter>);
     const svg = screen.getByRole("group", { name: /ultimate field/i }) as unknown as SVGSVGElement;
     mockSvgRect(svg);
     const cutter = screen.getByRole("button", { name: "offense cutter 1" });
@@ -102,7 +103,7 @@ describe("piece drag", () => {
 
 describe("keyboard nudge", () => {
   it("moves a focused piece 1 yd per arrow key, 5 yd with Shift", async () => {
-    render(<Whiteboard />);
+    render(<MemoryRouter><Whiteboard /></MemoryRouter>);
     const cutter = screen.getByRole("button", { name: "offense cutter 1" });
     const beforeMatch = cutter.getAttribute("transform")?.match(/translate\(([-\d.]+), ([-\d.]+)\)/);
     const beforeX = Number(beforeMatch?.[1]);

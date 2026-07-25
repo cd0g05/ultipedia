@@ -6,15 +6,13 @@
 
 import type { Player, Role, Scene, Team, Vec2 } from "./types";
 import { FIELD, clampToField } from "./field";
+import type { PlayEntity } from "../play/format";
 
 export const PRESET_FORMAT_VERSION = 1;
 
-export interface PlayEntity {
-  id: string;
-  team: Team;
-  role: Role;
-  label?: string;
-}
+// Entity identity is owned by the play format — a preset is that format with
+// one frame (ADR-9), so the two cannot drift apart.
+export type { PlayEntity };
 
 export interface PresetFile {
   formatVersion: number;

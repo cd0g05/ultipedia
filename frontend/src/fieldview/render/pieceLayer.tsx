@@ -24,9 +24,13 @@ interface PieceLayerProps {
   players: PieceIdentity[];
   store: SceneStore;
   getSvg: () => SVGSVGElement | null;
+  // Designer mode blocks editing while playing back or while scrubbed
+  // between keyframes — the pieces still render and still repaint every
+  // frame, they just stop accepting input.
+  disabled?: boolean;
 }
 
-export function PieceLayer({ players, store, getSvg }: PieceLayerProps) {
+export function PieceLayer({ players, store, getSvg, disabled = false }: PieceLayerProps) {
   const pieceRefs = useRef(new Map<string, SVGGElement>());
   const discRef = useRef<SVGGElement | null>(null);
   const markDirRef = useRef<SVGLineElement | null>(null);
@@ -81,6 +85,7 @@ export function PieceLayer({ players, store, getSvg }: PieceLayerProps) {
   }
 
   function handlePointerDown(id: string, e: ReactPointerEvent<SVGGElement>) {
+    if (disabled) return;
     draggingId.current = id;
     (e.target as Element).setPointerCapture?.(e.pointerId);
   }
@@ -101,6 +106,7 @@ export function PieceLayer({ players, store, getSvg }: PieceLayerProps) {
   }
 
   function handleKeyDown(id: string, e: ReactKeyboardEvent<SVGGElement>) {
+    if (disabled) return;
     const step = e.shiftKey ? NUDGE.shiftYards : NUDGE.yards;
     let dx = 0;
     let dy = 0;
@@ -128,14 +134,20 @@ export function PieceLayer({ players, store, getSvg }: PieceLayerProps) {
               if (el) pieceRefs.current.set(p.id, el);
               else pieceRefs.current.delete(p.id);
             }}
-            tabIndex={0}
+            tabIndex={disabled ? -1 : 0}
             role="button"
+            aria-disabled={disabled || undefined}
             aria-label={`${p.team} ${p.role}${p.label ? ` ${p.label}` : ""}`}
             onPointerDown={(e) => handlePointerDown(p.id, e)}
             onPointerMove={(e) => handlePointerMove(p.id, e)}
             onPointerUp={(e) => handlePointerUp(p.id, e)}
             onKeyDown={(e) => handleKeyDown(p.id, e)}
-            style={{ cursor: "grab", outline: "none", touchAction: "none" }}
+            style={{
+              cursor: disabled ? "default" : "grab",
+              outline: "none",
+              touchAction: "none",
+              pointerEvents: disabled ? "none" : undefined,
+            }}
           >
             {/* Invisible hit target: comfortably clears the 44x44px minimum
                 regardless of the visual glyph's radius. */}

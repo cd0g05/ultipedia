@@ -35,7 +35,7 @@ describe("field-view routes", () => {
   it("/field-view/designer renders the Designer shell", () => {
     renderAt("/field-view/designer");
     expect(screen.getByRole("heading", { name: /field view.*designer/i })).toBeInTheDocument();
-    expect(screen.getByRole("img", { name: /ultimate field/i })).toBeInTheDocument();
+    expect(screen.getByRole("group", { name: /ultimate field/i })).toBeInTheDocument();
   });
 
   it("does not shadow the /:section dynamic route", async () => {
