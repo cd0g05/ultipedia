@@ -29,7 +29,7 @@ describe("field-view routes", () => {
   it("/field-view renders the Whiteboard shell", () => {
     renderAt("/field-view");
     expect(screen.getByRole("heading", { name: /field view/i })).toBeInTheDocument();
-    expect(screen.getByRole("img", { name: /ultimate field/i })).toBeInTheDocument();
+    expect(screen.getByRole("group", { name: /ultimate field/i })).toBeInTheDocument();
   });
 
   it("/field-view/designer renders the Designer shell", () => {
