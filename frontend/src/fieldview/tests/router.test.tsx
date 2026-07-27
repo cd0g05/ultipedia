@@ -28,7 +28,9 @@ function renderAt(path: string) {
 describe("field-view routes", () => {
   it("/field-view renders the Whiteboard shell", () => {
     renderAt("/field-view");
-    expect(screen.getByRole("heading", { name: /field view/i })).toBeInTheDocument();
+    // Exact: the sub-768px notice carries its own h1, and only one of the
+    // two is ever displayed.
+    expect(screen.getByRole("heading", { name: "Field View" })).toBeInTheDocument();
     expect(screen.getByRole("group", { name: /ultimate field/i })).toBeInTheDocument();
   });
 

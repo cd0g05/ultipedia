@@ -10,7 +10,8 @@
     "sitemap": "node scripts/generate-sitemap.mjs",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:perf": "PERF=1 vitest run --no-file-parallelism src/fieldview/tests/spaceBench.test.ts src/fieldview/tests/overlay.test.tsx src/fieldview/tests/heatmap.test.ts"
   },
   "dependencies": {
     "framer-motion": "^11.3.28",
