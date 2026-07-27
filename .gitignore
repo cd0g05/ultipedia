@@ -7,6 +7,9 @@ wheels/
 *.egg-info
 .pytest_cache/
 
+# Node (the frontend has its own, but a stray root install must never be staged)
+node_modules/
+
 # Virtual environments
 .venv
 
