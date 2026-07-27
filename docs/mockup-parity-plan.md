@@ -415,3 +415,139 @@ These items diverge from the mockup but are deliberate design choices in the rea
 - `design/MOCKUP-NOTES.md` — Design intent and rationale.
 - `.cicadas/canon/ux-overview.md` — UX goals and Key Flows.
 - `frontend/src/encyclopedia/` — Current implementation (Home.tsx, Layout.tsx, EntryCard.tsx, pages/).
+
+---
+
+## Implementation status — 2026-07-07
+
+Implemented in one pass (all frontend tests pass, verified visually in-browser against the mockup):
+
+- ✅ #1 Hero expansion (two-column + graph-paper tactical visual)
+- ✅ #2 Hero secondary CTA ("Generate a Practice Plan", disabled placeholder)
+- ✅ #3 Value Propositions column (1/3 panel + 2/3 Popular Resources split)
+- ✅ #4 Practice Planner teaser (copy + disabled CTA + export-module visual)
+- ✅ #5 Community Callout band (green CTA + hard shadow → /contribute)
+- ✅ #6 EntryCard media placeholder (also applied to Search's ResultCard)
+- ✅ #7 Footer links (About/Contact/Privacy stub pages via `pages/InfoPages.tsx` + routes)
+- ✅ #8 Hard corners — scoped as `.film-room * { border-radius: 0 }` on the encyclopedia Layout root (not global: /contribute keeps its rounded intake UI)
+- ✅ #9 Fonts — JetBrains Mono self-hosted in `public/fonts/` + `@font-face`; `mono`/`sans` added to Tailwind config; Helvetica body voice scoped to `.film-room` (intake keeps Nunito)
+- ✅ #11 (partial) — "+ Add to Current Practice Plan" disabled CTA and graph-paper `PLAYBOOK_VIEW_V1` diagram placeholder on EntryDetail; media transport bar deferred pending #10
+- ⏸ #10 Focus Modal — deferred, needs product decision (build vs. accept deviation)
+- ⏸ #12 Command-palette browse header — accepted deviation, not built
+
+---
+
+## Update — 2026-07-07 Re-investigation
+
+Re-checked the mockup against the current implementation, focused on gaps the first pass didn't cover: typography wiring, the entry-detail interaction model, and the browse/search page structure. The items above (Hero, Value Props, Community Callout, Footer, hard corners) are still accurate and still open. The items below are new.
+
+### 9. Font families: `mono` and `sans` are not wired to match the mockup (Priority: High)
+
+**What**: The mockup's Tailwind config defines all three font families — `heading`, `mono`, and `sans` — but the real `frontend/tailwind.config.js` only defines `heading`. `font-mono` and `font-sans` utility classes (used pervasively — nav links, tag pills, buttons, breadcrumbs, badges, section numbering) fall back to Tailwind's default stacks, not the mockup's.
+
+**Current State**:
+- `tailwind.config.js` (`theme.extend.fontFamily`) only sets `heading`. No `mono` or `sans` override exists.
+- `frontend/src/index.css:29` hardcodes `body { font-family: "Nunito", "Inter", system-ui, -apple-system, sans-serif; }` — neither font is self-hosted or linked anywhere (no `@font-face`, no `<link>` in `index.html`), and neither matches the mockup's declared body stack.
+- No JetBrains Mono is loaded anywhere in the project (`grep -rn "JetBrains" frontend/` returns nothing).
+
+**Mockup Reference** (`design/landing-and-encyclopedia-mockup.html:27-31`, confirmed in `MOCKUP-NOTES.md:48-51`):
+```js
+fontFamily: {
+    heading: ['"druk"', '"druk Fallback"', '"Oswald"', '"Arial Narrow"', 'sans-serif'],
+    mono: ['JetBrains Mono', 'monospace'],
+    sans: ['Helvetica Neue', 'Arial', 'sans-serif']
+}
+```
+MOCKUP-NOTES.md is explicit that the mono voice "is what gives the whole thing its 'film room / spec sheet' character; it's not just for code-like content" — so this isn't a cosmetic nit, it's load-bearing for the whole visual identity.
+
+**Action**:
+1. Add a JetBrains Mono web font (Google Fonts `<link>` in `index.html`, or self-host like Druk in `public/fonts/` + `@font-face` in `index.css` — self-hosting is more consistent with how Druk was already done).
+2. Add `mono: ['"JetBrains Mono"', 'monospace']` to `tailwind.config.js` `fontFamily`.
+3. Replace the `body` rule in `index.css` with `font-family: "Helvetica Neue", Arial, sans-serif;` (or add `sans: ['"Helvetica Neue"', 'Arial', 'sans-serif']` to the Tailwind config and drop the hardcoded body rule in favor of applying `font-sans` at the root), so body copy matches the mockup's clean grotesque look instead of Nunito's rounded, friendlier feel.
+4. Visually re-check every `font-mono` usage (there are dozens) after the swap — some spacing/line-height may shift since JetBrains Mono's metrics differ from the current fallback.
+
+**Future work**: None — this is a self-contained font-loading fix.
+
+---
+
+### 10. Focus Modal "peek" interaction is entirely missing (Priority: High — largest structural gap found)
+
+**What**: `MOCKUP-NOTES.md` calls the modal-peek pattern "the core idea" of the interaction model: clicking a card should open a centered modal overlay (`modal-popup-design-mockup.html`, Design B) over the current browsing context, with a separate action to "promote" it into the full page. The real app has **no modal at all** — `EntryCard` and `ResultCard` (`Search.tsx`) both link straight to the full `EntryDetail` page via `entryUrl()`. There is no intermediate peek state.
+
+**Why this matters**: This isn't a missing visual flourish — it's a missing interaction model. The mockups document it as the primary way users are meant to compare entries while browsing without losing their place; going straight to a full-page navigation on every card click is a materially different (heavier) browsing experience than what was designed and reviewed.
+
+**Action** (scoped, not required to ship immediately — flagging for a deliberate decision):
+1. Decide whether to build the modal now or accept the direct-navigation flow as an intentional deviation. If accepted as a deviation, this belongs in "Out of Scope" below with a rationale (e.g., "ship full-page-only for v1, revisit modal post-launch").
+2. If building: modal and full-page must render from the same content component per `MOCKUP-NOTES.md:27` (share the instructions/coaching/variations blocks; only the wrapper differs) — do not fork `EntryDetailContent` into two templates.
+3. Modal is a trimmed subset of the full page per `MOCKUP-NOTES.md:105-108`: no breadcrumbs, no footer, no Variations section, static (non-sticky) media pane, half-height split layout capped at `max-w-6xl`/`80vh`.
+4. A "promote to full tab" action (e.g., an icon/link in the modal header) should navigate to the same entry's full URL.
+
+**Future work**: Even if deferred, the mockup's open question about the modal→full-tab transition animation (`MOCKUP-NOTES.md:114`) is unresolved and would need a decision before building.
+
+---
+
+### 11. EntryDetail (full-tab) page is missing several mockup-specified elements (Priority: Mid)
+
+Comparing `frontend/src/encyclopedia/pages/EntryDetail.tsx` against `design/full-drill-tab-mockup.html`:
+
+- **No "Add to Current Practice Plan" CTA.** The mockup's full-tab and modal views both end their content with a full-width primary button (`+ Add to Current Practice Plan`, white bg/border-2 zinc-900, hover-inverts to solid black). The real page ends after the Tags section / `SimilarEntries` — no CTA at all, not even a disabled/stub one. Given the Practice Planner itself doesn't exist yet (see item #4 above), this should likely be a disabled/stub button rather than a functional one, consistent with how the Hero's secondary CTA was scoped.
+- **No "← Back to Directory" / Entry ID utility bar.** The mockup's full-tab left column has a small utility bar above the media pane with a back link and `Entry ID: ####` mono label. The real page's `Breadcrumbs` component covers similar ground but is positioned above the title, not paired with the media pane.
+- **No media transport bar.** The mockup's full-tab (not the modal) adds a play button + scrub bar + timestamp below the diagram frame, distinguishing it from the modal's static media. `MediaEmbed.tsx` renders a plain `aspect-video` iframe/image with an optional caption — no transport chrome. This is explicitly called out in `MOCKUP-NOTES.md:101` as a full-tab-only differentiator from the modal, so if the modal (item #10) is deferred, this is lower priority; if the modal ships, this becomes the visual cue that distinguishes the two views.
+- **Media placeholder lacks the "diagram frame" treatment.** The mockup wraps its diagram/video placeholder in a mini app-window frame (small titlebar reading `PLAYBOOK_VIEW_V1` with two dot indicators, graph-paper grid background behind it) — see `modal-popup-design-mockup.html:180-196`. The real `MediaEmbed` is a plain bordered box with no graph-paper background or frame chrome. This only matters when there's no real media (`entry.media[0]` is falsy today, `EntryDetail.tsx:143` — worth checking whether entries without media currently render an empty gap where the mockup would show this placeholder).
+
+**Action**: Lower priority than #9/#10; can be bundled with whichever of the CTA/media items are judged worth doing before a media-upload pipeline exists.
+
+---
+
+### 12. Browse/Search page structural differences (Priority: Low — largely an intentional, reasonable deviation)
+
+The mockup's Encyclopedia Browse page (`landing-and-encyclopedia-mockup.html#page2`) uses a centered "command palette" header (pink mono eyebrow + heading-font description line + big centered search input) and organizes results into **per-type grouped sections** (Drills, Strategies, Formations, … each with its own heading + "View all →" + 3-card row), per `MOCKUP-NOTES.md:74-82`.
+
+The real app instead has:
+- `Section.tsx` — one type at a time, plain left-aligned `<h1>`, standard grid. No cross-type grouping (by design — each section is its own route).
+- `Search.tsx` — a left sidebar `FilterPanel` ("Filter Inspector") that does match the mockup's filter-sidebar concept well, paired with a flat results grid rather than per-type grouped rows, and a standard left-aligned heading rather than the centered command-palette treatment.
+
+**Assessment**: This is a reasonable architectural divergence, not obviously a bug — routing browse-by-type as separate URLs (`/drills`, `/strategies`, …) is arguably better IA than the mockup's single toggle-based browse page, and `Search.tsx` already implements real filter/sort/empty-state logic the static mockup never had to solve. Recommend leaving as-is, but note the centered "command palette" header treatment (pink eyebrow + large search) could be a cheap, high-value visual polish pass on `Search.tsx` and `Section.tsx` if the team wants closer visual fidelity without an IA change.
+
+---
+
+## Where the mockup itself is insufficient
+
+The static HTML mockups are visual/interaction references only — they never had to solve several things the real implementation had to invent from scratch. Worth naming explicitly so they aren't mistaken for "gaps" to close against a mockup that has no opinion on them:
+
+- **No loading, error, or empty states.** The mockups show only the "happy path" fully populated. All skeleton loaders (`Skeletons.tsx`), retry-on-error UI, and the "0 results / close matches" empty-state logic in `Search.tsx` were designed without a mockup reference and should be treated as already-settled, not measured against the mockup.
+- **No responsive/mobile design.** Per `MOCKUP-NOTES.md:116`, "mockups are desktop-width only." The real app's mobile nav row, mobile search icon link, and all responsive breakpoint behavior are necessary inventions, not deviations (already correctly captured in "Out of Scope" item 2 and 4 below).
+- **No SEO/metadata/structured-data layer.** `Seo.tsx`, sitemap generation, and `HowTo` JSON-LD (per the 4e6ddb4 commit) have no mockup equivalent at all — pure backend/head-management work with no visual surface to compare against.
+- **Modal→full-tab transition is unspecified.** `MOCKUP-NOTES.md:114` flags this as an open question even within the mockup itself — the mockups toggle between static states via JS buttons, not a real animated transform. If item #10 is built, the transition design still needs to be invented, not extracted from the mockup.
+- **Ambiguous diagram-placeholder purpose.** `MOCKUP-NOTES.md:115` — unclear whether the graph-paper diagram placeholder is where the future Drill Visualizer (manual editor + AI-generated animation, per `encyclopedia-draft.md`) actually renders, or a separate mode. Worth resolving before investing in the "diagram frame" treatment from item #11.
+- **Druk font licensing was an open question.** `MOCKUP-NOTES.md:117` asked whether the licensed `druk` font would actually be acquired or whether Oswald becomes the real heading font. Current state (2026-07-07): the real Druk (Commercial Type) **trial** builds from `fonts/Druk_Collection/Druk Family` are wired as the primary `font-heading` face (Medium=400, Bold=700, Super=900), with `DrukaatieBurti` (open-source Druk-alike) as fallback. ⚠️ Trial fonts are evaluation-only — a production license must be purchased (or the stack dropped back to DrukaatieBurti) before launch.
+
+---
+
+## Updated Sequencing Recommendation
+
+Supersedes the "Sequencing Recommendation" section above where it conflicts — the font fix (new, cheap, foundational) should land first since it affects the visual read of every other phase:
+
+**Phase 0 (New — do first)**:
+- Font families: wire `mono` and `sans` (#9).
+
+**Phase 1 (High Impact, Low Risk)** — unchanged from original:
+1. Value Propositions column (#3)
+2. Community Callout band (#5)
+3. Footer links (#7)
+
+**Phase 1.5 (Decision needed before scheduling)**:
+- Focus Modal interaction (#10) — requires a product decision (build now vs. document as accepted deviation) before it can be sequenced; the largest-effort item found in this investigation.
+
+**Phase 2 (Medium Impact, Medium Risk)** — unchanged, plus new item:
+4. Hero expansion (#1)
+5. EntryCard media placeholder (#6)
+6. EntryDetail CTA + utility bar (#11, CTA/back-link portions only — defer media transport bar until #10 is resolved)
+
+**Phase 3 (Low Impact, Stub-Friendly)** — unchanged:
+7. Practice Planner teaser (#4)
+8. Hero secondary CTA (#2)
+
+**Phase 4 (Optional Polish)** — unchanged, plus new item:
+9. Global hard corners (#8)
+10. Browse/Search command-palette header treatment (#12)

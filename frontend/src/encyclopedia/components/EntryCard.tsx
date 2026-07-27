@@ -42,18 +42,24 @@ export function EntryCard({ entry }: { entry: EntrySummary }) {
       className="group block border border-film-border bg-white transition-colors hover:border-film-accentPink"
       data-testid="entry-card"
     >
-      <div className="relative border-b border-film-border bg-film-panel px-3 py-2">
-        <span className="bg-zinc-900 px-2 py-1 font-mono text-[10px] font-bold uppercase text-white">
+      {/* Media placeholder (mockup card anatomy): type badge overlays the
+          top-left corner; a real thumbnail replaces the [ IMAGE ] label once
+          entries carry media. */}
+      <div className="relative flex aspect-video items-center justify-center overflow-hidden border-b border-film-border bg-zinc-100">
+        <span className="absolute left-0 top-0 z-10 bg-zinc-900 px-2 py-1 font-mono text-[10px] font-bold uppercase text-white">
           {entry.type}
         </span>
+        <span aria-hidden="true" className="font-mono text-xs text-zinc-400">
+          [ IMAGE ]
+        </span>
       </div>
-      <div className="p-4">
+      <div className="bg-film-panel p-4">
         {/* h2, not h3: cards sit directly under a page h1 on section pages —
             an h3 would skip a heading level (axe: heading-order). */}
-        <h2 className="mb-1 truncate text-lg font-bold uppercase tracking-wide text-zinc-900">
+        <h2 className="font-heading mb-2 truncate text-lg uppercase tracking-wide text-zinc-900">
           {entry.title}
         </h2>
-        <p className="mb-3 line-clamp-2 text-xs text-zinc-600">
+        <p className="mb-4 line-clamp-2 text-xs text-zinc-600">
           {entry.shortDescription}
         </p>
         <div className="flex flex-wrap gap-1.5 font-mono text-[10px] font-bold uppercase tracking-wider">
@@ -67,7 +73,7 @@ export function EntryCard({ entry }: { entry: EntrySummary }) {
           {cardTags.map((tag) => (
             <span
               key={`${tag.category}:${tag.name}`}
-              className="border border-film-border bg-zinc-50 px-1.5 py-0.5 text-film-accentGreen"
+              className="border border-film-border bg-white px-1.5 py-0.5 text-film-accentGreen"
             >
               {tag.name}
             </span>
