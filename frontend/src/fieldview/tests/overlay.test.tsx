@@ -55,6 +55,14 @@ function stubStageRect() {
   });
 }
 
+// Where to press to grab a given piece. Grabbing is nearest-within-radius
+// (render/pick.ts), so a drag has to start near the piece — pressing on the
+// element is not, by itself, a grab.
+function grabPointFor(piece: Element) {
+  const match = piece.getAttribute("transform")!.match(/translate\(([-\d.]+), ([-\d.]+)\)/)!;
+  return { clientX: Number(match[1]) - viewBox.x, clientY: Number(match[2]) - viewBox.y };
+}
+
 describe("overlay rail", () => {
   it("shows only the Space toggle until the overlay is on", () => {
     renderWhiteboard();
@@ -238,7 +246,7 @@ describe("hover readout", () => {
 });
 
 describe("ADR-2: React is not in the drag path", () => {
-  it("commits zero React renders across a burst of pointer moves during a drag", () => {
+  it("commits zero React renders across a burst of pointer moves during a drag", async () => {
     const rect = stubStageRect();
     try {
       let commits = 0;
@@ -252,13 +260,24 @@ describe("ADR-2: React is not in the drag path", () => {
       fireEvent.click(screen.getByRole("button", { name: "Space" }));
 
       const cutter = screen.getByRole("button", { name: "offense cutter 1" });
-      fireEvent.pointerDown(cutter, { pointerId: 1, clientX: 400, clientY: 160 });
+      const grab = grabPointFor(cutter);
+      const atRest = cutter.getAttribute("transform");
+      fireEvent.pointerDown(cutter, { pointerId: 1, ...grab });
 
       commits = 0; // count only the drag itself
       for (let i = 0; i < 25; i += 1) {
-        fireEvent.pointerMove(cutter, { pointerId: 1, clientX: 400 + i * 4, clientY: 160 });
+        fireEvent.pointerMove(cutter, {
+          pointerId: 1,
+          clientX: grab.clientX + i * 4,
+          clientY: grab.clientY,
+        });
       }
 
+      expect(commits).toBe(0);
+      // Zero commits is only meaningful if the drag actually happened —
+      // a grab that missed would satisfy the assertion for the wrong reason.
+      await new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
+      expect(cutter.getAttribute("transform")).not.toBe(atRest);
       expect(commits).toBe(0);
     } finally {
       rect.mockRestore();
@@ -273,9 +292,10 @@ describe("ADR-2: React is not in the drag path", () => {
 
       const mark = screen.getByRole("button", { name: "defense mark M" });
       const atRest = mark.getAttribute("transform");
+      const grab = grabPointFor(mark);
 
-      fireEvent.pointerDown(mark, { pointerId: 1, clientX: 400, clientY: 180 });
-      fireEvent.pointerMove(mark, { pointerId: 1, clientX: 480, clientY: 180 });
+      fireEvent.pointerDown(mark, { pointerId: 1, ...grab });
+      fireEvent.pointerMove(mark, { pointerId: 1, clientX: grab.clientX + 80, clientY: grab.clientY });
 
       // A frame lands while the pointer is still down: the repaint is driven
       // by pointermove, not by pointerup. (Releasing first would make this
@@ -285,7 +305,7 @@ describe("ADR-2: React is not in the drag path", () => {
       const midDrag = mark.getAttribute("transform");
       expect(midDrag).not.toBe(atRest);
 
-      fireEvent.pointerMove(mark, { pointerId: 1, clientX: 560, clientY: 180 });
+      fireEvent.pointerMove(mark, { pointerId: 1, clientX: grab.clientX + 160, clientY: grab.clientY });
       await new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
       expect(mark.getAttribute("transform")).not.toBe(midDrag);
 

@@ -6,12 +6,15 @@
 // numbers) is written imperatively.
 
 import { useEffect, useLayoutEffect, useRef } from "react";
-import type { MutableRefObject, RefObject } from "react";
+import type { CSSProperties, MutableRefObject, RefObject } from "react";
 import type { SceneStore } from "../scene/store";
+import type { Vec2 } from "../scene/types";
 import { FIELD } from "../scene/field";
+import { movePlayer, moveThrower } from "../scene/scene";
 import { FIELD_PX_HEIGHT, FIELD_PX_WIDTH, FieldLayer } from "../render/fieldLayer";
 import { PieceLayer } from "../render/pieceLayer";
 import type { PieceIdentity } from "../render/pieceLayer";
+import { pickNearest } from "../render/pick";
 import { STAGE_MARGIN, clientToYard, getStageViewBox, viewBoxToString } from "../render/coords";
 import { createHeatmapPainter } from "../render/heatmap";
 import type { HeatmapPainter } from "../render/heatmap";
@@ -35,6 +38,9 @@ interface FieldCanvasProps {
   readoutRef?: RefObject<CellReadoutHandle | null>;
   // Exposed so PNG export can composite the painted map under the SVG.
   canvasRef?: MutableRefObject<HTMLCanvasElement | null>;
+  // The element Present mode takes fullscreen. The page owns the button; the
+  // stage only says which box to blow up.
+  stageRef?: MutableRefObject<HTMLDivElement | null>;
   disabled?: boolean;
 }
 
@@ -65,6 +71,7 @@ export function FieldCanvas({
   overlay,
   readoutRef,
   canvasRef: exposedCanvasRef,
+  stageRef,
   disabled = false,
 }: FieldCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -78,9 +85,18 @@ export function FieldCanvas({
   const overlayRef = useRef(overlay);
   overlayRef.current = overlay;
 
-  const draggingRef = useRef(false);
+  // The live drag, if any. A ref and never state — this is the ADR-2 path.
+  // `grabOffset` is the vector from the pointer to the piece's centre at the
+  // moment of grabbing, held constant for the drag so a piece taken by its
+  // edge does not snap its centre to the cursor.
+  const dragRef = useRef<{ id: string; grabOffset: Vec2 } | null>(null);
   const hoverRef = useRef<{ x: number; y: number } | null>(null);
   const showPerf = useRef(perfEnabled()).current;
+
+  // Mirrored so the native listeners, which are bound once, always read the
+  // current value rather than the one captured at bind time.
+  const disabledRef = useRef(disabled);
+  disabledRef.current = disabled;
 
   useLayoutEffect(() => {
     const canvas = canvasRef.current;
@@ -145,6 +161,17 @@ export function FieldCanvas({
     );
   }
 
+  // Thrower-carries-mark and field clamping stay in scene/scene.ts — the drag
+  // controller only decides *what* moves and *where*, never the rules.
+  function moveTo(id: string, pos: Vec2) {
+    store.mutate((draft) => {
+      const player = draft.players.find((p) => p.id === id);
+      if (!player) return;
+      if (player.role === "thrower") moveThrower(draft, pos);
+      else movePlayer(draft, id, pos);
+    });
+  }
+
   // Repaint on every coalesced scene frame (a drag, a nudge, a playback tick).
   useEffect(() => store.onFrame(paint), [store]);
 
@@ -160,27 +187,75 @@ export function FieldCanvas({
     const svg = svgRef.current;
     if (!svg) return;
 
-    function positionFor(event: PointerEvent): { x: number; y: number } | null {
+    // Unclamped field coordinates. Dragging deliberately reads these raw and
+    // lets the scene ops clamp, so a pointer taken past the sideline still
+    // slides the piece along it instead of dropping the drag.
+    function yardFor(event: PointerEvent): { x: number; y: number } | null {
       const rect = svg!.getBoundingClientRect();
       if (rect.width === 0 || rect.height === 0) return null;
-      const pos = clientToYard(rect, viewBox, { x: event.clientX, y: event.clientY });
+      return clientToYard(rect, viewBox, { x: event.clientX, y: event.clientY });
+    }
+
+    // Hover, by contrast, only means something over the field itself.
+    function positionFor(event: PointerEvent): { x: number; y: number } | null {
+      const pos = yardFor(event);
+      if (!pos) return null;
       if (pos.x < 0 || pos.x > FIELD.length || pos.y < 0 || pos.y > FIELD.width) return null;
       return pos;
     }
 
     function onPointerDown(event: PointerEvent) {
-      // A pointerdown on a piece starts a drag; the readout stands still
-      // while the scene is being rearranged.
-      draggingRef.current = (event.target as Element | null)?.closest?.('[role="button"]') !== null;
+      if (disabledRef.current) return;
+      const pos = yardFor(event);
+      if (!pos) return;
+
+      // Nearest-within-radius, not a hit test (render/pick.ts). Overlapping
+      // targets used to hand the pointer to whichever piece was rendered
+      // last; distance settles it correctly however they are ordered.
+      const piece = pickNearest(pos, store.getScene().players);
+      if (!piece) return;
+
+      dragRef.current = {
+        id: piece.id,
+        grabOffset: { x: piece.pos.x - pos.x, y: piece.pos.y - pos.y },
+      };
+      svg!.setPointerCapture?.(event.pointerId);
+      svg!.style.cursor = "grabbing";
+
+      // Pieces are pointer-events: none, so a press never focuses one on its
+      // own. Hand focus over explicitly, or grabbing with the mouse and then
+      // nudging with the arrow keys would stop working. Chrome does treat this
+      // programmatic focus as `:focus-visible`, so the ring shows — which
+      // reads as "this piece is selected", not as the old black box.
+      const el = svg!.querySelector<SVGGElement>(`[data-piece-id="${piece.id}"]`);
+      el?.focus?.({ preventScroll: true });
+
+      event.preventDefault();
     }
 
-    function onPointerUp() {
-      draggingRef.current = false;
+    function onPointerUp(event: PointerEvent) {
+      if (!dragRef.current) return;
+      dragRef.current = null;
+      svg!.releasePointerCapture?.(event.pointerId);
+      svg!.style.cursor = "";
     }
 
     function onPointerMove(event: PointerEvent) {
-      if (draggingRef.current) return;
+      const drag = dragRef.current;
+      if (drag) {
+        const pos = yardFor(event);
+        if (!pos) return;
+        // The readout stands still while the scene is being rearranged.
+        moveTo(drag.id, { x: pos.x + drag.grabOffset.x, y: pos.y + drag.grabOffset.y });
+        return;
+      }
+
       hoverRef.current = positionFor(event);
+      // Cheap affordance: the cursor says whether a grab here would take
+      // hold. It costs one pick per move and no render.
+      const pos = hoverRef.current;
+      svg!.style.cursor =
+        !disabledRef.current && pos && pickNearest(pos, store.getScene().players) ? "grab" : "";
       moveReticle();
       updateReadout(store.getScene());
     }
@@ -191,15 +266,23 @@ export function FieldCanvas({
       updateReadout(store.getScene());
     }
 
+    // A drag interrupted by the browser (a system gesture, a lost capture)
+    // must not leave the board stuck in the grabbing state.
+    function onPointerCancel(event: PointerEvent) {
+      onPointerUp(event);
+    }
+
     svg.addEventListener("pointerdown", onPointerDown);
     svg.addEventListener("pointerup", onPointerUp);
     svg.addEventListener("pointermove", onPointerMove);
     svg.addEventListener("pointerleave", onPointerLeave);
+    svg.addEventListener("pointercancel", onPointerCancel);
     return () => {
       svg.removeEventListener("pointerdown", onPointerDown);
       svg.removeEventListener("pointerup", onPointerUp);
       svg.removeEventListener("pointermove", onPointerMove);
       svg.removeEventListener("pointerleave", onPointerLeave);
+      svg.removeEventListener("pointercancel", onPointerCancel);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [store, svgRef]);
@@ -219,50 +302,61 @@ export function FieldCanvas({
   }
 
   return (
-    <div className="relative w-full max-w-4xl">
-      <canvas
-        ref={(el) => {
-          canvasRef.current = el;
-          if (exposedCanvasRef) exposedCanvasRef.current = el;
-        }}
-        data-testid="heatmap-canvas"
-        aria-hidden="true"
-        // The overlay's fade is decoration; motion-safe drops it for anyone
-        // who asked for less motion. The live repaint is never suppressed —
-        // that is the feature, not an animation.
-        className="pointer-events-none absolute motion-safe:transition-opacity motion-safe:duration-200"
-        style={{ ...FIELD_INSET, opacity: overlay.on ? 1 : 0 }}
-      />
-
-      <svg
-        ref={svgRef}
-        role="group"
-        aria-label={`Ultimate field, ${FIELD.length} by ${FIELD.width} yards`}
-        viewBox={viewBoxString}
-        className="relative h-auto w-full"
-      >
-        <FieldLayer />
-        <rect
-          ref={reticleRef}
-          data-testid="cell-reticle"
-          width={FIELD_PX_WIDTH / FIELD.length}
-          height={FIELD_PX_WIDTH / FIELD.length}
-          fill="none"
-          stroke="#18181b"
-          strokeWidth={1}
-          opacity={0}
-          pointerEvents="none"
+    <div
+      ref={stageRef}
+      className="fv-stage relative flex w-full"
+      // Read by the :fullscreen rule to height-bound the stage without
+      // hardcoding the field's proportions in CSS.
+      style={{ "--fv-stage-aspect": viewBox.width / viewBox.height } as CSSProperties}
+    >
+      <div className="fv-stage-inner relative w-full">
+        <canvas
+          ref={(el) => {
+            canvasRef.current = el;
+            if (exposedCanvasRef) exposedCanvasRef.current = el;
+          }}
+          data-testid="heatmap-canvas"
+          aria-hidden="true"
+          // The overlay's fade is decoration; motion-safe drops it for anyone
+          // who asked for less motion. The live repaint is never suppressed —
+          // that is the feature, not an animation.
+          className="pointer-events-none absolute motion-safe:transition-opacity motion-safe:duration-200"
+          style={{ ...FIELD_INSET, opacity: overlay.on ? 1 : 0 }}
         />
-        <PieceLayer players={players} store={store} getSvg={() => svgRef.current} disabled={disabled} />
-      </svg>
 
-      {showPerf && (
-        <p
-          ref={perfRef}
-          data-testid="perf-readout"
-          className="absolute right-0 top-0 bg-white/90 px-2 py-1 font-mono text-[0.65rem] tabular-nums text-zinc-700"
-        />
-      )}
+        <svg
+          ref={svgRef}
+          role="group"
+          aria-label={`Ultimate field, ${FIELD.length} by ${FIELD.width} yards. Offense attacks left to right.`}
+          viewBox={viewBoxString}
+          className="relative h-auto w-full"
+          // The stage owns the drag, so it must own the gesture: without this a
+          // touch drag scrolls the page instead of moving a piece.
+          style={{ touchAction: "none" }}
+        >
+          <FieldLayer />
+          <rect
+            ref={reticleRef}
+            data-testid="cell-reticle"
+            width={FIELD_PX_WIDTH / FIELD.length}
+            height={FIELD_PX_WIDTH / FIELD.length}
+            fill="none"
+            stroke="#18181b"
+            strokeWidth={1}
+            opacity={0}
+            pointerEvents="none"
+          />
+          <PieceLayer players={players} store={store} disabled={disabled} />
+        </svg>
+
+        {showPerf && (
+          <p
+            ref={perfRef}
+            data-testid="perf-readout"
+            className="absolute right-0 top-0 bg-white/90 px-2 py-1 font-mono text-[0.65rem] tabular-nums text-zinc-700"
+          />
+        )}
+      </div>
     </div>
   );
 }

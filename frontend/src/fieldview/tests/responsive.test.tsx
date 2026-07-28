@@ -53,8 +53,9 @@ describe("tablet (768–1279) vs desktop (1280+)", () => {
     (page) => {
       renderPage(page);
       const stage = screen.getByRole("group", { name: /Ultimate field/i });
-      // FieldCanvas's own wrapper, then the split container above it.
-      const split = stage.closest("div")!.parentElement!;
+      // Up past FieldCanvas's own wrappers (the fullscreen target and the
+      // aspect-locked inner box) to the split container the page owns.
+      const split = stage.closest(".fv-stage")!.parentElement!;
       expect(split.className).toContain("flex-col");
       expect(split.className).toContain("xl:flex-row");
     },
