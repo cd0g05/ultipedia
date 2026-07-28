@@ -13,10 +13,12 @@ export function pixelToYard(pos: Vec2): Vec2 {
   return { x: pos.x / PIXELS_PER_YARD, y: pos.y / PIXELS_PER_YARD };
 }
 
-// Margin around the field itself so the attacking-direction indicator has
-// room to render above the sideline. Shared by every stage (static or
-// interactive) so their viewBoxes — and therefore pointer math — agree.
-export const STAGE_MARGIN = { top: 30, right: 20, bottom: 20, left: 20 };
+// Margin around the field itself so the attacking-direction indicator and
+// its label have room to render above the sideline. Shared by every stage
+// (static or interactive) so their viewBoxes — and therefore pointer math —
+// agree. FieldCanvas also derives the heatmap canvas's inset from this, so
+// changing it moves the field markings and the overlay together.
+export const STAGE_MARGIN = { top: 36, right: 20, bottom: 20, left: 20 };
 
 export interface ViewBox {
   x: number;
