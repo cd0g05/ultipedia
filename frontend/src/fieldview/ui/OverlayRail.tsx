@@ -1,46 +1,46 @@
-// The overlay rail: the Space toggle, the lens switch, the four layer
-// toggles, the legend, and the tuning panel.
+// The controls beside the field: which teams are drawn, the Space toggle,
+// the legend, and the Advanced settings disclosure.
 //
-// With the overlay off, everything except the toggle is *hidden* rather than
-// greyed out — there is nothing to explain until the map is on, and a row of
-// disabled controls reads as broken rather than as not-yet-relevant.
+// Two kinds of control live here and the split matters. The visibility
+// checkboxes are *diagram* controls — they change the picture and nothing
+// else, so they show whether or not the overlay is on. Everything below the
+// Space button is an *overlay* control, and with the overlay off it is hidden
+// rather than greyed out: there is nothing to explain until the map is on, and
+// a row of disabled controls reads as broken rather than as not-yet-relevant.
 
 import { RAMP_STOPS } from "../space/constants";
 import type { LayerFlags, Lens, SpaceParams } from "../space/types";
-import { TuningPanel } from "./TuningPanel";
+import type { TeamVisibility } from "./prefs";
+import { AdvancedPanel } from "./AdvancedPanel";
 
 interface OverlayRailProps {
   on: boolean;
   lens: Lens;
   layers: LayerFlags;
   params: SpaceParams;
-  tuningExpanded: boolean;
+  visible: TeamVisibility;
+  advancedExpanded: boolean;
   onToggle: (on: boolean) => void;
   onLensChange: (lens: Lens) => void;
   onLayerChange: (layer: keyof LayerFlags, enabled: boolean) => void;
   onParamChange: (param: keyof SpaceParams, value: number) => void;
-  onTuningExpandedChange: (expanded: boolean) => void;
+  onVisibleChange: (team: keyof TeamVisibility, shown: boolean) => void;
+  onAdvancedExpandedChange: (expanded: boolean) => void;
   onResetParams: () => void;
 }
 
-const LAYER_LABELS: { key: keyof LayerFlags; label: string }[] = [
-  { key: "markForce", label: "Mark / force" },
-  { key: "coverage", label: "Coverage" },
-  { key: "lanes", label: "Throwing lanes" },
-  { key: "value", label: "Field value" },
+const TEAM_LABELS: { key: keyof TeamVisibility; label: string }[] = [
+  { key: "offense", label: "Offense" },
+  { key: "defense", label: "Defense" },
 ];
-
-const LENS_HELP: Record<Lens, string> = {
-  offense: "Counts whether a cutter could get there first.",
-  "defense-only": "Ignores the cutters — pure defensive shape.",
-};
 
 // The legend's colours come from the same ramp stops the painter uses, so a
 // recalibration can never leave the key describing a map that no longer
-// exists. Meaning is carried by the words, not the hue (WCAG 1.4.1).
+// exists. Meaning is carried by the words, not the hue (WCAG 1.4.1) — and by
+// the same words the readout uses, so "contested" means one thing here.
 const LEGEND = [
   { hex: RAMP_STOPS[0].hex, label: "Closed" },
-  { hex: RAMP_STOPS[1].hex, label: "Open, low value" },
+  { hex: RAMP_STOPS[1].hex, label: "Contested" },
   { hex: RAMP_STOPS[3].hex, label: "Strong space" },
 ];
 
@@ -49,12 +49,14 @@ export function OverlayRail({
   lens,
   layers,
   params,
-  tuningExpanded,
+  visible,
+  advancedExpanded,
   onToggle,
   onLensChange,
   onLayerChange,
   onParamChange,
-  onTuningExpandedChange,
+  onVisibleChange,
+  onAdvancedExpandedChange,
   onResetParams,
 }: OverlayRailProps) {
   return (
@@ -62,9 +64,28 @@ export function OverlayRail({
     // (>= 1280, Tailwind `xl`): a vertical rail beside it. The field is the
     // thing that wants the width, so it gets it until there is enough for both.
     <aside
-      aria-label="Space overlay controls"
+      aria-label="Field view controls"
       className="flex w-full flex-row flex-wrap items-start gap-x-8 gap-y-3 border border-zinc-300 bg-white px-4 py-3 xl:flex-col xl:gap-3"
     >
+      {/* Show one side of a formation at a time — a coach walking through a
+          new defensive shape does not want six green dots in the way. Purely
+          what is drawn: the map still sees everyone. */}
+      <fieldset className="flex flex-col gap-1">
+        <legend className="font-mono text-xs uppercase tracking-wider text-zinc-500">
+          Show on diagram
+        </legend>
+        {TEAM_LABELS.map(({ key, label }) => (
+          <label key={key} className="flex items-center gap-2 font-mono text-xs text-zinc-800">
+            <input
+              type="checkbox"
+              checked={visible[key]}
+              onChange={(e) => onVisibleChange(key, e.target.checked)}
+            />
+            {label}
+          </label>
+        ))}
+      </fieldset>
+
       <button
         type="button"
         aria-pressed={on}
@@ -79,41 +100,10 @@ export function OverlayRail({
       </button>
 
       {on && (
-        // A fragment, not a wrapper div: the fieldsets, legend, and tuning
-        // panel must be direct flex children of the rail, or they would stack
-        // inside a box and defeat the horizontal tablet bar.
+        // A fragment, not a wrapper div: the legend and advanced panel must be
+        // direct flex children of the rail, or they would stack inside a box
+        // and defeat the horizontal tablet bar.
         <>
-          <fieldset className="flex flex-col gap-1">
-            <legend className="font-mono text-xs uppercase tracking-wider text-zinc-500">Lens</legend>
-            {(["offense", "defense-only"] as Lens[]).map((option) => (
-              <label key={option} className="flex items-baseline gap-2 font-mono text-xs">
-                <input
-                  type="radio"
-                  name="lens"
-                  value={option}
-                  checked={lens === option}
-                  onChange={() => onLensChange(option)}
-                />
-                <span className="text-zinc-800">{option === "offense" ? "Offense" : "Defense only"}</span>
-                <span className="text-zinc-500">{LENS_HELP[option]}</span>
-              </label>
-            ))}
-          </fieldset>
-
-          <fieldset className="flex flex-col gap-1">
-            <legend className="font-mono text-xs uppercase tracking-wider text-zinc-500">Layers</legend>
-            {LAYER_LABELS.map(({ key, label }) => (
-              <label key={key} className="flex items-center gap-2 font-mono text-xs text-zinc-800">
-                <input
-                  type="checkbox"
-                  checked={layers[key]}
-                  onChange={(e) => onLayerChange(key, e.target.checked)}
-                />
-                {label}
-              </label>
-            ))}
-          </fieldset>
-
           <div className="flex flex-wrap gap-4">
             {LEGEND.map((entry) => (
               <span key={entry.label} className="flex items-center gap-2 font-mono text-xs text-zinc-700">
@@ -127,10 +117,14 @@ export function OverlayRail({
             ))}
           </div>
 
-          <TuningPanel
+          <AdvancedPanel
+            lens={lens}
+            layers={layers}
             params={params}
-            expanded={tuningExpanded}
-            onExpandedChange={onTuningExpandedChange}
+            expanded={advancedExpanded}
+            onExpandedChange={onAdvancedExpandedChange}
+            onLensChange={onLensChange}
+            onLayerChange={onLayerChange}
             onParamChange={onParamChange}
             onReset={onResetParams}
           />
