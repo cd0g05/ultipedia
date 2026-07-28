@@ -262,12 +262,15 @@ export function Whiteboard() {
         <div className="flex w-full flex-col items-center gap-6 xl:flex-row xl:items-start">
           <FieldCanvas
             store={store}
-            players={identity}
+            // Hidden teams are simply not rendered, which is also what keeps
+            // them out of the PNG export and the tab order.
+            players={identity.filter((p) => overlay.visible[p.team])}
             svgRef={svgRef}
             overlay={overlay}
             readoutRef={readoutRef}
             canvasRef={heatmapCanvasRef}
             stageRef={stageRef}
+            visible={overlay.visible}
           />
 
           <div className="flex w-full flex-col gap-4 xl:w-80 xl:shrink-0">
@@ -276,12 +279,14 @@ export function Whiteboard() {
               lens={overlay.lens}
               layers={overlay.layers}
               params={overlay.params}
-              tuningExpanded={overlay.tuningExpanded}
+              visible={overlay.visible}
+              advancedExpanded={overlay.advancedExpanded}
               onToggle={overlay.setOn}
               onLensChange={overlay.setLens}
               onLayerChange={overlay.setLayer}
               onParamChange={overlay.setParam}
-              onTuningExpandedChange={overlay.setTuningExpanded}
+              onVisibleChange={overlay.setVisible}
+              onAdvancedExpandedChange={overlay.setAdvancedExpanded}
               onResetParams={overlay.resetParams}
             />
             <CellReadout ref={readoutRef} />

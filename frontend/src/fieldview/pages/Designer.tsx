@@ -331,10 +331,11 @@ export function Designer() {
         <div className="flex w-full flex-col items-center gap-6 xl:flex-row xl:items-start">
           <FieldCanvas
             store={store}
-            players={entities}
+            players={entities.filter((e) => overlay.visible[e.team])}
             svgRef={svgRef}
             overlay={overlay}
             readoutRef={readoutRef}
+            visible={overlay.visible}
             disabled={!editable}
           />
 
@@ -344,12 +345,14 @@ export function Designer() {
               lens={overlay.lens}
               layers={overlay.layers}
               params={overlay.params}
-              tuningExpanded={overlay.tuningExpanded}
+              visible={overlay.visible}
+              advancedExpanded={overlay.advancedExpanded}
               onToggle={overlay.setOn}
               onLensChange={overlay.setLens}
               onLayerChange={overlay.setLayer}
               onParamChange={overlay.setParam}
-              onTuningExpandedChange={overlay.setTuningExpanded}
+              onVisibleChange={overlay.setVisible}
+              onAdvancedExpandedChange={overlay.setAdvancedExpanded}
               onResetParams={overlay.resetParams}
             />
             <CellReadout ref={readoutRef} />

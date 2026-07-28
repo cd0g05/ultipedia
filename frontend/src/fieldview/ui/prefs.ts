@@ -9,12 +9,20 @@ import type { LayerFlags, Lens, SpaceParams } from "../space/types";
 
 const STORAGE_KEY = "fieldview.overlayPrefs";
 
+export interface TeamVisibility {
+  offense: boolean;
+  defense: boolean;
+}
+
 export interface OverlayPrefs {
   on: boolean;
   lens: Lens;
   layers: LayerFlags;
   params: SpaceParams;
-  tuningExpanded: boolean;
+  advancedExpanded: boolean;
+  // Which teams are drawn on the diagram. Display-only — a coach showing one
+  // side of a formation should not silently be shown a different map.
+  visible: TeamVisibility;
 }
 
 export const DEFAULT_PREFS: OverlayPrefs = {
@@ -22,7 +30,8 @@ export const DEFAULT_PREFS: OverlayPrefs = {
   lens: "offense",
   layers: { ...ALL_LAYERS },
   params: { ...DEFAULT_PARAMS },
-  tuningExpanded: false,
+  advancedExpanded: false,
+  visible: { offense: true, defense: true },
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -38,9 +47,16 @@ function clampToRange(value: unknown, min: number, max: number, fallback: number
 // hand-edited, version-skewed, or written by an older build. A bad entry
 // falls back to defaults rather than producing a map nobody can explain.
 export function parsePrefs(raw: unknown): OverlayPrefs {
-  if (!isRecord(raw)) return { ...DEFAULT_PREFS, layers: { ...DEFAULT_PREFS.layers } };
+  if (!isRecord(raw)) {
+    return {
+      ...DEFAULT_PREFS,
+      layers: { ...DEFAULT_PREFS.layers },
+      visible: { ...DEFAULT_PREFS.visible },
+    };
+  }
 
   const layers = isRecord(raw.layers) ? raw.layers : {};
+  const visible = isRecord(raw.visible) ? raw.visible : {};
   const params = isRecord(raw.params) ? raw.params : {};
   const markWRad = degToRad(
     clampToRange(
@@ -54,8 +70,19 @@ export function parsePrefs(raw: unknown): OverlayPrefs {
   return {
     on: typeof raw.on === "boolean" ? raw.on : DEFAULT_PREFS.on,
     lens: raw.lens === "defense-only" ? "defense-only" : "offense",
-    tuningExpanded:
-      typeof raw.tuningExpanded === "boolean" ? raw.tuningExpanded : DEFAULT_PREFS.tuningExpanded,
+    // Was `tuningExpanded` before the panel grew to hold the lens and layers
+    // too. The old key is still honoured so a returning coach's disclosure
+    // state survives the rename rather than silently snapping shut.
+    advancedExpanded:
+      typeof raw.advancedExpanded === "boolean"
+        ? raw.advancedExpanded
+        : typeof raw.tuningExpanded === "boolean"
+          ? raw.tuningExpanded
+          : DEFAULT_PREFS.advancedExpanded,
+    visible: {
+      offense: typeof visible.offense === "boolean" ? visible.offense : true,
+      defense: typeof visible.defense === "boolean" ? visible.defense : true,
+    },
     layers: {
       markForce: typeof layers.markForce === "boolean" ? layers.markForce : true,
       coverage: typeof layers.coverage === "boolean" ? layers.coverage : true,
@@ -106,7 +133,8 @@ export interface OverlayState extends OverlayPrefs {
   setLens: (lens: Lens) => void;
   setLayer: (layer: keyof LayerFlags, enabled: boolean) => void;
   setParam: (param: keyof SpaceParams, value: number) => void;
-  setTuningExpanded: (expanded: boolean) => void;
+  setAdvancedExpanded: (expanded: boolean) => void;
+  setVisible: (team: keyof TeamVisibility, shown: boolean) => void;
   resetParams: () => void;
 }
 
@@ -119,8 +147,13 @@ export function useOverlayState(): OverlayState {
 
   const setOn = useCallback((on: boolean) => setPrefs((p) => ({ ...p, on })), []);
   const setLens = useCallback((lens: Lens) => setPrefs((p) => ({ ...p, lens })), []);
-  const setTuningExpanded = useCallback(
-    (tuningExpanded: boolean) => setPrefs((p) => ({ ...p, tuningExpanded })),
+  const setAdvancedExpanded = useCallback(
+    (advancedExpanded: boolean) => setPrefs((p) => ({ ...p, advancedExpanded })),
+    [],
+  );
+  const setVisible = useCallback(
+    (team: keyof TeamVisibility, shown: boolean) =>
+      setPrefs((p) => ({ ...p, visible: { ...p.visible, [team]: shown } })),
     [],
   );
   const setLayer = useCallback(
@@ -138,5 +171,14 @@ export function useOverlayState(): OverlayState {
     [],
   );
 
-  return { ...prefs, setOn, setLens, setLayer, setParam, setTuningExpanded, resetParams };
+  return {
+    ...prefs,
+    setOn,
+    setLens,
+    setLayer,
+    setParam,
+    setAdvancedExpanded,
+    setVisible,
+    resetParams,
+  };
 }

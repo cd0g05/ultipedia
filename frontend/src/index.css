@@ -82,7 +82,10 @@ body {
 .fv-piece:focus-visible {
   outline: none;
 }
-.fv-piece:focus-visible .fv-piece-focus-ring {
+.fv-piece:focus-visible .fv-piece-focus-ring,
+/* Marquee selection reuses the same ring. `data-selected` is written
+   imperatively by the drag controller, so a selection never costs a render. */
+.fv-piece[data-selected="true"] .fv-piece-focus-ring {
   opacity: 1;
 }
 

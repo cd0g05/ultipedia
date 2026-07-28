@@ -63,7 +63,7 @@ describe("tablet (768–1279) vs desktop (1280+)", () => {
 
   it("lays the rail out as a horizontal bar on tablet and a vertical rail on desktop", () => {
     renderPage("whiteboard");
-    const rail = screen.getByRole("complementary", { name: "Space overlay controls" });
+    const rail = screen.getByRole("complementary", { name: "Field view controls" });
     expect(rail.className).toContain("flex-row");
     expect(rail.className).toContain("xl:flex-col");
   });
@@ -77,7 +77,7 @@ describe("tablet (768–1279) vs desktop (1280+)", () => {
 
   it("gives the field the width, not the rail, on tablet", () => {
     renderPage("whiteboard");
-    const rail = screen.getByRole("complementary", { name: "Space overlay controls" });
+    const rail = screen.getByRole("complementary", { name: "Field view controls" });
     const railColumn = rail.parentElement!;
     // Full width when stacked; a fixed 320px column only from xl.
     expect(railColumn.className).toContain("w-full");

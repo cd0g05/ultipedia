@@ -16,6 +16,22 @@ export const FIELD_TOKENS = {
     letterSpacing: 1.5,
     gapPx: 10, // between the end of the label and the tail of the arrow
   },
+  // The hover reticle marks the cell the readout is describing. White rather
+  // than black: it sits on top of the heatmap, which runs red → amber → green,
+  // and a dark mark on a dark red cell reads as a rendering artefact.
+  reticle: {
+    stroke: "#ffffff",
+    strokeWidth: 1.5,
+    opacity: 0.9,
+  },
+  // The marquee: drag a box over empty grass to select the players inside it.
+  marquee: {
+    stroke: "#EF4B8A", // film-accentPink
+    strokeWidth: 1.5,
+    strokeDasharray: "4 3",
+    fill: "#EF4B8A",
+    fillOpacity: 0.08,
+  },
 };
 
 // Sizes are in SVG user units, i.e. PIXELS_PER_YARD (8) per yard. A real
@@ -32,9 +48,10 @@ export const PIECE_TOKENS = {
     radius: 9,
   },
   special: {
-    // thrower + mark get a heavier stroke and a slightly larger radius so
-    // they're identifiable at a glance
-    radius: 11,
+    // thrower + mark are the same size as everyone else — a bigger dot read as
+    // "more important" rather than "different". Their outline and their T / M
+    // labels are what identify them.
+    radius: 9,
     stroke: "#18181b", // zinc-900
     strokeWidth: 1.5,
   },

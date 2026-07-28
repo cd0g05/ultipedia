@@ -100,6 +100,12 @@ export function PieceLayer({ players, store, disabled = false }: PieceLayerProps
     });
   }
 
+  // The disc and the mark's force indicator are derived decorations, not
+  // pieces — so they follow whether their owner is being drawn. A force arrow
+  // hanging in space under a hidden mark reads as a bug.
+  const throwerShown = players.some((p) => p.role === "thrower");
+  const markShown = players.some((p) => p.role === "mark");
+
   return (
     <g data-testid="pieces">
       {players.map((p) => {
@@ -163,23 +169,29 @@ export function PieceLayer({ players, store, disabled = false }: PieceLayerProps
       })}
 
       {/* Disc — docked to the thrower, derived every frame, never stored. */}
-      <g ref={discRef} aria-hidden="true" pointerEvents="none">
-        <circle
-          r={PIECE_TOKENS.disc.radius}
-          fill={PIECE_TOKENS.disc.fill}
-          stroke={PIECE_TOKENS.disc.stroke}
-          strokeWidth={PIECE_TOKENS.disc.strokeWidth}
-        />
-      </g>
+      {throwerShown && (
+        <g ref={discRef} data-testid="disc" aria-hidden="true" pointerEvents="none">
+          <circle
+            r={PIECE_TOKENS.disc.radius}
+            fill={PIECE_TOKENS.disc.fill}
+            stroke={PIECE_TOKENS.disc.stroke}
+            strokeWidth={PIECE_TOKENS.disc.strokeWidth}
+          />
+        </g>
+      )}
 
-      {/* Mark's directional indicator: the only force input in the UI. */}
-      <line
-        ref={markDirRef}
-        stroke={PIECE_TOKENS.markDirection.stroke}
-        strokeWidth={PIECE_TOKENS.markDirection.strokeWidth}
-        pointerEvents="none"
-        aria-hidden="true"
-      />
+      {/* Mark's directional indicator: the only force input in the UI. It is
+          drawn from the mark toward the thrower, so it needs both on screen. */}
+      {throwerShown && markShown && (
+        <line
+          ref={markDirRef}
+          data-testid="mark-direction"
+          stroke={PIECE_TOKENS.markDirection.stroke}
+          strokeWidth={PIECE_TOKENS.markDirection.strokeWidth}
+          pointerEvents="none"
+          aria-hidden="true"
+        />
+      )}
     </g>
   );
 }
