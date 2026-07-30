@@ -1,4 +1,4 @@
-// Yard -> pixel transform. This is the only place field-view coordinates
+// Yard -> pixel transform. This is the only place fieldview coordinates
 // leave yards; scene/ and (later) space/ never see a pixel value.
 
 import type { Vec2 } from "../scene/types";

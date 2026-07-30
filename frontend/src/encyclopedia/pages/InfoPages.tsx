@@ -24,7 +24,7 @@ function InfoPage({
       <p className="font-mono text-xs font-bold uppercase tracking-widest text-film-accentPink">
         {eyebrow}
       </p>
-      <h1 className="font-heading text-4xl font-bold uppercase leading-tight tracking-tight text-zinc-900 lg:text-5xl">
+      <h1 className="font-heading text-4xl uppercase leading-tight tracking-tight text-zinc-900 lg:text-5xl">
         {title}
       </h1>
       <div className="max-w-lg space-y-4 text-lg text-zinc-600">{children}</div>

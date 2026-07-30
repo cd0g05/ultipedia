@@ -42,7 +42,7 @@ function Hero() {
     <section className="border-b border-film-border bg-white">
       <div className="mx-auto flex max-w-[1400px] flex-col items-center gap-12 px-6 py-16 lg:flex-row lg:py-24">
         <div className="w-full space-y-8 lg:w-1/2">
-          <h1 className="font-heading text-5xl font-bold uppercase leading-none tracking-tight text-zinc-900 lg:text-7xl">
+          <h1 className="font-heading text-5xl uppercase leading-none tracking-tight text-zinc-900 lg:text-7xl">
             Everything your team needs to run a great practice.
           </h1>
           <p className="max-w-lg text-xl text-zinc-600">
@@ -176,7 +176,7 @@ function PlannerTeaser() {
     >
       <div className="mx-auto flex max-w-[1400px] flex-col items-center gap-16 px-6 py-20 lg:flex-row">
         <div className="w-full space-y-6 lg:w-5/12">
-          <h2 className="font-heading text-4xl font-bold uppercase leading-tight text-zinc-900">
+          <h2 className="font-heading text-4xl uppercase leading-tight text-zinc-900">
             Build a practice plan in under a minute
           </h2>
           <p className="text-zinc-600">
@@ -298,7 +298,7 @@ export function Home() {
           aria-label="Popular Resources"
           className="w-full bg-white p-8 lg:w-2/3 lg:p-12"
         >
-          <h2 className="font-heading mb-8 border-l-4 border-film-accentPink pl-3 text-2xl font-bold uppercase tracking-wide text-zinc-900">
+          <h2 className="font-heading mb-8 border-l-4 border-film-accentPink pl-3 text-2xl uppercase tracking-wide text-zinc-900">
             Popular Resources
           </h2>
 

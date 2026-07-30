@@ -268,7 +268,7 @@ export function Search() {
       />
 
       <div className="mb-8 border-b border-film-border pb-3">
-        <h1 className="font-heading inline-block border-b-2 border-film-accentPink pb-3 text-4xl font-bold uppercase tracking-wide text-zinc-900">
+        <h1 className="font-heading inline-block border-b-2 border-film-accentPink pb-3 text-4xl uppercase tracking-wide text-zinc-900">
           Search
         </h1>
       </div>

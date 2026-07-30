@@ -1,4 +1,4 @@
-// /field-view/designer — Mode 2: the keyframed play designer.
+// /fieldview/designer — Mode 2: the keyframed play designer.
 //
 // Keyframes live in a ref, not in state (ADR-2's reasoning extended to this
 // mode): while a keyframe is selected, every dragged frame writes the live
@@ -41,7 +41,7 @@ export function Designer() {
   const overlay = useOverlayState();
 
   // The whiteboard scene if the user switched modes; otherwise the default
-  // preset, so a direct link to /field-view/designer still works.
+  // preset, so a direct link to /fieldview/designer still works.
   const initialScene = useMemo(() => takeScene() ?? getPreset("vertStackForceSide"), []);
 
   const storeRef = useRef(createSceneStore(cloneScene(initialScene)));
@@ -288,7 +288,7 @@ export function Designer() {
     <>
       <SmallScreenNotice />
       <div className="mx-auto hidden max-w-[1600px] flex-col items-center gap-6 px-4 py-10 md:flex">
-        <h1 className="font-heading text-2xl font-bold uppercase tracking-widest text-zinc-900">
+        <h1 className="font-heading text-2xl uppercase tracking-widest text-zinc-900">
           Field View — Designer
         </h1>
 

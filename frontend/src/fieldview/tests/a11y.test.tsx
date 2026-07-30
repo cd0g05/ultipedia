@@ -1,4 +1,4 @@
-// axe-core audit for /field-view and /field-view/designer (P2 and P4
+// axe-core audit for /fieldview and /fieldview/designer (P2 and P4
 // acceptance criteria). color-contrast
 // is disabled per the same rationale as encyclopedia/tests/a11y.test.tsx:
 // jsdom does not paint, so axe cannot compute real contrast.
@@ -27,30 +27,30 @@ async function expectNoViolations(container: Element) {
 }
 
 describe("axe-core audit", () => {
-  it("/field-view has no violations", async () => {
+  it("/fieldview has no violations", async () => {
     const { container } = render(<MemoryRouter><Whiteboard /></MemoryRouter>);
     await expectNoViolations(container);
   });
 
-  it("/field-view/designer has no violations", async () => {
+  it("/fieldview/designer has no violations", async () => {
     const { container } = render(<MemoryRouter><Designer /></MemoryRouter>);
     await expectNoViolations(container);
   });
 
-  it("/field-view has no violations with the space overlay on", async () => {
+  it("/fieldview has no violations with the space overlay on", async () => {
     const { container } = render(<MemoryRouter><Whiteboard /></MemoryRouter>);
     fireEvent.click(screen.getByRole("button", { name: "Space" }));
     fireEvent.click(screen.getByRole("button", { name: /Advanced settings/ }));
     await expectNoViolations(container);
   });
 
-  it("/field-view/designer has no violations with the space overlay on", async () => {
+  it("/fieldview/designer has no violations with the space overlay on", async () => {
     const { container } = render(<MemoryRouter><Designer /></MemoryRouter>);
     fireEvent.click(screen.getByRole("button", { name: "Space" }));
     await expectNoViolations(container);
   });
 
-  it("/field-view/designer has no violations with multiple keyframes", async () => {
+  it("/fieldview/designer has no violations with multiple keyframes", async () => {
     const { container } = render(<MemoryRouter><Designer /></MemoryRouter>);
     fireEvent.click(screen.getByRole("button", { name: "+ Keyframe" }));
     await expectNoViolations(container);

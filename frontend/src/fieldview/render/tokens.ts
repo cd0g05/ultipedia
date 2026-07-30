@@ -36,22 +36,25 @@ export const FIELD_TOKENS = {
 
 // Sizes are in SVG user units, i.e. PIXELS_PER_YARD (8) per yard. A real
 // player occupies about a yard, but this is a coaching diagram, not a scale
-// drawing — pieces are drawn at roughly 2.25 yd across so they read across a
-// room. Grab distance is deliberately NOT derived from these (see pick.ts).
+// drawing — pieces are drawn at roughly 1.9 yd across so they read across a
+// room. Grab distance is deliberately NOT derived from these (see pick.ts),
+// which is what lets the pieces shrink without the board getting fiddlier to
+// use: at 9 (2.25 yd) all fourteen read as crowded and made the field itself
+// feel small, so this is a third of a yard back off that.
 export const PIECE_TOKENS = {
   offense: {
     fill: "#4F941D", // film-accentGreen
-    radius: 9,
+    radius: 7.5,
   },
   defense: {
     fill: "#D64B4A",
-    radius: 9,
+    radius: 7.5,
   },
   special: {
     // thrower + mark are the same size as everyone else — a bigger dot read as
     // "more important" rather than "different". Their outline and their T / M
     // labels are what identify them.
-    radius: 9,
+    radius: 7.5,
     stroke: "#18181b", // zinc-900
     strokeWidth: 1.5,
   },
@@ -59,7 +62,7 @@ export const PIECE_TOKENS = {
     fill: "#f4f4f5", // zinc-100
     stroke: "#18181b",
     strokeWidth: 1,
-    radius: 4,
+    radius: 3.5,
     offsetPx: { dx: 10, dy: -10 }, // docked this far from the thrower, in screen pixels
   },
   markDirection: {
@@ -69,7 +72,8 @@ export const PIECE_TOKENS = {
   },
   label: {
     fill: "#ffffff",
-    fontSize: 9,
+    // Tracks the piece radius: a 9 px glyph in a 7.5 px circle touches the rim.
+    fontSize: 8,
   },
   focusRing: {
     stroke: "#EF4B8A",

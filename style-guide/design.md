@@ -41,13 +41,32 @@ The Light Film Room is built on:
 
 #### Headings (Display)
 ```css
-font-family: "Druk", "DrukaatieBurti", "Oswald", "Arial Narrow", sans-serif;
+font-family: "Archivo Black", "Oswald", "Arial Narrow", sans-serif;
 ```
-- **Font**: Druk (commercial typeface)
-- **Weights**: 400 (Medium), 700 (Bold), 900 (Super)
+- **Font**: Archivo Black (self-hosted, `frontend/public/fonts/ArchivoBlack-Regular.ttf`)
+- **License**: SIL OFL 1.1 — free for commercial use **and** web embedding. The
+  license text ships next to the font as `ArchivoBlack-OFL.txt`; the OFL requires
+  it to travel with the file, so keep them together.
+- **Weights**: **400 only.** Archivo Black ships a single cut — its weight *is*
+  its identity. Never set `font-weight: 700` or `900` against it; the browser
+  synthesises a fake bold, which smears a display face badly.
 - **Usage**: Page titles, section headers, entry names
-- **Character**: Geometric, bold, commanding presence
-- **Fallback**: DrukaatieBurti (open-source geometric sans)
+- **Character**: Geometric, heavy, commanding presence
+- **Fallback**: Oswald, then Arial Narrow — only visible during font load
+
+> **Two previous display faces were removed, both for the same reason.** This repo
+> is public and auto-deploys to Vercel, so any font committed under `public/` is
+> being *distributed*, not merely used:
+>
+> - **Druk** (Commercial Type) was self-hosted from **trial** builds and served
+>   from production. A trial license covers evaluation, not public distribution.
+> - **Arena** is licensed for **personal use only** and its terms explicitly
+>   forbid uploading or distributing the file "on any website or platform", plus
+>   any commercial use without a paid license.
+>
+> The rule this leaves behind: **a display face for this project must be
+> self-hostable under a license that permits web embedding.** OFL faces (Archivo
+> Black, Anton, Oswald) qualify. Trial builds and personal-use freeware do not.
 
 #### UI / Monospace (Navigation, Pills, Buttons, Badges)
 ```css
@@ -200,27 +219,40 @@ background-size: 2rem 2rem;
 
 ### Loading the Fonts
 
-Include Druk in your `@font-face` declarations. If not licensing Druk, substitute with DrukaatieBurti (free, open-source geometric sans):
+Both fonts are self-hosted from `frontend/public/fonts/` — no Google Fonts link,
+no third-party request at render time. Copy the files into your own
+public/static folder and declare:
 
 ```css
 @font-face {
-  font-family: "Druk";
+  font-family: "Archivo Black";
   font-weight: 400;
-  src: url("./fonts/Druk-Medium-Trial.otf") format("opentype");
+  font-style: normal;
+  font-display: swap;
+  src: url("/fonts/ArchivoBlack-Regular.ttf") format("truetype");
 }
 
 @font-face {
-  font-family: "Druk";
+  font-family: "JetBrains Mono";
+  font-weight: 400;
+  src: url("/fonts/JetBrainsMono-Regular.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "JetBrains Mono";
   font-weight: 700;
-  src: url("./fonts/Druk-Bold-Trial.otf") format("opentype");
-}
-
-@font-face {
-  font-family: "Druk";
-  font-weight: 900;
-  src: url("./fonts/Druk-Super-Trial.otf") format("opentype");
+  src: url("/fonts/JetBrainsMono-Bold.ttf") format("truetype");
 }
 ```
+
+Ship `ArchivoBlack-OFL.txt` alongside the font — the OFL requires the license to
+travel with the file. Body text needs no `@font-face`: Helvetica Neue / Arial are
+system faces.
+
+To substitute a different display face, check first that its license permits
+**web embedding** (see § Typography for why this project is strict about it), then
+point the `@font-face` at it and put its family name first in the `heading` stack
+in `tailwind.config.js`.
 
 ### Scoping the System
 
@@ -244,7 +276,7 @@ To apply this design system to a page or section, add the class `light-film-room
 - **Focus Indicators**: Always provide visible focus outlines for keyboard navigation
 - **Text Alternatives**: Use semantic HTML; labels on all form inputs
 - **Motion**: Avoid parallax; prefer simple transitions (200ms) on hover/focus
-- **Typeface**: Druk and Helvetica Neue are both readable at small sizes; JetBrains Mono is designed for fixed-width clarity
+- **Typeface**: Archivo Black and Helvetica Neue are both readable at small sizes; JetBrains Mono is designed for fixed-width clarity
 
 ## Tone
 

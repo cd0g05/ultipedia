@@ -1,39 +1,21 @@
-/* Druk (Commercial Type) — TRIAL builds from fonts/Druk_Collection; license
-   the real cuts before production. DrukaatieBurti kept below as fallback. */
+/* Archivo Black is the display face — SIL OFL 1.1, so unlike its predecessors
+   it can legitimately be self-hosted and served from a public deploy. The
+   license text ships beside it (ArchivoBlack-OFL.txt) because the OFL requires
+   it to travel with the font.
+
+   Two faces were removed to get here, both for the same reason — the repo is
+   public and auto-deploys, so anything committed under public/ is distributed:
+   Druk (Commercial Type) was self-hosted from *trial* builds, and Arena is
+   licensed for personal use only and forbids web distribution outright.
+   Single weight by design: Archivo Black ships one cut. Do not add
+   `font-weight: 700/900` rules against it — the browser will synthesise a
+   fake bold and a display face shows that badly. */
 @font-face {
-  font-family: "Druk";
+  font-family: "Archivo Black";
   font-weight: 400;
-  src: url("/fonts/Druk-Medium-Trial.otf") format("opentype");
-}
-
-@font-face {
-  font-family: "Druk";
-  font-weight: 700;
-  src: url("/fonts/Druk-Bold-Trial.otf") format("opentype");
-}
-
-@font-face {
-  font-family: "Druk";
-  font-weight: 900;
-  src: url("/fonts/Druk-Super-Trial.otf") format("opentype");
-}
-
-@font-face {
-  font-family: "DrukaatieBurti";
-  font-weight: 400;
-  src: url("/fonts/DrukaatieBurti-Regular.ttf") format("truetype");
-}
-
-@font-face {
-  font-family: "DrukaatieBurti";
-  font-weight: 600;
-  src: url("/fonts/DrukaatieBurti-Demi.ttf") format("truetype");
-}
-
-@font-face {
-  font-family: "DrukaatieBurti";
-  font-weight: 900;
-  src: url("/fonts/DrukaatieBurti-Heavy.ttf") format("truetype");
+  font-style: normal;
+  font-display: swap;
+  src: url("/fonts/ArchivoBlack-Regular.ttf") format("truetype");
 }
 
 @font-face {

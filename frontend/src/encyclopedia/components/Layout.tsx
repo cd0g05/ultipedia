@@ -20,7 +20,7 @@ function Wordmark() {
   return (
     <Link
       to="/"
-      className="font-heading text-2xl font-bold uppercase tracking-widest text-zinc-900"
+      className="font-heading text-2xl uppercase tracking-widest text-zinc-900"
     >
       Ultipedia<span className="text-film-accentPink">.</span>
     </Link>
@@ -102,7 +102,7 @@ export function Layout() {
               <SearchBar label="Header search" className="hidden md:flex md:max-w-sm lg:max-w-md" />
               <MobileSearchLink />
               <Link
-                to="/field-view"
+                to="/fieldview"
                 className="hidden whitespace-nowrap font-mono text-sm uppercase tracking-wider text-zinc-600 transition-colors hover:text-film-accentPink sm:inline"
               >
                 Field View
