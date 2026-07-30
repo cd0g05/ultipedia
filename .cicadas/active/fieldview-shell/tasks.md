@@ -63,15 +63,29 @@ anticipated. The Integration partition should re-verify but these should already
 
 ## Partition: feat/fieldview-shell-panels
 
-- [ ] Build `panelRegistry.ts`: `Record<SelectionStateKind, ComponentType<PanelProps>>` + `registerPanel()` <!-- id: 30 -->
-- [ ] Build `useSelection()` hook via `useSyncExternalStore` over `store.subscribeSelection`/`getSelection` <!-- id: 31 -->
-- [ ] Migrate `OverlayRail` visibility-toggle logic into `DefaultVisibilityPanel` (covers `none`/`multi`) <!-- id: 32 -->
-- [ ] Migrate `AdvancedPanel` into `AdvancedSettingsPanel` <!-- id: 33 -->
-- [ ] Build `OffensePlayerPanel` placeholder with UX copy ("Matchup and mark controls ship in a future update.") <!-- id: 34 -->
-- [ ] Build `DefensePlayerPanel` placeholder with the same copy convention <!-- id: 35 -->
-- [ ] Build `MarkPanel` placeholder with the same copy convention <!-- id: 36 -->
-- [ ] Write `shellGuard.test.ts`: registry has an entry for every `SelectionStateKind` <!-- id: 37 -->
-- [ ] Test `DefaultVisibilityPanel` and `AdvancedSettingsPanel` reproduce prior `OverlayRail`/`AdvancedPanel` behavior <!-- id: 38 -->
+- [x] Build `panelRegistry.ts`: `Record<SelectionStateKind, ComponentType<PanelProps>>` + `registerPanel()` <!-- id: 30 -->
+- [x] Build `useSelection()` hook via `useSyncExternalStore` over `store.subscribeSelection`/`getSelection` <!-- id: 31 -->
+- [x] Migrate `OverlayRail` visibility-toggle logic into `DefaultVisibilityPanel` (covers `none`/`multi`) <!-- id: 32 -->
+- [x] Migrate `AdvancedPanel` into `AdvancedSettingsPanel` <!-- id: 33 -->
+- [x] Build `OffensePlayerPanel` placeholder with UX copy ("Matchup and mark controls ship in a future update.") <!-- id: 34 -->
+- [x] Build `DefensePlayerPanel` placeholder with the same copy convention <!-- id: 35 -->
+- [x] Build `MarkPanel` placeholder with the same copy convention <!-- id: 36 -->
+- [x] Write `shellGuard.test.ts`: registry has an entry for every `SelectionStateKind` <!-- id: 37 -->
+- [x] Test `DefaultVisibilityPanel` and `AdvancedSettingsPanel` reproduce prior `OverlayRail`/`AdvancedPanel` behavior <!-- id: 38 -->
+
+**Note (design decision):** `PanelProps` is exactly `{ selection }` (tech-design.md ADR-3's
+Interface Contracts), so `DefaultVisibilityPanel` and `AdvancedSettingsPanel` — which need
+visibility/lens/layers/params state, not just `selection` — call `useOverlayState()`
+(`ui/prefs.ts`) internally rather than accepting that state as props. This keeps every panel in
+the registry assignable to `ComponentType<PanelProps>` without widening the shared prop type, and
+matches the existing precedent (Whiteboard.tsx already calls the same hook once and threads it to
+`OverlayRail`/`AdvancedPanel`). `AdvancedSettingsPanel` wraps the existing `AdvancedPanel`
+component unchanged, always passing `expanded={true}` — in the shell, opening "Advanced Settings"
+from the bottom menu is itself the disclosure, so there's no second collapse toggle. The Desktop
+partition (`feat/fieldview-shell-desktop`) should decide whether `Whiteboard.tsx`'s own
+`useOverlayState()` call and these panels' internal calls should be consolidated into one call
+threaded down (they currently both read/write the same `fieldview.overlayPrefs` localStorage key
+independently, which is consistent but redundant) — noted here so it isn't rediscovered as a bug.
 
 ## Partition: feat/fieldview-shell-desktop
 
