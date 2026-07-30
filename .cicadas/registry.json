@@ -1,0 +1,12 @@
+{
+  "schema_version": "2.0",
+  "initiatives": {
+    "ulti-pedia-form": {
+      "intent": "Knowledge-intake front door for Ulti-pedia: mobile-first structured form (v1) evolving into an AI-guided coverage-aware interview with voice + seed KB (v2), all writing one versioned envelope to Supabase via a FastAPI backend.",
+      "owner": "unknown",
+      "signals": [],
+      "created_at": "2026-07-02T00:29:37.604119+00:00"
+    }
+  },
+  "branches": {}
+}
