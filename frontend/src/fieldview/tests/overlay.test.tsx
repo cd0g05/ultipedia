@@ -9,7 +9,7 @@ import { MemoryRouter } from "react-router-dom";
 import { Whiteboard } from "../pages/Whiteboard";
 import { Designer } from "../pages/Designer";
 import { createHeatmapPainter } from "../render/heatmap";
-import { getStageViewBox } from "../render/coords";
+import { getStageViewBox, yardToPixel } from "../render/coords";
 import { FIELD_PX_HEIGHT, FIELD_PX_WIDTH } from "../render/fieldLayer";
 import { computeGrid } from "../space/score";
 import { ALL_LAYERS, DEFAULT_PARAMS, GRID_STEP } from "../space/constants";
@@ -71,6 +71,14 @@ function stubStageRect() {
 function grabPointFor(piece: Element) {
   const match = piece.getAttribute("transform")!.match(/translate\(([-\d.]+), ([-\d.]+)\)/)!;
   return { clientX: Number(match[1]) - viewBox.x, clientY: Number(match[2]) - viewBox.y };
+}
+
+// A client point for a given on-field yard position, via the real
+// yard->pixel transform (coords.ts) rather than a hardcoded pixel literal —
+// stays correct regardless of the field's on-screen orientation (ADR-2).
+function clientForYard(yard: { x: number; y: number }) {
+  const px = yardToPixel(yard);
+  return { clientX: px.x - viewBox.x, clientY: px.y - viewBox.y };
 }
 
 describe("overlay rail", () => {
@@ -243,7 +251,7 @@ describe("hover readout", () => {
 
       turnOverlayOn();
       const stage = screen.getByRole("group", { name: /Ultimate field/i });
-      fireEvent.pointerMove(stage, { clientX: 400, clientY: 200 });
+      fireEvent.pointerMove(stage, clientForYard({ x: 60, y: 20 }));
 
       expect(screen.getByText("Distance")).toBeVisible();
       expect(screen.getByText("Nearest defender arrives")).toBeVisible();
@@ -275,7 +283,7 @@ describe("hover readout", () => {
       fireEvent.click(lensCheckbox());
 
       const stage = screen.getByRole("group", { name: /Ultimate field/i });
-      fireEvent.pointerMove(stage, { clientX: 400, clientY: 200 });
+      fireEvent.pointerMove(stage, clientForYard({ x: 60, y: 20 }));
 
       expect(screen.getByText("Distance")).toBeVisible();
       expect(screen.getByText("Best cutter arrives")).not.toBeVisible();
@@ -290,7 +298,7 @@ describe("hover readout", () => {
       renderWhiteboard();
       turnOverlayOn();
       const stage = screen.getByRole("group", { name: /Ultimate field/i });
-      fireEvent.pointerMove(stage, { clientX: 400, clientY: 200 });
+      fireEvent.pointerMove(stage, clientForYard({ x: 60, y: 20 }));
       expect(screen.getByText("Distance")).toBeVisible();
 
       // Otherwise the last sampled cell freezes on screen, describing a map
@@ -309,7 +317,7 @@ describe("hover readout", () => {
       renderWhiteboard();
       turnOverlayOn();
       const stage = screen.getByRole("group", { name: /Ultimate field/i });
-      fireEvent.pointerMove(stage, { clientX: 400, clientY: 200 });
+      fireEvent.pointerMove(stage, clientForYard({ x: 60, y: 20 }));
       expect(screen.getByText("Distance")).toBeVisible();
 
       fireEvent.pointerLeave(stage);
@@ -363,11 +371,13 @@ describe("ADR-2: React is not in the drag path", () => {
   it("commits zero React renders while drawing a marquee and dragging the group", async () => {
     const rect = stubStageRect();
     // The same client coordinates the drag tests use: 1 px per SVG unit,
-    // 8 SVG units per yard, offset by the stage margin.
-    const at = (x: number, y: number) => ({
-      clientX: x * 8 - viewBox.x,
-      clientY: y * 8 - viewBox.y,
-    });
+    // through the real yard->pixel transform (coords.ts) so this stays
+    // correct regardless of the field's on-screen orientation (ADR-2),
+    // offset by the stage margin.
+    const at = (x: number, y: number) => {
+      const px = yardToPixel({ x, y });
+      return { clientX: px.x - viewBox.x, clientY: px.y - viewBox.y };
+    };
     try {
       let commits = 0;
       render(
