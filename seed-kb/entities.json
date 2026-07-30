@@ -1,0 +1,41 @@
+{
+  "_note": "Hand-curated, rights-clean canonical entities authored for Ulti-pedia. Descriptions are original summaries, not copied from any source. Aliases capture the names coaches actually use so entity resolution can match free-text.",
+  "entities": [
+    {
+      "kind": "drill",
+      "canonical_name": "4 lines",
+      "aliases": ["four lines", "4 lines drill", "four line drill", "four lines drill"],
+      "description": "A team warmup with four lines across the field: two handler lines on the outside and two cutting lines in the middle. Cutters make upline then under cuts to handlers, progressing through forces and finishing with deep throws. Warms up cutting, throwing, and marking."
+    },
+    {
+      "kind": "drill",
+      "canonical_name": "Box drill",
+      "aliases": ["the box", "box throwing drill"],
+      "description": "Players form a square and throw around and across the box working on pivots, breaks, and catching under pressure."
+    },
+    {
+      "kind": "strategy.formation",
+      "canonical_name": "Vertical stack",
+      "aliases": ["vert", "vert stack", "vertical", "vertical offense"],
+      "description": "An offensive formation where cutters line up in a single stack down the middle of the field, clearing lanes for one cutter at a time to attack deep or under."
+    },
+    {
+      "kind": "strategy.formation",
+      "canonical_name": "Horizontal stack",
+      "aliases": ["ho", "ho stack", "horizontal", "horizontal offense"],
+      "description": "An offensive formation with cutters spread across the field horizontally, giving each cutter one-on-one space to attack the open side deep or under."
+    },
+    {
+      "kind": "strategy.formation",
+      "canonical_name": "Zone defense",
+      "aliases": ["zone", "zone d", "cup", "zone defence"],
+      "description": "A defensive scheme where defenders guard areas of the field rather than specific players, often using a cup to pressure the disc and force difficult throws, effective in wind."
+    },
+    {
+      "kind": "strategy.concept",
+      "canonical_name": "The mark",
+      "aliases": ["marking", "force", "forcing", "the force"],
+      "description": "How the defender on the disc positions to take away one side of the field (force flick or force home/away) and pressure the thrower without fouling."
+    }
+  ]
+}

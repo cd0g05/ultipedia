@@ -1,0 +1,109 @@
+
+---
+summary: "Execution checklist for ulti-pedia-form across 7 partitions: Foundation (schema/API/Supabase) → parallel form track (Form UI → Polish/Analytics, + Voice Dictation) and AI track (Seed KB/Entities → AI Interview) → convergence (Voice Interview/Media/Enrichments). No PR boundaries; feature branches merge directly to the initiative branch, which merges once to main. Ship-able v1 milestone after the Polish/Analytics partition."
+phase: "tasks"
+when_to_load:
+  - "When selecting the next implementation task or reviewing completion state."
+  - "When checking partition progress, PR boundaries, or execution sequencing."
+depends_on:
+  - "prd.md"
+  - "ux.md"
+  - "tech-design.md"
+  - "approach.md"
+modules:
+  - "backend, frontend, data/seed-kb, eval"
+index:
+  foundation: "## Partition: feat/foundation"
+  form_ui: "## Partition: feat/form-ui"
+  polish: "## Partition: feat/polish-analytics"
+  seed_kb: "## Partition: feat/seed-kb-entities"
+  ai_interview: "## Partition: feat/ai-interview"
+  voice_dictation: "## Partition: feat/voice-dictation"
+  voice_media: "## Partition: feat/voice-interview-media"
+  initiative_boundary: "## Initiative Boundary"
+next_section: "## Partition: feat/form-ui"
+---
+
+# Tasks: Ulti-pedia Knowledge Intake
+
+<!-- No PR boundaries configured (lifecycle: features=false, initiatives=false). Feature branches merge directly into initiative/ulti-pedia-form; the initiative merges once to main. -->
+
+## Partition: feat/foundation
+
+- [x] Define `schemas/envelope.py` (Submission + Contributor) and per-type models (drill, strategy.formation/play/concept, other) per tech-design Data Models <!-- id: 1 -->
+- [x] Write Supabase migration `001_submissions.sql` (envelope + jsonb fields + raw_freeform + normalized_tags + flagged). NOTE: written; application to a live Supabase project deferred until credentials exist (no project provisioned yet). <!-- id: 2 -->
+- [x] Write migration `002_events.sql` (`form_events`). NOTE: same apply caveat as id:2. <!-- id: 3 -->
+- [x] FastAPI skeleton: `main.py`, `config.py` (env settings, service key server-side only), `/health`. Implemented as an app factory `create_app()`; in-memory store used automatically when Supabase env is unset. <!-- id: 4 -->
+- [x] `services/validation.py`: per-field length caps, total payload cap, whitespace-only reject, honeypot, per-IP/per-contact rate limit, garbage heuristic → `flagged` <!-- id: 5 -->
+- [x] `services/storage.py` as the sole Supabase writer (service role); lazy supabase import + `InMemorySubmissionStore` fallback for dev/tests <!-- id: 6 -->
+- [x] `api/submissions.py` (`POST /api/submissions` → 201 {submission_id}) <!-- id: 7 -->
+- [x] `api/events.py` (`POST /api/events` → 204) <!-- id: 8 -->
+- [x] Tests: valid submission persists; 413/400(honeypot)/429/422 paths; event persists; schema_version stamped — 12 tests, all passing <!-- id: 9 -->
+
+## Partition: feat/form-ui
+
+- [x] Vite + React + TS + Tailwind scaffold; mobile-first layout primitives <!-- id: 10 -->
+- [x] Tap-to-open `Tooltip`, `Toast`, `ConfirmDialog` UI primitives (animated `Section` transitions deferred to feat/polish-analytics per approach scoping) <!-- id: 11 -->
+- [x] Sections: Tutorial, PathSelect, FormSection (drill/formation/play/concept/other via field config), Contributor, Confirm (dialog), ThankYou <!-- id: 12 -->
+- [x] `state/draft.ts`: debounced localStorage autosave + restore-on-return + manual Save + submit retry/queue (queue in api/client.ts) <!-- id: 13 -->
+- [x] `api/client.ts`: POST submission + events to backend only; offline retry queue + flushQueue; 4xx surfaced, 5xx/network queued <!-- id: 14 -->
+- [x] Switch-away data-loss warning; confirm-before-submit; thank-you → submit-another loop <!-- id: 15 -->
+- [x] Contributor+consent capture once, prefilled on repeat submission in session <!-- id: 16 -->
+- [x] Tests: draft autosave/restore + contributor prefill, api submit/queue/flush, App flow + switch-away warning — 13 tests passing; tsc + vite build clean <!-- id: 17 -->
+
+## Partition: feat/polish-analytics
+
+- [x] Framer Motion step entrance transitions (`MotionStep`) + collapsible "About this form" info bar (`Collapsible`); reduced-motion aware. NOTE: used per-step entrance animation rather than AnimatePresence exit-wait to stay robust under jsdom/tests. <!-- id: 20 -->
+- [x] Warm per-section palette (`sections/theme.ts`, inline styles so nothing is purged); `prefers-reduced-motion` honored via `useReducedMotion`. AA contrast pass = manual review. <!-- id: 21 -->
+- [x] Learn-more page (`sections/LearnMore.tsx`) reachable from the tutorial and back <!-- id: 22 -->
+- [x] Analytics: Plausible loader (`api/analytics.ts`, no-op unless VITE_PLAUSIBLE_DOMAIN set) + `field_completed` on field blur (form_started/submitted already fired in form-ui). Per-field drop-off derivable from form_events. <!-- id: 23 -->
+- [x] ✅ MILESTONE: v1 is shippable — polished, data-collecting form. 16 frontend tests + build passing. (Live persistence still needs Supabase creds; see foundation caveat.) <!-- id: 24 -->
+
+## Partition: feat/seed-kb-entities
+
+- [x] Migrations `003_entities_coverage_pgvector.sql` (entities, entity_coverage, pgvector, submissions FK) + `004_kb_chunks.sql`. NOTE: written; application to a live Supabase/pgvector deferred until a project + embedding provider exist (same apply caveat as 001/002). <!-- id: 30 -->
+- [x] Author rights-clean seed corpus (6 canonical drills/strategies/concepts + 5 KB chunks, all original summaries) in `seed-kb/*.json` + `seed_loader.py` load script <!-- id: 31 -->
+- [x] Provider-abstracted embedding pipeline (`embeddings.py`: `Embedder` protocol + deterministic offline `HashingEmbedder`; real provider is a lazy swap — Open Question). Applied to entities + kb_chunks. <!-- id: 32 -->
+- [x] `services/entities.py`: alias+semantic resolve over description → candidate-to-confirm (never silent match; floor guards false positives); `add_variant()` on "mine's different" <!-- id: 33 -->
+- [x] `services/coverage.py`: per-aspect (fill, confidence); `gaps()` least-covered-first; `record()`; `is_saturated()`; cold-start = all aspects are gaps <!-- id: 34 -->
+- [x] `services/kb.py` RAG index + tests: resolution (known/alias/novel-none/kind), variant, coverage gap ordering + saturation, KB search relevance — 12 new tests (24 total) passing <!-- id: 35 -->
+
+## Partition: feat/ai-interview
+
+- [x] `services/interview_engine.py`: turn loop, RAG over kb_chunks, humble-peer persona. NOTE: routing/coverage/entity decisions are deterministic Python (testable); only question phrasing goes to the LLM. Model tiering is a config detail deferred to real-key wiring (single `build_llm()` for now). <!-- id: 40 -->
+- [x] Hybrid preset openers (name→desc) → coverage-routed follow-ups toward least-covered aspects <!-- id: 41 -->
+- [x] Confirm-then-resolve wired in (`_handle_confirm`); compliment-pivot deflection on saturated aspects (never dismiss) <!-- id: 42 -->
+- [x] Guardrails: scope guard / prompt-injection redirect; interview input only ever treated as data <!-- id: 43 -->
+- [x] `api/interview.py`: `/start`, `/turn`, `/resume`, `/submit`; per-turn autosave via SessionStore. NOTE: `/turn` returns JSON (streaming deferred — additive later). <!-- id: 44 -->
+- [x] Conversational data model write: one `interview` envelope row with `messages[]`, `coverage_contribution`, `resolved_entity_id` (+ coverage.record on submit) <!-- id: 45 -->
+- [x] Frontend `interview/`: chat surface (InterviewChat) + api client, controls (send / I'm done-submit / escape-hatch to form), wired via a "Try the interview (beta)" entry. NOTE: transcript review/edit-before-submit deferred (submit-as-is for now). <!-- id: 46 -->
+- [x] Eval harness (`eval/run_eval.py`) + 9 scenarios; deterministic gates (entity precision 1.0, novel-correct, injection-blocked, coverage-routing, 0 dismissiveness) all pass; CI test `test_eval.py`. LLM-judge metrics deferred to real-key runs per eval-spec §4. <!-- id: 47 -->
+
+## Enhancement: feat/persist-v2 (durability, post-ai-interview)
+
+Addresses the ai-interview review caveat (in-memory registry/coverage/sessions
+reset on restart). Added after the DAG; not an original partition.
+
+- [x] `services/persistence.py`: `Persistence` port + NullPersistence (default), InMemoryPersistence (tests), SupabasePersistence (entities/entity_coverage/interview_sessions) <!-- id: 70 -->
+- [x] Migration `005_interview_sessions.sql`; schema.sql regenerated (6 tables) <!-- id: 71 -->
+- [x] EntityRegistry: deterministic seed ids (stable across boots), `attach_persistence()` + `hydrate()`, write-through on add/add_variant <!-- id: 72 -->
+- [x] CoverageModel + SessionStore: write-through + hydrate; SessionStore.get resumes from the port after restart; per-turn autosave in api/interview <!-- id: 73 -->
+- [x] Tests: variant/coverage/session survive a simulated restart; full interview resume; Null default no-op — 6 new tests (42 backend total) <!-- id: 74 -->
+
+## Partition: feat/voice-dictation
+
+- [ ] Browser mic capture + clear recording state; record-consent gate before first recording <!-- id: 50 -->
+- [ ] `api/transcribe.py` + `services/transcription.py` (provider Protocol); store raw audio in Supabase Storage, return `audio_ref` <!-- id: 51 -->
+- [ ] Confirm/edit-transcript UI; wire dictation into form fields and (if present) interview answers <!-- id: 52 -->
+- [ ] Graceful degrade to typing on provider error without losing audio or turn; tests <!-- id: 53 -->
+
+## Partition: feat/voice-interview-media
+
+- [ ] Turn-based voice answers over the interview (TTS optional); keep raw audio per turn <!-- id: 60 -->
+- [ ] Media uploads: types/size limits, Supabase Storage, link-to-submission, image moderation; video stored as URL <!-- id: 61 -->
+- [ ] Provoke-with-conflicting-answers retrieval; adaptive-depth signal <!-- id: 62 -->
+- [ ] Async follow-up email hook; close-the-loop credit; end-of-interview "worth your time?" capture <!-- id: 63 -->
+
+## Initiative Boundary
+
+- [ ] Merge `initiative/ulti-pedia-form` → `main` directly (no PR per lifecycle), synthesize canon, archive specs <!-- id: 100 -->
