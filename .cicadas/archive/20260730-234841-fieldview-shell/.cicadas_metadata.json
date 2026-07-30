@@ -1,0 +1,80 @@
+{
+  "name": "fieldview-shell",
+  "type": "initiative",
+  "registry_entry": {
+    "intent": "Rebuild Field View's chrome around a three-pane Light Film Room shell: vertical field orientation, store-based selection model, panel registry for future initiatives, and a mobile bottom-sheet layout replacing the SmallScreenNotice block.",
+    "owner": "unknown",
+    "signals": [],
+    "created_at": "2026-07-30T19:33:38.056731+00:00"
+  },
+  "timestamp": "20260730-234841",
+  "associated_branches": {
+    "feat/fieldview-shell-foundation": {
+      "intent": "Selection state added to SceneStore; vertical field orientation transform in coords.ts",
+      "modules": [
+        "frontend/src/fieldview/scene/selection.ts",
+        "frontend/src/fieldview/scene/store.ts",
+        "frontend/src/fieldview/render/coords.ts"
+      ],
+      "owner": "unknown",
+      "created_at": "2026-07-30T19:34:04.115677+00:00",
+      "worktree_path": "/Users/cartercripe/dev/code/projects/ulti-pedia-feat-fieldview-shell-foundation",
+      "initiative": "fieldview-shell"
+    },
+    "feat/fieldview-shell-tokens": {
+      "intent": "Light Film Room design tokens (SHELL_TOKENS) and Tailwind theme pass",
+      "modules": [
+        "frontend/tailwind.config",
+        "frontend/src/fieldview/render/tokens.ts"
+      ],
+      "owner": "unknown",
+      "created_at": "2026-07-30T19:34:53.954800+00:00",
+      "worktree_path": "/Users/cartercripe/dev/code/projects/ulti-pedia-feat-fieldview-shell-tokens",
+      "initiative": "fieldview-shell"
+    },
+    "feat/fieldview-shell-panels": {
+      "intent": "Typed panel registry + useSelection hook + panel components (default visibility, advanced settings, and three placeholder panels)",
+      "modules": [
+        "frontend/src/fieldview/ui/shell/panelRegistry.ts",
+        "frontend/src/fieldview/ui/shell/useSelection.ts",
+        "frontend/src/fieldview/ui/shell/panels"
+      ],
+      "owner": "unknown",
+      "created_at": "2026-07-30T19:58:38.985303+00:00",
+      "initiative": "fieldview-shell"
+    },
+    "feat/fieldview-shell-desktop": {
+      "intent": "Desktop three-pane shell: ShellLayout, LeftSidebar, RightSidebarSlot, ToolRibbon",
+      "modules": [
+        "frontend/src/fieldview/ui/shell/RightSidebarSlot.tsx",
+        "frontend/src/fieldview/ui/shell/ShellLayout.tsx",
+        "frontend/src/fieldview/ui/shell/ToolRibbon.tsx",
+        "frontend/src/fieldview/ui/shell/LeftSidebar.tsx"
+      ],
+      "owner": "unknown",
+      "created_at": "2026-07-30T22:51:39.750733+00:00",
+      "initiative": "fieldview-shell"
+    },
+    "feat/fieldview-shell-mobile": {
+      "intent": "Mobile bottom sheet: collapsed handle bar / expanded tabbed sheet reading the same panel registry as desktop",
+      "modules": [
+        "frontend/src/fieldview/ui/shell/BottomSheet.tsx"
+      ],
+      "owner": "unknown",
+      "created_at": "2026-07-30T22:51:56.783444+00:00",
+      "initiative": "fieldview-shell"
+    },
+    "feat/fieldview-shell-integration": {
+      "intent": "Wire ShellLayout+BottomSheet into Whiteboard.tsx, remove superseded components, verify orientation edge cases, extend Profiler regression test",
+      "modules": [
+        "frontend/src/fieldview/pages/FieldStage.tsx",
+        "frontend/src/fieldview/pages/Whiteboard.tsx",
+        "frontend/src/fieldview/render/heatmap.ts",
+        "frontend/src/fieldview/render/exportImage.ts"
+      ],
+      "owner": "unknown",
+      "created_at": "2026-07-30T23:06:07.042879+00:00",
+      "initiative": "fieldview-shell"
+    }
+  }
+}

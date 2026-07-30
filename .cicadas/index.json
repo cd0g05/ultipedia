@@ -133,6 +133,13 @@
       "summary": "Field View UX tweak: nearest-piece picking, focus ring, sizing (pieces 9 -> 7.5), attack-arrow label, present mode, marquee selection, advanced settings rail; /fieldview route rename with legacy redirects; Druk trial fonts removed and replaced with self-hosted Archivo Black (OFL)",
       "decisions": "",
       "modules": []
+    },
+    {
+      "timestamp": "2026-07-30T23:48:48.401817+00:00",
+      "branch": "initiative/fieldview-shell",
+      "summary": "fieldview-shell: vertical field orientation, store-based selection model, typed panel registry, three-pane Light Film Room desktop shell, mobile bottom sheet (SmallScreenNotice retired). 6 partitions, 327 fieldview tests green.",
+      "decisions": "",
+      "modules": []
     }
   ]
 }

@@ -61,3 +61,4 @@
 {"timestamp":"2026-07-30T23:34:53.637598+00:00","type":"task.complete","initiative":"fieldview-shell","branch":"feat/fieldview-shell-integration","data":{"task_id":"67","partition":"feat/fieldview-shell-integration"}}
 {"timestamp":"2026-07-30T23:34:53.716178+00:00","type":"task.complete","initiative":"fieldview-shell","branch":"feat/fieldview-shell-integration","data":{"task_id":"68","partition":"feat/fieldview-shell-integration"}}
 {"timestamp":"2026-07-30T23:34:53.796662+00:00","type":"partition.complete","initiative":"fieldview-shell","branch":"feat/fieldview-shell-integration","data":{"partition":"feat/fieldview-shell-integration"}}
+{"timestamp":"2026-07-30T23:48:41.010575+00:00","type":"specs.archived","initiative":"fieldview-shell","branch":"main","data":{"archive_name":"20260730-234841-fieldview-shell","type":"initiative"}}
