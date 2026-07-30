@@ -201,15 +201,27 @@ describe("ShellLayout", () => {
   });
 
   it("is gated behind the lg (>=1024px) breakpoint via a CSS-only class, not a resize listener", () => {
+    // Integration note: `children` (the real canvas, FieldCanvas) must render
+    // exactly once and must never sit inside an ancestor that goes
+    // `display:none` at any width — nesting it inside a single `hidden
+    // lg:grid` root (as this test originally asserted) would make the field
+    // itself vanish below `lg`. So the gate now lives on each chrome piece
+    // individually: the desktop sidebar/right-slot wrappers are `hidden
+    // lg:flex`, and `BottomSheet`'s own root already carries `lg:hidden`
+    // (its `position: fixed` chrome doesn't need to participate in this
+    // component's layout at all).
     const store = makeStore();
-    const { container } = renderWithRouter(
+    renderWithRouter(
       <ShellLayout store={store}>
         <div>canvas</div>
       </ShellLayout>,
     );
-    const root = container.firstElementChild as HTMLElement;
-    expect(root.className).toContain("hidden");
-    expect(root.className).toContain("lg:grid");
+    const sidebarWrapper = screen.getByRole("complementary", { name: "Field view sidebar" }).parentElement!;
+    expect(sidebarWrapper.className).toContain("hidden");
+    expect(sidebarWrapper.className).toContain("lg:flex");
+
+    const bottomSheetRoot = screen.getByTestId("bottom-sheet-root");
+    expect(bottomSheetRoot.className).toContain("lg:hidden");
   });
 
   it("opening Play Designer from the sidebar renders the right slot", () => {

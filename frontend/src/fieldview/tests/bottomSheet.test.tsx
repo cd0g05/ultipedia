@@ -182,19 +182,29 @@ describe("prefers-reduced-motion", () => {
   });
 });
 
+// Integration dedupe: the TOOLS tab now renders the real, shared
+// `ToolRibbon.tsx` (see BottomSheet.tsx's own comment) instead of a second,
+// independently-maintained copy — so its exact labels/attributes are
+// `ToolRibbon`'s, not the bespoke inline markup this file originally
+// asserted against ("Advanced Stats" -> "Advanced Stats View", a
+// `role="tooltip"` span via `aria-describedby` rather than a `title`
+// attribute, focusability proven the same way shellDesktop.test.tsx proves it
+// for the desktop ribbon rather than an explicit `tabIndex` attribute check).
 describe("disabled ribbon buttons (TOOLS tab)", () => {
   it("render aria-disabled with a reachable tooltip, not the native disabled attribute", () => {
     renderSheet();
     fireEvent.click(screen.getByRole("button", { name: "Expand field view tools" }));
 
     const throwButton = screen.getByRole("button", { name: "Throw to Player" });
-    expect(throwButton).toHaveAttribute("aria-disabled", "true");
-    expect(throwButton).toHaveAttribute("title", "Ships in a future update.");
-    expect(throwButton).toHaveAttribute("tabIndex", "0");
+    const statsButton = screen.getByRole("button", { name: "Advanced Stats View" });
 
-    const statsButton = screen.getByRole("button", { name: "Advanced Stats" });
-    expect(statsButton).toHaveAttribute("aria-disabled", "true");
-    expect(statsButton).toHaveAttribute("title", "Ships in a future update.");
+    for (const btn of [throwButton, statsButton]) {
+      expect(btn).toHaveAttribute("aria-disabled", "true");
+      expect(btn).not.toBeDisabled();
+      btn.focus();
+      expect(btn).toHaveFocus();
+    }
+    expect(screen.getAllByRole("tooltip", { name: "Ships in a future update." })).toHaveLength(2);
   });
 
   it("Space View toggles the shared overlay prefs, same as desktop's Space button", () => {
@@ -202,7 +212,7 @@ describe("disabled ribbon buttons (TOOLS tab)", () => {
     fireEvent.click(screen.getByRole("button", { name: "Expand field view tools" }));
 
     const spaceButton = screen.getByRole("button", { name: "Space View" });
-    expect(spaceButton).toHaveAttribute("aria-pressed", "false");
+    expect(spaceButton).not.toHaveAttribute("aria-pressed", "true");
     fireEvent.click(spaceButton);
     expect(spaceButton).toHaveAttribute("aria-pressed", "true");
 

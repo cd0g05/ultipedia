@@ -10,13 +10,17 @@
 // second content source — every other kind (including "multi") still comes
 // straight from `panelRegistry`, identical to desktop.
 //
-// `ToolRibbon.tsx` (tech-design's "shared row-of-4 ribbon") is being built in
-// parallel by the Desktop partition in a separate worktree and does not exist
-// here yet, so the ribbon is implemented inline below rather than imported.
-// It mirrors the same 4 items (Marquee, Throw to Player, Advanced Stats,
-// Space View) from ux.md's Information Architecture; Integration can dedupe
-// this against Desktop's `ToolRibbon.tsx` once both land, without touching
-// the panel-registry seam ADR-4 actually guards.
+// Integration dedupe (tasks.md's fieldview-shell-mobile note flagged this
+// explicitly): the expanded TOOLS tab now renders the real, shared
+// `ToolRibbon.tsx` component — built in parallel by the Desktop partition and
+// merged after this file was originally written — instead of a second,
+// independently-maintained copy of "Marquee/Throw/Stats/Space, same labels,
+// same disabled+tooltip treatment." Only the collapsed handle bar's
+// icon-only summary strip below stays bespoke: it is decorative
+// (`aria-hidden`, no interactive semantics, no tooltip), a different UI
+// concern from the reachable ribbon itself, so a small local icon list is
+// simpler than rendering (and CSS-hiding) a second full `ToolRibbon` just for
+// its glyphs.
 //
 // Reduced motion (ux.md "Responsive & Accessibility") is handled the same
 // CSS-only way the rest of this module already does it (see overlay.test.tsx
@@ -26,6 +30,7 @@
 // breakpoint switch" philosophy extended to motion).
 
 import { useState } from "react";
+import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import type { SceneStore } from "../../scene/store";
 import type { SelectionState } from "../../scene/selection";
@@ -33,29 +38,26 @@ import { useSelection } from "./useSelection";
 import { panelRegistry } from "./panelRegistry";
 import { AdvancedSettingsPanel } from "./panels/AdvancedSettingsPanel";
 import { useOverlayState } from "../prefs";
+import { ToolRibbon } from "./ToolRibbon";
 
 type SheetTab = "tools" | "selection" | "settings";
 
-interface RibbonItem {
-  key: string;
-  label: string;
-  icon: string;
-  disabled?: boolean;
-  tooltip?: string;
-}
-
-const BASE_RIBBON: RibbonItem[] = [
-  { key: "marquee", label: "Marquee", icon: "⬚" },
-  { key: "throw", label: "Throw to Player", icon: "➤", disabled: true, tooltip: "Ships in a future update." },
-  { key: "stats", label: "Advanced Stats", icon: "▤", disabled: true, tooltip: "Ships in a future update." },
-  { key: "space", label: "Space View", icon: "◈" },
+// Collapsed-bar-only icon summary — decorative, not the reachable ribbon.
+const COLLAPSED_ICONS: { key: string; icon: string; disabled?: boolean }[] = [
+  { key: "marquee", icon: "⬚" },
+  { key: "throw", icon: "➤", disabled: true },
+  { key: "stats", icon: "▤", disabled: true },
+  { key: "space", icon: "◈" },
 ];
 
 export interface BottomSheetProps {
   store: SceneStore;
+  // tasks.md id 62: PresetMenu relocates into the SETTINGS tab, grouped near
+  // Play Designer / Advanced Settings, rather than living in the page header.
+  presetMenu?: ReactNode;
 }
 
-export function BottomSheet({ store }: BottomSheetProps) {
+export function BottomSheet({ store, presetMenu }: BottomSheetProps) {
   const selection = useSelection(store);
   const overlay = useOverlayState();
   const [expanded, setExpanded] = useState(false);
@@ -116,9 +118,7 @@ export function BottomSheet({ store }: BottomSheetProps) {
               />
             </div>
             <div className="flex-1 overflow-y-auto p-4">
-              {activeTab === "tools" && (
-                <RibbonRow spaceOn={overlay.on} onToggleSpace={() => overlay.setOn(!overlay.on)} />
-              )}
+              {activeTab === "tools" && <ToolRibbon spaceOn={overlay.on} onToggleSpace={overlay.setOn} />}
               {activeTab === "selection" && <SelectionTabContent selection={selection} />}
               {activeTab === "settings" && (
                 <div className="flex flex-col gap-4">
@@ -129,6 +129,7 @@ export function BottomSheet({ store }: BottomSheetProps) {
                   >
                     Play Designer
                   </button>
+                  {presetMenu}
                   <AdvancedSettingsPanel selection={selection} />
                 </div>
               )}
@@ -149,7 +150,7 @@ export function BottomSheet({ store }: BottomSheetProps) {
                 that expands the sheet; the reachable, tooltip-bearing ribbon
                 controls live in the TOOLS tab once expanded. */}
             <span aria-hidden="true" className="flex flex-1 items-stretch">
-              {BASE_RIBBON.map((item) => {
+              {COLLAPSED_ICONS.map((item) => {
                 const active = item.key === "space" && overlay.on;
                 return (
                   <span
@@ -229,59 +230,6 @@ function SheetTabButton({
     >
       {label}
     </button>
-  );
-}
-
-// The TOOLS tab's expanded ribbon — reachable, tooltip-bearing controls
-// (ux.md "Responsive & Accessibility": disabled buttons stay focusable via
-// `aria-disabled`, not the native `disabled` attribute, so their tooltip is
-// reachable by keyboard focus, not only hover).
-function RibbonRow({ spaceOn, onToggleSpace }: { spaceOn: boolean; onToggleSpace: () => void }) {
-  return (
-    <div className="flex flex-wrap gap-2">
-      {BASE_RIBBON.map((item) => {
-        const isSpace = item.key === "space";
-        const active = isSpace && spaceOn;
-        const classes = `flex flex-col items-center gap-1 border px-3 py-2 font-mono text-xs ${
-          item.disabled
-            ? "border-film-border text-zinc-400"
-            : active
-              ? "border-film-accentPink text-film-accentPink"
-              : "border-film-border text-zinc-700"
-        }`;
-
-        if (item.disabled) {
-          return (
-            <span
-              key={item.key}
-              role="button"
-              aria-disabled="true"
-              aria-label={item.label}
-              title={item.tooltip}
-              tabIndex={0}
-              className={classes}
-            >
-              <span aria-hidden="true">{item.icon}</span>
-              {item.label}
-            </span>
-          );
-        }
-
-        return (
-          <button
-            key={item.key}
-            type="button"
-            aria-label={item.label}
-            aria-pressed={isSpace ? spaceOn : undefined}
-            onClick={isSpace ? onToggleSpace : undefined}
-            className={classes}
-          >
-            <span aria-hidden="true">{item.icon}</span>
-            {item.label}
-          </button>
-        );
-      })}
-    </div>
   );
 }
 

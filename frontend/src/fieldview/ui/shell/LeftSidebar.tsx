@@ -27,6 +27,7 @@
 // make, not this partition's.
 
 import { useState } from "react";
+import type { ReactNode } from "react";
 import type { SceneStore } from "../../scene/store";
 import { useSelection } from "./useSelection";
 import { panelRegistry } from "./panelRegistry";
@@ -40,9 +41,14 @@ export interface LeftSidebarProps {
   store: SceneStore;
   designerOpen: boolean;
   onToggleDesigner: () => void;
+  // tasks.md id 62: PresetMenu relocates into the bottom-menu area, grouped
+  // near Advanced Settings / Play Designer, rather than living in the page
+  // header. Optional so existing callers/tests that don't pass one still
+  // render normally.
+  presetMenu?: ReactNode;
 }
 
-export function LeftSidebar({ store, designerOpen, onToggleDesigner }: LeftSidebarProps) {
+export function LeftSidebar({ store, designerOpen, onToggleDesigner, presetMenu }: LeftSidebarProps) {
   const selection = useSelection(store);
   const overlay = useOverlayState();
   const [view, setView] = useState<SidebarView>("selection");
@@ -77,6 +83,7 @@ export function LeftSidebar({ store, designerOpen, onToggleDesigner }: LeftSideb
             <Panel selection={selection} />
           </div>
           <div className="border-t border-film-border">
+            {presetMenu && <div className="border-b border-film-border px-4 py-3">{presetMenu}</div>}
             <button
               type="button"
               onClick={() => setView("advancedSettings")}
