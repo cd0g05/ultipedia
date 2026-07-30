@@ -113,14 +113,14 @@ two is still Integration's call, not resolved here.
 
 ## Partition: feat/fieldview-shell-mobile
 
-- [ ] Build collapsed handle bar (ribbon icons only) <!-- id: 50 -->
-- [ ] Build expanded sheet (~46% viewport height) with TOOLS / SELECTION / SETTINGS tabs <!-- id: 51 -->
-- [ ] Wire SELECTION tab to `useSelection()` + `panelRegistry`; empty state shows "Select a player on the field to see options here." <!-- id: 52 -->
-- [ ] Selecting a player while sheet is collapsed does not auto-expand it; add indicator on SELECTION tab position <!-- id: 53 -->
-- [ ] Build Play Designer full-screen overlay variant (not a 320px slot) with the same placeholder copy <!-- id: 54 -->
-- [ ] Respect `prefers-reduced-motion`: instant show/hide instead of animated expand/collapse <!-- id: 55 -->
-- [ ] Remove `SmallScreenNotice.tsx` and its call site entirely <!-- id: 56 -->
-- [ ] Test suite: collapsed/expanded states, tab switching, empty-selection copy, reduced-motion behavior <!-- id: 57 -->
+- [x] Build collapsed handle bar (ribbon icons only) <!-- id: 50 -->
+- [x] Build expanded sheet (~46% viewport height) with TOOLS / SELECTION / SETTINGS tabs <!-- id: 51 -->
+- [x] Wire SELECTION tab to `useSelection()` + `panelRegistry`; empty state shows "Select a player on the field to see options here." <!-- id: 52 -->
+- [x] Selecting a player while sheet is collapsed does not auto-expand it; add indicator on SELECTION tab position <!-- id: 53 -->
+- [x] Build Play Designer full-screen overlay variant (not a 320px slot) with the same placeholder copy <!-- id: 54 -->
+- [x] Respect `prefers-reduced-motion`: instant show/hide instead of animated expand/collapse <!-- id: 55 -->
+- [x] Remove `SmallScreenNotice.tsx` and its call site entirely <!-- id: 56 -->
+- [x] Test suite: collapsed/expanded states, tab switching, empty-selection copy, reduced-motion behavior <!-- id: 57 -->
 
 ## Partition: feat/fieldview-shell-integration
 
