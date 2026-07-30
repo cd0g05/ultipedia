@@ -26,16 +26,32 @@ next_section: "## Partition: feat/fieldview-shell-foundation"
 
 ## Partition: feat/fieldview-shell-foundation
 
-- [ ] Define `SelectionState` union (`none | multi | offense | defense | mark`) in `scene/selection.ts` <!-- id: 1 -->
-- [ ] Implement `selectPlayer`, `clearSelection`, `selectMarquee` pure transition helpers <!-- id: 2 -->
-- [ ] Unit test each transition helper in `scene/selection.test.ts` <!-- id: 3 -->
-- [ ] Add `selection` field + dedicated `Set<() => void>` subscriber list to `createSceneStore` <!-- id: 4 -->
-- [ ] Expose `getSelection()`, `setSelection()`, `subscribeSelection()` on `SceneStore`, additive to existing interface <!-- id: 5 -->
-- [ ] Unit test that scene subscribers and selection subscribers fire independently of each other <!-- id: 6 -->
-- [ ] Add orientation rotation to `yardToPixel`/`pixelToYard` in `render/coords.ts` <!-- id: 7 -->
-- [ ] Update `getStageViewBox` for the rotated (swapped width/height) dimensions <!-- id: 8 -->
-- [ ] Unit test yard↔pixel round-trips under the new orientation <!-- id: 9 -->
-- [ ] Run full existing fieldview suite; confirm zero regressions outside touched files <!-- id: 10 -->
+- [x] Define `SelectionState` union (`none | multi | offense | defense | mark`) in `scene/selection.ts` <!-- id: 1 -->
+- [x] Implement `selectPlayer`, `clearSelection`, `selectMarquee` pure transition helpers <!-- id: 2 -->
+- [x] Unit test each transition helper in `scene/selection.test.ts` (as `tests/selection.test.ts`, matching this codebase's existing convention of co-locating all fieldview tests under `tests/` rather than beside the source file) <!-- id: 3 -->
+- [x] Add `selection` field + dedicated `Set<() => void>` subscriber list to `createSceneStore` <!-- id: 4 -->
+- [x] Expose `getSelection()`, `setSelection()`, `subscribeSelection()` on `SceneStore`, additive to existing interface <!-- id: 5 -->
+- [x] Unit test that scene subscribers and selection subscribers fire independently of each other <!-- id: 6 -->
+- [x] Add orientation rotation to `yardToPixel`/`pixelToYard` in `render/coords.ts` <!-- id: 7 -->
+- [x] Update `getStageViewBox` for the rotated (swapped width/height) dimensions <!-- id: 8 -->
+- [x] Unit test yard↔pixel round-trips under the new orientation <!-- id: 9 -->
+- [x] Run full existing fieldview suite; confirm zero regressions outside touched files <!-- id: 10 -->
+
+**Note (deviation from plan):** Rotating `yardToPixel`/`pixelToYard` alone broke the existing suite
+(`drag.test.tsx`, `overlay.test.tsx`, `presetMenu.test.tsx` hardcode horizontal-orientation pixel
+math; `fieldLayer.tsx`'s goal-line/brick/attack-arrow drawing and `FIELD_PX_WIDTH`/`FIELD_PX_HEIGHT`
+are inherently orientation-specific, not incidental). To satisfy task 10 ("confirm zero regressions
+outside touched files") without leaving the app visually broken, this partition additionally touched
+`render/fieldLayer.tsx` (swapped `FIELD_PX_WIDTH`/`HEIGHT`, redrew goal lines/brick marks/
+attack-direction indicator for vertical orientation), `render/heatmap.ts` (`fieldPixelSize` swap),
+`pages/FieldStage.tsx` and `ui/FieldCanvas.tsx` (stale "attacks left to right" aria-label text), and
+updated the pixel-literal assertions in `drag.test.tsx`/`overlay.test.tsx`/`presetMenu.test.tsx` to
+match the new orientation (using the real `yardToPixel` transform rather than a re-hardcoded formula,
+where practical). This pulls forward part of the Integration partition's verification tasks 63/65/66
+— `heatmap.ts` and `pick.ts` needed exactly the checks described there, and `pick.ts` indeed needed no
+change (pure yard-space). `FieldStage.tsx`'s aria-label was the "orientation-dependent chrome" task 66
+anticipated. The Integration partition should re-verify but these should already be resolved.
+`render/exportImage.ts` (task 64) was not touched or verified — still open for Integration.
 
 ## Partition: feat/fieldview-shell-tokens
 
