@@ -63,6 +63,18 @@
       "owner": "unknown",
       "created_at": "2026-07-30T22:51:56.783444+00:00",
       "initiative": "fieldview-shell"
+    },
+    "feat/fieldview-shell-integration": {
+      "intent": "Wire ShellLayout+BottomSheet into Whiteboard.tsx, remove superseded components, verify orientation edge cases, extend Profiler regression test",
+      "modules": [
+        "frontend/src/fieldview/pages/FieldStage.tsx",
+        "frontend/src/fieldview/pages/Whiteboard.tsx",
+        "frontend/src/fieldview/render/heatmap.ts",
+        "frontend/src/fieldview/render/exportImage.ts"
+      ],
+      "owner": "unknown",
+      "created_at": "2026-07-30T23:06:07.042879+00:00",
+      "initiative": "fieldview-shell"
     }
   }
 }
