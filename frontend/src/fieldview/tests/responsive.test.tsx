@@ -23,27 +23,24 @@ function renderPage(page: "whiteboard" | "designer") {
   );
 }
 
-describe("below 768 px", () => {
+describe("no viewport blocks rendering (PRD FR-6.2)", () => {
+  // SmallScreenNotice is removed entirely (fieldview-shell Mobile partition):
+  // there is no width at which Field View shows a message instead of the
+  // tool, and no width at which the tool's container is display:none.
   it.each(["whiteboard", "designer"] as const)(
-    "%s shows a readable message instead of a broken canvas",
+    "%s never renders the old small-screen notice",
     (page) => {
       renderPage(page);
-
-      const notice = screen.getByRole("heading", { name: "Field View needs a bigger screen" });
-      const container = notice.closest("div")!;
-      // Visible below md, hidden from md up.
-      expect(container.className).toContain("md:hidden");
-      expect(screen.getByText(/at least 768 px wide/)).toBeInTheDocument();
+      expect(screen.queryByText("Field View needs a bigger screen")).not.toBeInTheDocument();
+      expect(screen.queryByText(/at least 768 px wide/)).not.toBeInTheDocument();
     },
   );
 
-  it.each(["whiteboard", "designer"] as const)("%s hides the tool itself below md", (page) => {
+  it.each(["whiteboard", "designer"] as const)("%s's own container is never display:none", (page) => {
     renderPage(page);
     const stage = screen.getByRole("group", { name: /Ultimate field/i });
-    // The tool's own container is display:none below md and flex from md up.
     const toolRoot = stage.closest("div.hidden");
-    expect(toolRoot).not.toBeNull();
-    expect(toolRoot!.className).toContain("md:flex");
+    expect(toolRoot).toBeNull();
   });
 });
 
