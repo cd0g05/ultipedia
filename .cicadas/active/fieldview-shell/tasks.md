@@ -19,7 +19,7 @@ index:
   partition_mobile: "## Partition: feat/fieldview-shell-mobile"
   partition_integration: "## Partition: feat/fieldview-shell-integration"
   initiative_boundary: "## Initiative Boundary"
-next_section: "## Partition: feat/fieldview-shell-foundation"
+next_section: "## Initiative Boundary"
 ---
 
 # Tasks: fieldview-shell
@@ -124,16 +124,26 @@ two is still Integration's call, not resolved here.
 
 ## Partition: feat/fieldview-shell-integration
 
-- [ ] Wire `ShellLayout` into `Whiteboard.tsx`, replacing direct `OverlayRail`/`SmallScreenNotice` composition <!-- id: 60 -->
-- [ ] Delete `OverlayRail.tsx` and `AdvancedPanel.tsx` (superseded by shell panels) <!-- id: 61 -->
-- [ ] Relocate `PresetMenu.tsx` into the shell's bottom-menu area; confirm localStorage keys unchanged <!-- id: 62 -->
-- [ ] Verify `render/heatmap.ts` paints correctly aligned to the rotated field (patch only if a real bug surfaces; expected to need no logic change) <!-- id: 63 -->
-- [ ] Verify `render/exportImage.ts` produces a correctly-oriented PNG under rotation <!-- id: 64 -->
-- [ ] Verify `render/pick.ts` needs no change (pure yard-space, orientation-agnostic by construction) <!-- id: 65 -->
-- [ ] Check `pages/FieldStage.tsx` for orientation-dependent chrome not yet inventoried; patch if found <!-- id: 66 -->
-- [ ] Extend the Profiler-based drag test to include a selection change mid-drag; confirm 0 React commits still holds <!-- id: 67 -->
-- [ ] Run the full fieldview suite (229 existing + all new tests from Partitions 1–5); fix any regressions <!-- id: 68 -->
+- [x] Wire `ShellLayout` into `Whiteboard.tsx`, replacing direct `OverlayRail`/`SmallScreenNotice` composition <!-- id: 60 -->
+- [x] Delete `OverlayRail.tsx` and `AdvancedPanel.tsx` (superseded by shell panels) <!-- id: 61 -->
+- [x] Relocate `PresetMenu.tsx` into the shell's bottom-menu area; confirm localStorage keys unchanged <!-- id: 62 -->
+- [x] Verify `render/heatmap.ts` paints correctly aligned to the rotated field (patch only if a real bug surfaces; expected to need no logic change) <!-- id: 63 -->
+- [x] Verify `render/exportImage.ts` produces a correctly-oriented PNG under rotation <!-- id: 64 -->
+- [x] Verify `render/pick.ts` needs no change (pure yard-space, orientation-agnostic by construction) <!-- id: 65 -->
+- [x] Check `pages/FieldStage.tsx` for orientation-dependent chrome not yet inventoried; patch if found <!-- id: 66 -->
+- [x] Extend the Profiler-based drag test to include a selection change mid-drag; confirm 0 React commits still holds <!-- id: 67 -->
+- [x] Run the full fieldview suite (229 existing + all new tests from Partitions 1–5); fix any regressions <!-- id: 68 -->
 - [ ] Request a deployed preview; review against desktop/mobile mockups <!-- id: 69 --> <!-- NEEDS MANUAL REVIEW: Builder + client sign-off per PRD Quality Gates -->
+
+**Note (deviations from plan):**
+- **id 61 — `OverlayRail.tsx` was NOT deleted, contrary to this task's literal wording.** `pages/Designer.tsx` (explicitly out of scope for this initiative per tech-design.md's Brownfield Notes — "out of scope beyond being linked from the Play Designer placeholder") still composes `OverlayRail` + `AdvancedPanel` directly and is unaffected by this partition. Deleting `OverlayRail.tsx` would have broken Designer's compile and its own tests, forcing an unplanned rewrite of a page this partition's module list (`Whiteboard.tsx`, `FieldStage.tsx`, `heatmap.ts`, `exportImage.ts`) does not include. Only `Whiteboard.tsx`'s usage of `OverlayRail` was removed; the file itself stays, same reasoning as the standing instruction to keep `AdvancedPanel.tsx` for `AdvancedSettingsPanel.tsx`. Approach.md's acceptance criterion "no direct OverlayRail/SmallScreenNotice usage remains anywhere in the codebase" is therefore true of `Whiteboard.tsx` and every shell file, but not of `Designer.tsx` — flagged here rather than silently left inconsistent with that line.
+- **Real integration bugs found and fixed, beyond the declared module list** (`Whiteboard.tsx`, `pages/FieldStage.tsx`, `render/heatmap.ts`, `render/exportImage.ts`, `ui/OverlayRail.tsx`, `ui/AdvancedPanel.tsx`, `ui/PresetMenu.tsx`):
+  1. **`ui/FieldCanvas.tsx`** — no prior partition had ever wired the pointer handlers (click-drag select, marquee release, preset-reload reset) to `store.setSelection()`. Foundation built the `SceneStore` selection field and Panels/Desktop/Mobile all built real UI against `useSelection(store)`, but nothing ever *produced* a selection change from the field itself — every partition's own tests only exercised selection by calling `store.setSelection(...)` directly. Composing the shell into `Whiteboard.tsx` for the first time exposed this: clicking a player would never have updated the sidebar/bottom-sheet panel. Fixed by calling `store.setSelection(selectPlayer(...) / selectMarquee(...) / clearSelection())` (`scene/selection.ts`, already built by Foundation but never called from here) at the same three points `FieldCanvas`'s own local, ref-based `setSelection` already ran — preserving ADR-2 (still store-mutate based, never React state).
+  2. **`ui/prefs.ts`** — `useOverlayState()` was a plain `useState(loadPrefs)` per call site. That was fine when only one instance existed per page (`Whiteboard.tsx`'s own call), but the Panels and Desktop partition notes both already flagged that panels/`LeftSidebar` each call the same hook independently, "redundant-but-consistent... since they share one localStorage key" — true only across separate mounts, not simultaneous ones. Once actually composed, toggling "Space View" in the shell ribbon (a different hook instance than `Whiteboard.tsx`'s) would update its own copy and localStorage but never re-render `Whiteboard.tsx`'s copy — the one actually threaded into `FieldCanvas` — so the heatmap would never have turned on from the shell UI. Fixed by converting `useOverlayState` to a module-level external store read via `useSyncExternalStore`, mirroring `SceneStore`'s own selection-field pattern (ADR-1), with a "re-seed from localStorage when nothing is subscribed" rule that keeps test-to-test isolation (RTL's automatic unmount between tests) working the same as before.
+  3. **`ui/shell/ShellLayout.tsx`** — the Desktop partition's own sketch (see its code comment, since replaced) planned to render `children` a second time inside the mobile branch once `BottomSheet` existed. That does not work once `children` is the real `FieldCanvas`: it receives `svgRef`/`canvasRef`/`stageRef` as props from `Whiteboard.tsx`, and mounting the same JSX twice fights over those single shared ref objects (and cannot be tested in jsdom at all, since `getByRole` would find two of everything). Restructured so `children` renders exactly once as a shared flex child; the desktop sidebar/right-slot are each wrapped in their own `hidden lg:flex`, and `BottomSheet`'s own root already carries `lg:hidden` — no duplication, still CSS-only (ADR-5).
+  4. **Ribbon dedupe** — `ui/shell/BottomSheet.tsx`'s TOOLS tab now renders the real, shared `ui/shell/ToolRibbon.tsx` instead of its own independently-maintained `RibbonRow`, per the Mobile partition's own note flagging this as unresolved. The collapsed handle bar's icon-only summary stays bespoke (decorative, `aria-hidden`, not the reachable ribbon) since duplicating/hiding a second full `ToolRibbon` just for its glyphs would be worse than a small local icon list.
+- **Test suite**: 25 of the existing 327 fieldview tests hardcoded the pre-shell `OverlayRail` composition (`"Space"` button, `/Advanced settings/` regex, the "Closed/Contested/Strong space" legend text, `OverlayRail`'s own tablet/xl rail layout) and needed updating to the shell's real button names/structure now that `Whiteboard.tsx` actually renders through it for the first time — expected per approach.md's own framing ("the first time all five partitions' code actually runs composed together"), not a scope creep. The legend itself has no shell equivalent anywhere in ux.md's IA and was not resurrected — its removal is an upstream scope decision (Whiteboard no longer composes `OverlayRail`), not something to patch around. `responsive.test.tsx`'s old tablet/xl rail-layout assertions were kept for `Designer.tsx` (still valid, unchanged) and replaced for `Whiteboard.tsx` with assertions on the real `lg` shell breakpoint. Final suite: 327 fieldview tests + 1 new (a11y split into two views) = 328, all fieldview (43 files / 434 total) passing; `tsc --noEmit` clean.
+- **id 69** is explicitly left unchecked — the deployed-preview review against the desktop/mobile mockups is a Builder/client sign-off step (PRD Quality Gates), not something this partition can complete itself. The code is in a state ready for that review.
 
 ## Initiative Boundary
 
