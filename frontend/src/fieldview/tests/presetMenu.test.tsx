@@ -26,7 +26,9 @@ describe("Whiteboard preset flow", () => {
     render(<MemoryRouter><Whiteboard /></MemoryRouter>);
     const cutter = screen.getByRole("button", { name: "offense cutter 1" });
     fireEvent.keyDown(cutter, { key: "ArrowRight" });
-    await waitFor(() => expect(cutter.getAttribute("transform")).toContain("408"));
+    // +1 yd downfield is -8px on the screen-y axis in this vertical
+    // orientation (coords.ts ADR-2) — attacking is up the screen.
+    await waitFor(() => expect(cutter.getAttribute("transform")).toContain("472"));
 
     openMenu();
     fireEvent.click(screen.getByRole("button", { name: "Horizontal Stack" }));

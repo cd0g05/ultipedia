@@ -1,5 +1,7 @@
 // /fieldview — Mode 1: the coaching whiteboard. Drag, presets, PNG export,
-// and keyboard nudge in full (approach.md Partition 2).
+// and keyboard nudge in full (approach.md Partition 2), composed through the
+// fieldview-shell three-pane desktop grid / mobile bottom sheet (Partition 6:
+// Integration).
 
 import { useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
@@ -15,13 +17,12 @@ import { HEATMAP_ALPHA } from "../render/heatmap";
 import { STAGE_MARGIN } from "../render/coords";
 import { FIELD_PX_HEIGHT, FIELD_PX_WIDTH } from "../render/fieldLayer";
 import { PresetMenu } from "../ui/PresetMenu";
-import { SmallScreenNotice } from "../ui/SmallScreenNotice";
 import { FieldCanvas } from "../ui/FieldCanvas";
-import { OverlayRail } from "../ui/OverlayRail";
 import { CellReadout } from "../ui/CellReadout";
 import type { CellReadoutHandle } from "../ui/CellReadout";
 import { useFullscreen } from "../ui/useFullscreen";
 import { useOverlayState } from "../ui/prefs";
+import { ShellLayout } from "../ui/shell/ShellLayout";
 
 function identityOf(scene: Scene) {
   return scene.players.map((p) => ({ id: p.id, team: p.team, role: p.role, label: p.label }));
@@ -162,22 +163,19 @@ export function Whiteboard() {
 
   return (
     <>
-      <SmallScreenNotice />
-      <div className="mx-auto hidden max-w-[1600px] flex-col items-center gap-6 px-4 py-10 md:flex">
+      {/* PRD FR-6.2: no viewport width may block Field View from rendering.
+          ShellLayout owns the desktop/mobile breakpoint switch below (CSS
+          only, ADR-5) — nothing in this page gates the tool behind a
+          viewport width. */}
+      <div className="mx-auto flex max-w-[1600px] flex-col items-center gap-6 px-4 py-10">
         <h1 className="font-heading text-2xl uppercase tracking-widest text-zinc-900">
           Field View
         </h1>
 
-        <div className="flex w-full flex-wrap items-center justify-between gap-4">
-          <PresetMenu
-            presets={presets}
-            onLoad={requestLoad}
-            onSaveCurrent={saveCurrent}
-            onRename={renamePreset}
-            onDelete={deletePreset}
-            onExport={exportPreset}
-            onImportFile={importFile}
-          />
+        {/* PresetMenu relocated into the shell's bottom-menu area (tasks.md
+            id 62) — the header keeps only Present/Export/Designer, which are
+            not selection- or panel-driven and have no natural shell slot. */}
+        <div className="flex w-full flex-wrap items-center justify-end gap-4">
           <div className="flex items-center gap-3">
             {/* Present mode: the field alone, filling the screen, for showing
                 a setup to a team in a huddle. Hidden where the browser has no
@@ -256,41 +254,39 @@ export function Whiteboard() {
           </div>
         )}
 
-        {/* Tablet: field full-width, controls stacked beneath as a horizontal
-            bar. Desktop (xl, 1280+): controls move into a rail beside the
-            field. The field keeps the width until there is enough for both. */}
-        <div className="flex w-full flex-col items-center gap-6 xl:flex-row xl:items-start">
-          <FieldCanvas
+        <div className="w-full lg:h-[720px]">
+          <ShellLayout
             store={store}
-            // Hidden teams are simply not rendered, which is also what keeps
-            // them out of the PNG export and the tab order.
-            players={identity.filter((p) => overlay.visible[p.team])}
-            svgRef={svgRef}
-            overlay={overlay}
-            readoutRef={readoutRef}
-            canvasRef={heatmapCanvasRef}
-            stageRef={stageRef}
-            visible={overlay.visible}
-          />
-
-          <div className="flex w-full flex-col gap-4 xl:w-80 xl:shrink-0">
-            <OverlayRail
-              on={overlay.on}
-              lens={overlay.lens}
-              layers={overlay.layers}
-              params={overlay.params}
-              visible={overlay.visible}
-              advancedExpanded={overlay.advancedExpanded}
-              onToggle={overlay.setOn}
-              onLensChange={overlay.setLens}
-              onLayerChange={overlay.setLayer}
-              onParamChange={overlay.setParam}
-              onVisibleChange={overlay.setVisible}
-              onAdvancedExpandedChange={overlay.setAdvancedExpanded}
-              onResetParams={overlay.resetParams}
-            />
-            <CellReadout ref={readoutRef} />
-          </div>
+            presetMenu={
+              <PresetMenu
+                presets={presets}
+                onLoad={requestLoad}
+                onSaveCurrent={saveCurrent}
+                onRename={renamePreset}
+                onDelete={deletePreset}
+                onExport={exportPreset}
+                onImportFile={importFile}
+              />
+            }
+          >
+            <div className="flex w-full flex-col items-center gap-4 p-4">
+              <FieldCanvas
+                store={store}
+                // Hidden teams are simply not rendered, which is also what keeps
+                // them out of the PNG export and the tab order.
+                players={identity.filter((p) => overlay.visible[p.team])}
+                svgRef={svgRef}
+                overlay={overlay}
+                readoutRef={readoutRef}
+                canvasRef={heatmapCanvasRef}
+                stageRef={stageRef}
+                visible={overlay.visible}
+              />
+              <div className="w-full max-w-md">
+                <CellReadout ref={readoutRef} />
+              </div>
+            </div>
+          </ShellLayout>
         </div>
       </div>
     </>

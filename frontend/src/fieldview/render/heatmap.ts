@@ -92,10 +92,13 @@ export function createHeatmapPainter(
 }
 
 // The canvas covers the field itself, not the stage margin, so it lines up
-// with the SVG's field rect exactly.
+// with the SVG's field rect exactly. Screen width/height, not yard-axis
+// order — the field renders vertically (coords.ts ADR-2), so the *lateral*
+// yards become the pixel width and the *downfield* yards become the pixel
+// height, matching fieldLayer.tsx's FIELD_PX_WIDTH/FIELD_PX_HEIGHT.
 export function fieldPixelSize(fieldLengthYards: number, fieldWidthYards: number) {
   return {
-    width: fieldLengthYards * PIXELS_PER_YARD,
-    height: fieldWidthYards * PIXELS_PER_YARD,
+    width: fieldWidthYards * PIXELS_PER_YARD,
+    height: fieldLengthYards * PIXELS_PER_YARD,
   };
 }

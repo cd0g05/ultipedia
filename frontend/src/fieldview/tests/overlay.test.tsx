@@ -9,7 +9,7 @@ import { MemoryRouter } from "react-router-dom";
 import { Whiteboard } from "../pages/Whiteboard";
 import { Designer } from "../pages/Designer";
 import { createHeatmapPainter } from "../render/heatmap";
-import { getStageViewBox } from "../render/coords";
+import { getStageViewBox, yardToPixel } from "../render/coords";
 import { FIELD_PX_HEIGHT, FIELD_PX_WIDTH } from "../render/fieldLayer";
 import { computeGrid } from "../space/score";
 import { ALL_LAYERS, DEFAULT_PARAMS, GRID_STEP } from "../space/constants";
@@ -35,14 +35,22 @@ function renderWhiteboard() {
   );
 }
 
+// Integration note: `Whiteboard.tsx` now composes `ShellLayout`, so the
+// "Space" toggle and the "Advanced settings" disclosure that used to live
+// directly in `OverlayRail` are the shell's `ToolRibbon`/`LeftSidebar`
+// equivalents — "Space View" and "⚙ Advanced Settings" respectively. Unlike
+// the old OverlayRail (which hid Advanced Settings entirely until the
+// overlay was on), the shell's "⚙ Advanced Settings" bottom-menu button is
+// always reachable regardless of the Space toggle's state.
 function turnOverlayOn() {
-  fireEvent.click(screen.getByRole("button", { name: "Space" }));
+  fireEvent.click(screen.getByRole("button", { name: "Space View" }));
 }
 
-// The lens, the layer flags, and the six sliders all live behind one
-// disclosure now — reaching any of them means opening it first.
+// The lens, the layer flags, and the six sliders all live behind the
+// sidebar's Advanced Settings override now — reaching any of them means
+// opening it first.
 function openAdvanced() {
-  fireEvent.click(screen.getByRole("button", { name: /Advanced settings/ }));
+  fireEvent.click(screen.getByRole("button", { name: "⚙ Advanced Settings" }));
 }
 
 function lensCheckbox() {
@@ -73,15 +81,22 @@ function grabPointFor(piece: Element) {
   return { clientX: Number(match[1]) - viewBox.x, clientY: Number(match[2]) - viewBox.y };
 }
 
+// A client point for a given on-field yard position, via the real
+// yard->pixel transform (coords.ts) rather than a hardcoded pixel literal —
+// stays correct regardless of the field's on-screen orientation (ADR-2).
+function clientForYard(yard: { x: number; y: number }) {
+  const px = yardToPixel(yard);
+  return { clientX: px.x - viewBox.x, clientY: px.y - viewBox.y };
+}
+
 describe("overlay rail", () => {
-  it("shows only the visibility toggles and the Space button until the overlay is on", () => {
+  it("shows only the visibility toggles until Advanced Settings is opened", () => {
     renderWhiteboard();
-    expect(screen.getByRole("button", { name: "Space" })).toHaveAttribute("aria-pressed", "false");
+    expect(screen.getByRole("button", { name: "Space View" })).not.toHaveAttribute("aria-pressed", "true");
     expect(
       screen.queryByRole("checkbox", { name: /Include offense in space calculations/ }),
     ).not.toBeInTheDocument();
     expect(screen.queryByRole("checkbox", { name: "Coverage" })).not.toBeInTheDocument();
-    expect(screen.queryByText("Closed")).not.toBeInTheDocument();
 
     // ...but the two show/hide checkboxes are diagram controls, not overlay
     // controls, so they are reachable with the map off.
@@ -89,23 +104,15 @@ describe("overlay rail", () => {
     expect(screen.getByRole("checkbox", { name: "Defense" })).toBeChecked();
   });
 
-  it("reveals the legend and a collapsed Advanced settings when toggled on", () => {
+  it("turning on Space View persists it and reveals the lens/layers once Advanced Settings is opened", () => {
     renderWhiteboard();
     turnOverlayOn();
 
-    expect(screen.getByRole("button", { name: "Space" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "Space View" })).toHaveAttribute("aria-pressed", "true");
 
-    // Three-swatch legend, meaning carried by words not hue — and by the same
-    // words the readout uses, so "contested" means one thing in this UI.
-    expect(screen.getByText("Closed")).toBeInTheDocument();
-    expect(screen.getByText("Contested")).toBeInTheDocument();
-    expect(screen.getByText("Strong space")).toBeInTheDocument();
-
-    // The model's settings are stowed by default; the map is the product.
-    expect(screen.getByRole("button", { name: /Advanced settings/ })).toHaveAttribute(
-      "aria-expanded",
-      "false",
-    );
+    // Unlike the old OverlayRail (which hid Advanced Settings until Space was
+    // on), the shell's bottom-menu button is always reachable — but its
+    // content is still stowed behind the "← Back" override until opened.
     expect(screen.queryByRole("checkbox", { name: "Coverage" })).not.toBeInTheDocument();
 
     openAdvanced();
@@ -243,7 +250,7 @@ describe("hover readout", () => {
 
       turnOverlayOn();
       const stage = screen.getByRole("group", { name: /Ultimate field/i });
-      fireEvent.pointerMove(stage, { clientX: 400, clientY: 200 });
+      fireEvent.pointerMove(stage, clientForYard({ x: 60, y: 20 }));
 
       expect(screen.getByText("Distance")).toBeVisible();
       expect(screen.getByText("Nearest defender arrives")).toBeVisible();
@@ -275,7 +282,7 @@ describe("hover readout", () => {
       fireEvent.click(lensCheckbox());
 
       const stage = screen.getByRole("group", { name: /Ultimate field/i });
-      fireEvent.pointerMove(stage, { clientX: 400, clientY: 200 });
+      fireEvent.pointerMove(stage, clientForYard({ x: 60, y: 20 }));
 
       expect(screen.getByText("Distance")).toBeVisible();
       expect(screen.getByText("Best cutter arrives")).not.toBeVisible();
@@ -290,12 +297,12 @@ describe("hover readout", () => {
       renderWhiteboard();
       turnOverlayOn();
       const stage = screen.getByRole("group", { name: /Ultimate field/i });
-      fireEvent.pointerMove(stage, { clientX: 400, clientY: 200 });
+      fireEvent.pointerMove(stage, clientForYard({ x: 60, y: 20 }));
       expect(screen.getByText("Distance")).toBeVisible();
 
       // Otherwise the last sampled cell freezes on screen, describing a map
       // that is no longer painted.
-      fireEvent.click(screen.getByRole("button", { name: "Space" }));
+      turnOverlayOn();
       expect(screen.getByText(/Hover the field to see why/)).toBeVisible();
       expect(screen.getByText("Distance")).not.toBeVisible();
     } finally {
@@ -309,7 +316,7 @@ describe("hover readout", () => {
       renderWhiteboard();
       turnOverlayOn();
       const stage = screen.getByRole("group", { name: /Ultimate field/i });
-      fireEvent.pointerMove(stage, { clientX: 400, clientY: 200 });
+      fireEvent.pointerMove(stage, clientForYard({ x: 60, y: 20 }));
       expect(screen.getByText("Distance")).toBeVisible();
 
       fireEvent.pointerLeave(stage);
@@ -333,7 +340,7 @@ describe("ADR-2: React is not in the drag path", () => {
           </Profiler>
         </MemoryRouter>,
       );
-      fireEvent.click(screen.getByRole("button", { name: "Space" }));
+      turnOverlayOn();
 
       const cutter = screen.getByRole("button", { name: "offense cutter 1" });
       const grab = grabPointFor(cutter);
@@ -363,11 +370,13 @@ describe("ADR-2: React is not in the drag path", () => {
   it("commits zero React renders while drawing a marquee and dragging the group", async () => {
     const rect = stubStageRect();
     // The same client coordinates the drag tests use: 1 px per SVG unit,
-    // 8 SVG units per yard, offset by the stage margin.
-    const at = (x: number, y: number) => ({
-      clientX: x * 8 - viewBox.x,
-      clientY: y * 8 - viewBox.y,
-    });
+    // through the real yard->pixel transform (coords.ts) so this stays
+    // correct regardless of the field's on-screen orientation (ADR-2),
+    // offset by the stage margin.
+    const at = (x: number, y: number) => {
+      const px = yardToPixel({ x, y });
+      return { clientX: px.x - viewBox.x, clientY: px.y - viewBox.y };
+    };
     try {
       let commits = 0;
       render(
@@ -389,9 +398,18 @@ describe("ADR-2: React is not in the drag path", () => {
       }
       fireEvent.pointerUp(stage, { pointerId: 2, ...at(57, 18) });
 
-      // Selecting four pieces is a DOM attribute write, not a render.
+      // Selecting four pieces is a DOM attribute write, not a render — but
+      // the marquee's *release* is also the moment `FieldCanvas` calls
+      // `store.setSelection()` (ADR-1), which the shell's `LeftSidebar`
+      // subscribes to (`useSelection`/`useSyncExternalStore`) so its panel
+      // can update. That is exactly one legitimate, intentional commit — the
+      // discrete selection transition, not the drag itself — so this is not
+      // a regression of ADR-2's "no React in the drag path": the invariant
+      // under test from here on is that the *drag that follows* stays
+      // commit-free, not that a selection change is free too.
       expect(stage.querySelectorAll('[data-selected="true"]')).toHaveLength(4);
-      expect(commits).toBe(0);
+      expect(commits).toBe(1);
+      commits = 0; // isolate the group drag that follows
 
       fireEvent.pointerDown(stage, { pointerId: 2, ...at(60, 20) });
       for (let i = 1; i <= 25; i += 1) {
@@ -434,6 +452,74 @@ describe("ADR-2: React is not in the drag path", () => {
       expect(mark.getAttribute("transform")).not.toBe(midDrag);
 
       fireEvent.pointerUp(mark, { pointerId: 1 });
+    } finally {
+      rect.mockRestore();
+    }
+  });
+
+  // tasks.md id 67 (Integration partition): Foundation's original Profiler
+  // test only proved a drag alone, and a selection change alone, each cost 0
+  // React commits during their own per-frame pointer moves — never *both
+  // together*, since nothing wired FieldCanvas's pointer handlers to
+  // `store.setSelection()` until this partition did (ADR-1's whole point,
+  // finally load-bearing: the shell's `LeftSidebar` really does re-render on
+  // selection change now). This test drags one piece, releases, then selects
+  // a *different* piece and immediately drags it — the selection transition
+  // still costs exactly one legitimate commit (the shell's panel swap), but
+  // the pointer-move bursts on either side of it must stay at 0, proving a
+  // selection change occurring in the same interaction as a drag never
+  // reintroduces React into the drag path itself.
+  it("commits zero React renders across pointer moves on both sides of a selection change mid-interaction", async () => {
+    const rect = stubStageRect();
+    try {
+      let commits = 0;
+      render(
+        <MemoryRouter>
+          <Profiler id="whiteboard" onRender={() => (commits += 1)}>
+            <Whiteboard />
+          </Profiler>
+        </MemoryRouter>,
+      );
+
+      const cutter1 = screen.getByRole("button", { name: "offense cutter 1" });
+      const cutter2 = screen.getByRole("button", { name: "offense cutter 2" });
+      const grab1 = grabPointFor(cutter1);
+      const rest1 = cutter1.getAttribute("transform");
+
+      // Grabbing cutter 1 from a clean `none` selection is itself a selection
+      // transition (ADR-1) — one legitimate commit, same as the marquee
+      // test's release. Reset the counter after it so the assertions below
+      // isolate the pointer-move bursts, not this discrete transition.
+      commits = 0;
+      fireEvent.pointerDown(cutter1, { pointerId: 1, ...grab1 });
+      expect(commits).toBe(1);
+      commits = 0;
+
+      for (let i = 0; i < 10; i += 1) {
+        fireEvent.pointerMove(cutter1, { pointerId: 1, clientX: grab1.clientX + i * 4, clientY: grab1.clientY });
+      }
+      fireEvent.pointerUp(cutter1, { pointerId: 1 });
+      await new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
+      expect(cutter1.getAttribute("transform")).not.toBe(rest1);
+      expect(commits).toBe(0);
+
+      // Grabbing cutter 2 is a *new* single-piece selection (ADR-1): exactly
+      // one commit, for the shell's `LeftSidebar` panel swap.
+      const grab2 = grabPointFor(cutter2);
+      const rest2 = cutter2.getAttribute("transform");
+      fireEvent.pointerDown(cutter2, { pointerId: 2, ...grab2 });
+      expect(commits).toBe(1);
+      commits = 0; // isolate the drag that follows the selection change
+
+      for (let i = 0; i < 25; i += 1) {
+        fireEvent.pointerMove(cutter2, { pointerId: 2, clientX: grab2.clientX + i * 4, clientY: grab2.clientY });
+      }
+      expect(commits).toBe(0);
+      await new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
+      expect(cutter2.getAttribute("transform")).not.toBe(rest2);
+      expect(commits).toBe(0);
+
+      fireEvent.pointerUp(cutter2, { pointerId: 2 });
     } finally {
       rect.mockRestore();
     }
@@ -591,8 +677,13 @@ describe("preferences", () => {
     unmount();
 
     renderWhiteboard();
-    expect(screen.getByRole("button", { name: "Space" })).toHaveAttribute("aria-pressed", "true");
-    expect(screen.getByRole("button", { name: /Advanced settings/ })).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByRole("button", { name: "Space View" })).toHaveAttribute("aria-pressed", "true");
+    // The sidebar's Advanced-Settings *view* is local, ephemeral UI state
+    // (LeftSidebar's own `view` toggle, not an overlay pref) — unlike the old
+    // OverlayRail's `advancedExpanded` disclosure, it does not itself persist
+    // across a remount. The lens/param values it displays do persist (the
+    // shared `overlayPrefs` store), so re-opening the panel shows them.
+    openAdvanced();
     expect(lensCheckbox()).not.toBeChecked();
     expect(screen.getByText("0.30")).toBeInTheDocument();
 

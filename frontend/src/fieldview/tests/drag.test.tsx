@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { Whiteboard } from "../pages/Whiteboard";
-import { getStageViewBox } from "../render/coords";
+import { getStageViewBox, yardToPixel } from "../render/coords";
 import { FIELD_PX_HEIGHT, FIELD_PX_WIDTH } from "../render/fieldLayer";
 
 const viewBox = getStageViewBox(FIELD_PX_WIDTH, FIELD_PX_HEIGHT);
@@ -27,10 +27,15 @@ function mockSvgRect(svg: SVGSVGElement) {
   });
 }
 
+// Goes through the real transform (coords.ts) rather than hardcoding the
+// yard->pixel formula here, so this file stays correct regardless of the
+// field's on-screen orientation (ADR-2 — orientation lives only in
+// coords.ts).
 function clientFor(yard: { x: number; y: number }) {
+  const px = yardToPixel(yard);
   return {
-    clientX: yard.x * 8 - viewBox.x,
-    clientY: yard.y * 8 - viewBox.y,
+    clientX: px.x - viewBox.x,
+    clientY: px.y - viewBox.y,
   };
 }
 
@@ -53,11 +58,11 @@ describe("piece drag", () => {
     // The mutation is coalesced into the next animation frame (ADR-2), not
     // applied synchronously — but critically, it applies before pointerUp.
     await nextFrame();
-    expect(cutter.getAttribute("transform")).toBe("translate(480, 200)");
+    expect(cutter.getAttribute("transform")).toBe("translate(200, 400)");
 
     fireEvent.pointerUp(cutter, { pointerId: 1, ...mid });
     await nextFrame();
-    expect(cutter.getAttribute("transform")).toBe("translate(480, 200)");
+    expect(cutter.getAttribute("transform")).toBe("translate(200, 400)");
   });
 
   it("carries the mark by the same delta when the thrower is dragged", async () => {
@@ -77,10 +82,13 @@ describe("piece drag", () => {
     fireEvent.pointerMove(thrower, { pointerId: 2, ...target });
     await nextFrame();
 
-    expect(thrower.getAttribute("transform")).toBe("translate(360, 120)");
-    // Thrower moved +5,-5 yd (40px, -40px in px space); mark should carry the same delta.
+    expect(thrower.getAttribute("transform")).toBe("translate(120, 520)");
+    // Thrower moved +5,-5 yd; in this vertical orientation (coords.ts ADR-2)
+    // that's -40px on both screen axes (lateral -5yd -> -40px x, downfield
+    // +5yd -> -40px y, since +x yd maps to decreasing pixel-y). Mark should
+    // carry the same pixel delta.
     const markAfterMatch = mark.getAttribute("transform")?.match(/translate\(([-\d.]+), ([-\d.]+)\)/);
-    expect(Number(markAfterMatch?.[1])).toBeCloseTo(markBeforeX + 40);
+    expect(Number(markAfterMatch?.[1])).toBeCloseTo(markBeforeX - 40);
     expect(Number(markAfterMatch?.[2])).toBeCloseTo(markBeforeY - 40);
   });
 
@@ -96,8 +104,9 @@ describe("piece drag", () => {
     fireEvent.pointerMove(cutter, { pointerId: 3, ...farOut });
     await nextFrame();
 
-    // Clamped to the field's max x (110 yd -> 880px) and min y (0 -> 0px).
-    expect(cutter.getAttribute("transform")).toBe("translate(880, 0)");
+    // Clamped to the field's max x (110 yd downfield -> pixel-y 0, the top
+    // of the screen since attacking is up) and min y (0 yd lateral -> 0px).
+    expect(cutter.getAttribute("transform")).toBe("translate(0, 0)");
   });
 });
 
@@ -120,7 +129,7 @@ describe("grabbing the right piece", () => {
     fireEvent.pointerMove(svg, { pointerId: 10, ...clientFor({ x: 60.2, y: 20 }) });
     await nextFrame();
 
-    expect(cutter.getAttribute("transform")).toBe("translate(480, 160)");
+    expect(cutter.getAttribute("transform")).toBe("translate(160, 400)");
     expect(defender.getAttribute("transform")).toBe(defenderBefore);
   });
 
@@ -137,7 +146,7 @@ describe("grabbing the right piece", () => {
     fireEvent.pointerMove(svg, { pointerId: 11, ...clientFor({ x: 59.2, y: 20 }) });
     await nextFrame();
 
-    expect(cutter.getAttribute("transform")).toBe("translate(480, 160)");
+    expect(cutter.getAttribute("transform")).toBe("translate(160, 400)");
   });
 
   it("moves nothing when the press lands in open space", async () => {
@@ -210,10 +219,10 @@ describe("marquee selection", () => {
     await nextFrame();
 
     expect(members.map((el) => el.getAttribute("transform"))).toEqual([
-      "translate(504, 176)", // (63, 22)
-      "translate(520, 176)", // (65, 22)
-      "translate(536, 200)", // (67, 25)
-      "translate(600, 176)", // (75, 22)
+      "translate(176, 376)", // (63, 22)
+      "translate(176, 360)", // (65, 22)
+      "translate(200, 344)", // (67, 25)
+      "translate(176, 280)", // (75, 22)
     ]);
     // The formation kept its shape, and nothing outside the box moved.
     expect(outsider.getAttribute("transform")).toBe(outsiderBefore);
@@ -233,10 +242,10 @@ describe("marquee selection", () => {
     await nextFrame();
 
     expect(screen.getByRole("button", { name: "offense thrower T" }).getAttribute("transform")).toBe(
-      "translate(320, 0)", // (40, 0)
+      "translate(0, 560)", // (40, 0)
     );
     expect(screen.getByRole("button", { name: "defense mark M" }).getAttribute("transform")).toBe(
-      "translate(328, 24)", // (41, 3) — still 3 yd off the thrower
+      "translate(24, 552)", // (41, 3) — still 3 yd off the thrower
     );
   });
 
@@ -252,7 +261,7 @@ describe("marquee selection", () => {
     await nextFrame();
 
     expect(screen.getByRole("button", { name: "defense mark M" }).getAttribute("transform")).toBe(
-      "translate(368, 184)", // (46, 23), not (51, 23)
+      "translate(184, 512)", // (46, 23), not (51, 23)
     );
   });
 
@@ -281,7 +290,7 @@ describe("marquee selection", () => {
 
     expect(selectedLabels(svg)).toEqual([]);
     expect(screen.getByRole("button", { name: "offense cutter 1" }).getAttribute("transform")).toBe(
-      "translate(360, 160)",
+      "translate(160, 520)",
     );
     expect(cutter5.getAttribute("transform")).toBe(before);
   });
@@ -292,15 +301,20 @@ describe("keyboard nudge", () => {
     render(<MemoryRouter><Whiteboard /></MemoryRouter>);
     const cutter = screen.getByRole("button", { name: "offense cutter 1" });
     const beforeMatch = cutter.getAttribute("transform")?.match(/translate\(([-\d.]+), ([-\d.]+)\)/);
-    const beforeX = Number(beforeMatch?.[1]);
-    const beforeY = beforeMatch?.[2];
+    const beforeX = beforeMatch?.[1];
+    const beforeY = Number(beforeMatch?.[2]);
 
+    // ArrowRight nudges +1 yd downfield (+x yard), which is -8px on the
+    // screen-y axis in this vertical orientation (coords.ts ADR-2) —
+    // attacking is up the screen, so downfield motion moves pixel-y down
+    // (toward the far sideline in yard space, i.e. numerically smaller y
+    // pixel toward the top).
     fireEvent.keyDown(cutter, { key: "ArrowRight" });
     await nextFrame();
-    expect(cutter.getAttribute("transform")).toBe(`translate(${beforeX + 8}, ${beforeY})`);
+    expect(cutter.getAttribute("transform")).toBe(`translate(${beforeX}, ${beforeY - 8})`);
 
     fireEvent.keyDown(cutter, { key: "ArrowRight", shiftKey: true });
     await nextFrame();
-    expect(cutter.getAttribute("transform")).toBe(`translate(${beforeX + 8 + 40}, ${beforeY})`);
+    expect(cutter.getAttribute("transform")).toBe(`translate(${beforeX}, ${beforeY - 8 - 40})`);
   });
 });

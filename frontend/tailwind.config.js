@@ -15,6 +15,17 @@ export default {
         // built-in Tailwind shades (kept in sync intentionally):
         // panel=zinc-100, border=zinc-300, accentPink=pink-700,
         // accentGreen=emerald-700, accentPinkDark=pink-800 (hover).
+        //
+        // fieldview-shell (ADR-6) reuses this exact palette for shell chrome
+        // (buttons, borders, panel backgrounds under ui/shell/) rather than
+        // declaring a second "shell-*" color namespace with the same hex
+        // values — /fieldview already renders inside Layout.tsx's
+        // `.film-room` wrapper below, so both the palette and the hard-corner
+        // rule are already in scope for shell components. render/tokens.ts's
+        // SHELL_TOKENS mirrors accentPink/base/panel/border here for the rare
+        // non-Tailwind (inline style) consumer; PIECE_TOKENS/FIELD_TOKENS'
+        // #EF4B8A accent is a separate, intentionally-untouched system for
+        // game pieces and field markings, not shell chrome.
         film: {
           base: "#ffffff",
           panel: "#f4f4f5",

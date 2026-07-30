@@ -23,7 +23,6 @@ import { OverlayRail } from "../ui/OverlayRail";
 import { CellReadout } from "../ui/CellReadout";
 import type { CellReadoutHandle } from "../ui/CellReadout";
 import { useOverlayState } from "../ui/prefs";
-import { SmallScreenNotice } from "../ui/SmallScreenNotice";
 
 const UNDO_WINDOW_MS = 5000;
 // Timestamps are compared with a tolerance because scrubbing produces
@@ -286,8 +285,9 @@ export function Designer() {
 
   return (
     <>
-      <SmallScreenNotice />
-      <div className="mx-auto hidden max-w-[1600px] flex-col items-center gap-6 px-4 py-10 md:flex">
+      {/* PRD FR-6.2: no viewport width may block Field View from rendering.
+          See Whiteboard.tsx for the matching note. */}
+      <div className="mx-auto flex max-w-[1600px] flex-col items-center gap-6 px-4 py-10">
         <h1 className="font-heading text-2xl uppercase tracking-widest text-zinc-900">
           Field View — Designer
         </h1>

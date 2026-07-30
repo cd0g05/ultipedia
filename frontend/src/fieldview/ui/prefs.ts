@@ -3,7 +3,7 @@
 // but should not find yesterday's half-dragged formation, which would be
 // indistinguishable from a bug.
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useSyncExternalStore } from "react";
 import { ALL_LAYERS, DEFAULT_PARAMS, SLIDER_RANGES, degToRad } from "../space/constants";
 import type { LayerFlags, Lens, SpaceParams } from "../space/types";
 
@@ -138,36 +138,81 @@ export interface OverlayState extends OverlayPrefs {
   resetParams: () => void;
 }
 
+// A single module-level store rather than one `useState` per call site.
+//
+// Integration discovery: once the shell composes `Whiteboard.tsx` (which
+// needs `overlay.on`/`overlay.visible`/etc. to actually drive `FieldCanvas`)
+// alongside `ToolRibbon`/`DefaultVisibilityPanel`/`AdvancedSettingsPanel`
+// (which the Panels and Desktop partitions' own notes flagged as *each*
+// calling `useOverlayState()` independently — "redundant-but-consistent,
+// since they share one localStorage key"), those hook calls are no longer
+// consistent: they are all mounted *at the same time* on the same page, not
+// sequentially across a reload. A plain `useState(loadPrefs)` per call site
+// only reads localStorage once, at that instance's own mount — so toggling
+// "Space" in the shell ribbon updated the ribbon's own copy and localStorage,
+// but `Whiteboard.tsx`'s separate copy (the one actually threaded into
+// `FieldCanvas`) never re-rendered, and the heatmap never turned on. Sharing
+// one external store, read via `useSyncExternalStore` exactly like
+// `SceneStore`'s selection field (scene/store.ts, ADR-1), is what makes every
+// simultaneously-mounted consumer see the same live value instead of a
+// snapshot from its own mount time.
+let prefsState: OverlayPrefs = loadPrefs();
+const listeners = new Set<() => void>();
+
+function setPrefsState(update: (prefs: OverlayPrefs) => OverlayPrefs): void {
+  prefsState = update(prefsState);
+  savePrefs(prefsState);
+  for (const cb of listeners) cb();
+}
+
+function subscribe(cb: () => void): () => void {
+  listeners.add(cb);
+  return () => {
+    listeners.delete(cb);
+  };
+}
+
+function getSnapshot(): OverlayPrefs {
+  return prefsState;
+}
+
 export function useOverlayState(): OverlayState {
-  const [prefs, setPrefs] = useState<OverlayPrefs>(loadPrefs);
+  // Re-seed from localStorage whenever nothing is currently subscribed. In
+  // the running app this only ever happens once, at the very first mount (or
+  // after navigating away from every fieldview page and back) — while any
+  // consumer is mounted, `listeners` is never empty, so the shared value
+  // never resets under it. In tests, RTL's automatic `cleanup()` between
+  // cases unmounts every consumer (running each one's unsubscribe), so the
+  // next `render()` after a `localStorage.clear()` starts from defaults again
+  // exactly like the old per-instance `useState(loadPrefs)` did.
+  if (listeners.size === 0) {
+    prefsState = loadPrefs();
+  }
+  const prefs = useSyncExternalStore(subscribe, getSnapshot);
 
-  useEffect(() => {
-    savePrefs(prefs);
-  }, [prefs]);
-
-  const setOn = useCallback((on: boolean) => setPrefs((p) => ({ ...p, on })), []);
-  const setLens = useCallback((lens: Lens) => setPrefs((p) => ({ ...p, lens })), []);
+  const setOn = useCallback((on: boolean) => setPrefsState((p) => ({ ...p, on })), []);
+  const setLens = useCallback((lens: Lens) => setPrefsState((p) => ({ ...p, lens })), []);
   const setAdvancedExpanded = useCallback(
-    (advancedExpanded: boolean) => setPrefs((p) => ({ ...p, advancedExpanded })),
+    (advancedExpanded: boolean) => setPrefsState((p) => ({ ...p, advancedExpanded })),
     [],
   );
   const setVisible = useCallback(
     (team: keyof TeamVisibility, shown: boolean) =>
-      setPrefs((p) => ({ ...p, visible: { ...p.visible, [team]: shown } })),
+      setPrefsState((p) => ({ ...p, visible: { ...p.visible, [team]: shown } })),
     [],
   );
   const setLayer = useCallback(
     (layer: keyof LayerFlags, enabled: boolean) =>
-      setPrefs((p) => ({ ...p, layers: { ...p.layers, [layer]: enabled } })),
+      setPrefsState((p) => ({ ...p, layers: { ...p.layers, [layer]: enabled } })),
     [],
   );
   const setParam = useCallback(
     (param: keyof SpaceParams, value: number) =>
-      setPrefs((p) => ({ ...p, params: { ...p.params, [param]: value } })),
+      setPrefsState((p) => ({ ...p, params: { ...p.params, [param]: value } })),
     [],
   );
   const resetParams = useCallback(
-    () => setPrefs((p) => ({ ...p, params: { ...DEFAULT_PARAMS } })),
+    () => setPrefsState((p) => ({ ...p, params: { ...DEFAULT_PARAMS } })),
     [],
   );
 

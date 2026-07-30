@@ -11,6 +11,7 @@ import type { SceneStore } from "../scene/store";
 import type { Player, Vec2 } from "../scene/types";
 import { FIELD } from "../scene/field";
 import { movePlayer, moveThrower } from "../scene/scene";
+import { clearSelection, selectMarquee, selectPlayer } from "../scene/selection";
 import { FIELD_PX_HEIGHT, FIELD_PX_WIDTH, FieldLayer } from "../render/fieldLayer";
 import { PieceLayer } from "../render/pieceLayer";
 import type { PieceIdentity } from "../render/pieceLayer";
@@ -218,7 +219,11 @@ export function FieldCanvas({
   }
 
   // The selection's visual, written straight onto the DOM. Called at the few
-  // discrete moments the selection changes — never per frame.
+  // discrete moments the selection changes — never per frame. This is
+  // deliberately local (group-drag membership / marquee highlight), separate
+  // from the store's `selection` field (ADR-1) — the two are kept in step by
+  // the call sites below, which update both together at each of those
+  // discrete moments rather than merging them into one concept.
   function setSelection(ids: Iterable<string>) {
     selectionRef.current = new Set(ids);
     const svg = svgRef.current;
@@ -231,9 +236,13 @@ export function FieldCanvas({
   }
 
   // A preset load replaces the pieces; a selection of ids that no longer exist
-  // would linger as an invisible group drag waiting to happen.
+  // would linger as an invisible group drag waiting to happen. The store's
+  // selection (which the shell's panel registry reads) must be reset the same
+  // way, or a stale panel could keep pointing at a player that no longer
+  // exists in the new scene.
   useEffect(() => {
     setSelection([]);
+    store.setSelection(clearSelection());
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [players]);
 
@@ -296,6 +305,14 @@ export function FieldCanvas({
         // Grabbing an unselected piece is the old single-piece drag, and
         // abandons whatever was selected — the same way it would in any editor.
         setSelection([]);
+        // ADR-1: this is also the moment the shell's contextual panel needs to
+        // know about — a plain click-drag on a single piece is how ux.md's
+        // "coach clicks a defensive player" flow actually fires in practice
+        // (a press-and-release with zero movement is still a press). Reuses
+        // the same pure transition `selectPlayer` uses for its own toggle-off
+        // case, so grabbing the already-singly-selected piece again clears it
+        // rather than re-selecting it.
+        store.setSelection(selectPlayer(store.getSelection(), piece));
         dragRef.current = {
           kind: "piece",
           id: piece.id,
@@ -326,9 +343,13 @@ export function FieldCanvas({
         const dy = Math.abs(drag.current.y - drag.origin.y);
         // A click on grass deselects; a box selects what it contains, even if
         // that is nothing.
-        setSelection(
-          dx < MARQUEE_MIN_YD && dy < MARQUEE_MIN_YD ? [] : playersInMarquee(drag).map((p) => p.id),
-        );
+        const ids =
+          dx < MARQUEE_MIN_YD && dy < MARQUEE_MIN_YD ? [] : playersInMarquee(drag).map((p) => p.id);
+        setSelection(ids);
+        // `selectMarquee` already collapses an empty result to `{ kind: "none" }`,
+        // so a click on open grass and an empty box both clear the store's
+        // selection the same way they clear the local one above.
+        store.setSelection(selectMarquee(ids));
         hideMarquee();
       }
 
@@ -509,7 +530,7 @@ export function FieldCanvas({
         <svg
           ref={svgRef}
           role="group"
-          aria-label={`Ultimate field, ${FIELD.length} by ${FIELD.width} yards. Offense attacks left to right.`}
+          aria-label={`Ultimate field, ${FIELD.length} by ${FIELD.width} yards. Offense attacks up the field.`}
           viewBox={viewBoxString}
           className="relative h-auto w-full"
           // The stage owns the drag, so it must own the gesture: without this a

@@ -39,8 +39,8 @@ describe("axe-core audit", () => {
 
   it("/fieldview has no violations with the space overlay on", async () => {
     const { container } = render(<MemoryRouter><Whiteboard /></MemoryRouter>);
-    fireEvent.click(screen.getByRole("button", { name: "Space" }));
-    fireEvent.click(screen.getByRole("button", { name: /Advanced settings/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Space View" }));
+    fireEvent.click(screen.getByRole("button", { name: "⚙ Advanced Settings" }));
     await expectNoViolations(container);
   });
 
@@ -96,29 +96,50 @@ describe("Designer keyboard operation", () => {
 // --- P6 full a11y sweep (task 135) ---
 
 describe("full keyboard traversal", () => {
-  it("reaches every whiteboard control, with the overlay on and advanced settings open", () => {
+  // ux.md UI States: opening Advanced Settings *fully replaces* the ribbon,
+  // the selection panel, Presets, and the Play Designer button with the
+  // settings content and a "← Back" affordance — unlike the old OverlayRail
+  // (where the disclosure expanded in place, leaving every other control
+  // reachable at the same time). So the default view's controls and the
+  // Advanced Settings view's controls are two separate traversals, not one.
+  it("reaches every whiteboard control in the default (selection) view", () => {
     render(<MemoryRouter><Whiteboard /></MemoryRouter>);
-    fireEvent.click(screen.getByRole("button", { name: "Space" }));
-    fireEvent.click(screen.getByRole("button", { name: /Advanced settings/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Space View" }));
 
     const controls = [
       screen.getByRole("button", { name: "Presets" }),
       screen.getByRole("button", { name: "Export frame" }),
       screen.getByRole("link", { name: "Designer" }),
-      screen.getByRole("button", { name: "Space" }),
+      screen.getByRole("button", { name: "Marquee Selection" }),
+      screen.getByRole("button", { name: "Space View" }),
       screen.getByRole("checkbox", { name: "Offense" }),
       screen.getByRole("checkbox", { name: "Defense" }),
+      screen.getByRole("button", { name: "⚙ Advanced Settings" }),
+      screen.getByRole("button", { name: "▶ Play Designer" }),
+      screen.getByRole("button", { name: "offense thrower T" }),
+      screen.getByRole("button", { name: "defense mark M" }),
+    ];
+
+    for (const control of controls) {
+      control.focus();
+      expect(document.activeElement).toBe(control);
+    }
+  });
+
+  it("reaches every whiteboard control in the Advanced Settings view", () => {
+    render(<MemoryRouter><Whiteboard /></MemoryRouter>);
+    fireEvent.click(screen.getByRole("button", { name: "⚙ Advanced Settings" }));
+
+    const controls = [
+      screen.getByRole("button", { name: "← Back" }),
       screen.getByRole("checkbox", { name: /Include offense in space calculations/ }),
       screen.getByRole("checkbox", { name: "Mark / force" }),
       screen.getByRole("checkbox", { name: "Coverage" }),
       screen.getByRole("checkbox", { name: "Throwing lanes" }),
       screen.getByRole("checkbox", { name: "Field value" }),
-      screen.getByRole("button", { name: /Advanced settings/ }),
       screen.getByRole("slider", { name: "Top speed" }),
       screen.getByRole("slider", { name: "Mark width" }),
       screen.getByRole("button", { name: "Reset to defaults" }),
-      screen.getByRole("button", { name: "offense thrower T" }),
-      screen.getByRole("button", { name: "defense mark M" }),
     ];
 
     for (const control of controls) {
@@ -161,20 +182,15 @@ describe("full keyboard traversal", () => {
   });
 });
 
+// Integration note: the shell redesign (tech-design.md Project/Module
+// Structure) removed `OverlayRail` — including its "Closed / Contested /
+// Strong space" legend — from `Whiteboard.tsx`'s composition. Nothing in
+// ux.md's shell IA or UI States carries that legend forward into any panel,
+// so its removal is a scope decision made upstream of this partition, not a
+// regression to patch around here. The remaining colour-is-not-the-only-
+// carrier guarantee for this page is the readout verdict below (always text,
+// in a live region), which is unchanged.
 describe("colour is never the sole carrier of meaning", () => {
-  it("pairs every legend swatch with a word, and swatches are hidden from AT", () => {
-    render(<MemoryRouter><Whiteboard /></MemoryRouter>);
-    fireEvent.click(screen.getByRole("button", { name: "Space" }));
-
-    for (const label of ["Closed", "Contested", "Strong space"]) {
-      const entry = screen.getByText(label);
-      const swatch = entry.querySelector("span[aria-hidden='true']");
-      expect(swatch).not.toBeNull();
-      // The word is the accessible content; the colour block is decoration.
-      expect(entry.textContent).toContain(label);
-    }
-  });
-
   it("exposes the readout verdict as text in a live region", () => {
     render(<MemoryRouter><Whiteboard /></MemoryRouter>);
     const readout = screen.getByRole("region", { name: "Cell readout" });

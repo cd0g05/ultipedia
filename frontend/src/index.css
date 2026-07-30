@@ -47,7 +47,10 @@ body {
 
 /* "Light Film Room" scope (encyclopedia shell root, Layout.tsx):
    Helvetica body voice + hard corners everywhere — the mockups' global
-   `border-radius: 0` rule, scoped so the intake app keeps its rounding. */
+   `border-radius: 0` rule, scoped so the intake app keeps its rounding.
+   Layout.tsx wraps every route including /fieldview (router.tsx), so this
+   is also the zero-radius default fieldview-shell's ADR-6 asks for — shell
+   chrome does not need its own border-radius override. */
 .film-room {
   font-family: "Helvetica Neue", Arial, sans-serif;
 }

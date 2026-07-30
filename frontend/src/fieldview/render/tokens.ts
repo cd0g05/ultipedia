@@ -92,3 +92,29 @@ export const NUDGE = {
 export const EXPORT_TOKENS = {
   background: "#ffffff",
 };
+
+// "Light Film Room" — the shell-chrome design system (fieldview-shell ADR-6).
+// Scope is deliberately narrow: buttons, borders, and panel backgrounds for
+// ui/shell/. Never import this into render/pieceLayer.tsx, render/fieldLayer.tsx,
+// or anywhere else that draws a piece or a field marking — those read
+// FIELD_TOKENS/PIECE_TOKENS above, whose #EF4B8A accent identifies game
+// entities and is intentionally left untouched (ADR-6 resolves what would
+// otherwise be a two-accent inconsistency: chrome and canvas are allowed to
+// diverge because they mean different things).
+//
+// Values are kept in sync by hand with the `film` colors in
+// tailwind.config.js (base/panel/border/accentPink) — that Tailwind palette
+// already existed for the encyclopedia shell (Layout.tsx's `.film-room`
+// scope, which wraps /fieldview too) and shell components should reach for
+// those utility classes directly rather than inline styles. SHELL_TOKENS
+// exists for the rare case something needs the raw value in TS/JS (e.g. a
+// non-Tailwind style prop), not as a second source of truth to drift from
+// the first.
+export const SHELL_TOKENS = {
+  accent: "#be185d", // film-accentPink — sole interactive accent for shell chrome
+  ground: {
+    base: "#ffffff", // film-base — page/canvas background
+    panel: "#f4f4f5", // film-panel — sidebar/panel background, zinc-100
+  },
+  border: "#d4d4d8", // film-border — 1px dividers, zinc-300
+};
