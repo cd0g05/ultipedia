@@ -1,4 +1,4 @@
-// /field-view — Mode 1: the coaching whiteboard. Drag, presets, PNG export,
+// /fieldview — Mode 1: the coaching whiteboard. Drag, presets, PNG export,
 // and keyboard nudge in full (approach.md Partition 2).
 
 import { useMemo, useRef, useState } from "react";
@@ -202,7 +202,7 @@ export function Whiteboard() {
                 stashed on the way out rather than pushed continuously, so the
                 whiteboard stays free of designer concerns. */}
             <Link
-              to="/field-view/designer"
+              to="/fieldview/designer"
               onClick={() => stashScene(store.getScene())}
               className="border border-zinc-400 px-4 py-1.5 font-mono text-sm uppercase tracking-wider text-zinc-700 hover:border-film-accentPink hover:text-film-accentPink"
             >

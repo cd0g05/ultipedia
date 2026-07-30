@@ -3,7 +3,7 @@
 // the existing intake app is mounted at /contribute/*.
 // `routes` is exported separately so tests can drive it with MemoryRouter.
 
-import { createBrowserRouter, RouterProvider, type RouteObject } from "react-router-dom";
+import { createBrowserRouter, Navigate, RouterProvider, type RouteObject } from "react-router-dom";
 import IntakeApp from "./intake/App";
 import { Layout } from "./encyclopedia/components/Layout";
 import { Home } from "./encyclopedia/pages/Home";
@@ -24,11 +24,16 @@ export const routes: RouteObject[] = [
       { path: "/about", element: <About /> },
       { path: "/contact", element: <Contact /> },
       { path: "/privacy", element: <Privacy /> },
-      { path: "/field-view", element: <Whiteboard /> },
-      { path: "/field-view/designer", element: <Designer /> },
+      { path: "/fieldview", element: <Whiteboard /> },
+      { path: "/fieldview/designer", element: <Designer /> },
+      // The product was shipped at /field-view and the client has that URL.
+      // Redirect rather than drop it: `replace` keeps the old path out of
+      // history, so Back from the whiteboard does not bounce through it.
+      { path: "/field-view", element: <Navigate to="/fieldview" replace /> },
+      { path: "/field-view/designer", element: <Navigate to="/fieldview/designer" replace /> },
       // One Section/EntryDetail component serves all five sections (Template
       // Method); Section itself 404s unknown segments. Explicit static routes
-      // (/search, /field-view above) outrank these dynamic segments.
+      // (/search, /fieldview above) outrank these dynamic segments.
       { path: "/:section", element: <Section /> },
       { path: "/:section/:slug", element: <EntryDetail /> },
       { path: "*", element: <NotFound /> },

@@ -1,6 +1,7 @@
-// Router-level regression: /field-view and /field-view/designer resolve to
-// their shells, and adding them does not shadow the /:section dynamic route
-// or any other existing static route.
+// Router-level regression: /fieldview and /fieldview/designer resolve to
+// their shells, the shipped /field-view URLs still land there via redirect,
+// and none of the four shadow the /:section dynamic route or any other
+// existing static route.
 
 import { describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
@@ -25,19 +26,32 @@ function renderAt(path: string) {
   );
 }
 
-describe("field-view routes", () => {
-  it("/field-view renders the Whiteboard shell", () => {
-    renderAt("/field-view");
+describe("fieldview routes", () => {
+  it("/fieldview renders the Whiteboard shell", () => {
+    renderAt("/fieldview");
     // Exact: the sub-768px notice carries its own h1, and only one of the
     // two is ever displayed.
     expect(screen.getByRole("heading", { name: "Field View" })).toBeInTheDocument();
     expect(screen.getByRole("group", { name: /ultimate field/i })).toBeInTheDocument();
   });
 
-  it("/field-view/designer renders the Designer shell", () => {
-    renderAt("/field-view/designer");
+  it("/fieldview/designer renders the Designer shell", () => {
+    renderAt("/fieldview/designer");
     expect(screen.getByRole("heading", { name: /field view.*designer/i })).toBeInTheDocument();
     expect(screen.getByRole("group", { name: /ultimate field/i })).toBeInTheDocument();
+  });
+
+  // The client has the old URLs. Losing them to the /:section 404 would be a
+  // silent regression, so both are asserted rather than assumed.
+  it("/field-view redirects to the Whiteboard", () => {
+    renderAt("/field-view");
+    expect(screen.getByRole("heading", { name: "Field View" })).toBeInTheDocument();
+    expect(screen.getByRole("group", { name: /ultimate field/i })).toBeInTheDocument();
+  });
+
+  it("/field-view/designer redirects to the Designer", () => {
+    renderAt("/field-view/designer");
+    expect(screen.getByRole("heading", { name: /field view.*designer/i })).toBeInTheDocument();
   });
 
   it("does not shadow the /:section dynamic route", async () => {
