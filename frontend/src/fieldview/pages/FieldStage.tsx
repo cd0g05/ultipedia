@@ -13,7 +13,7 @@ export function FieldStage({ scene }: { scene: Scene }) {
   return (
     <svg
       role="img"
-      aria-label={`Ultimate field, ${FIELD.length} by ${FIELD.width} yards. Offense attacks left to right.`}
+      aria-label={`Ultimate field, ${FIELD.length} by ${FIELD.width} yards. Offense attacks up the field.`}
       viewBox={viewBox}
       className="h-auto w-full"
     >

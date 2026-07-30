@@ -509,7 +509,7 @@ export function FieldCanvas({
         <svg
           ref={svgRef}
           role="group"
-          aria-label={`Ultimate field, ${FIELD.length} by ${FIELD.width} yards. Offense attacks left to right.`}
+          aria-label={`Ultimate field, ${FIELD.length} by ${FIELD.width} yards. Offense attacks up the field.`}
           viewBox={viewBoxString}
           className="relative h-auto w-full"
           // The stage owns the drag, so it must own the gesture: without this a
