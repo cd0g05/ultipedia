@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Field View — Whiteboard mock-up</title>
+<style>
+  body { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; background: #fff; color: #18181b; margin: 0; padding: 32px; }
+  h1 { font-size: 22px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; margin: 0 0 24px; }
+  .toolbar { display: flex; justify-content: space-between; align-items: center; max-width: 900px; margin: 0 auto 16px; }
+  button { font-family: monospace; text-transform: uppercase; font-size: 12px; letter-spacing: 0.08em; border: 1px solid #d4d4d8; background: #fff; padding: 6px 14px; cursor: pointer; }
+  button.accent { border-color: #EF4B8A; color: #EF4B8A; }
+  .stage-wrap { max-width: 900px; margin: 0 auto; border: 1px solid #e4e4e7; }
+  svg { display: block; width: 100%; height: auto; }
+  .legend { max-width: 900px; margin: 16px auto 0; font-size: 12px; color: #71717a; display: flex; gap: 16px; align-items: center; }
+  .swatch { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 4px; vertical-align: middle; }
+</style>
+</head>
+<body>
+  <h1>Field View — Whiteboard (representative mock-up)</h1>
+  <div class="toolbar">
+    <button>Presets ▾</button>
+    <button class="accent">Export frame</button>
+  </div>
+  <div class="stage-wrap">
+    <svg viewBox="-20 -30 920 340" xmlns="http://www.w3.org/2000/svg">
+      <!-- Field -->
+      <rect x="0" y="0" width="880" height="320" fill="none" stroke="#a1a1aa" stroke-width="1.5" />
+      <line x1="160" y1="0" x2="160" y2="320" stroke="#a1a1aa" stroke-width="1.5" />
+      <line x1="720" y1="0" x2="720" y2="320" stroke="#a1a1aa" stroke-width="1.5" />
+      <circle cx="320" cy="160" r="3" fill="#a1a1aa" />
+      <circle cx="560" cy="160" r="3" fill="#a1a1aa" />
+      <g transform="translate(420,-14)">
+        <line x1="0" y1="0" x2="36" y2="0" stroke="#EF4B8A" stroke-width="2" />
+        <path d="M 30 -4 L 36 0 L 30 4 Z" fill="#EF4B8A" />
+      </g>
+
+      <!-- Representative strong/weak space heatmap (static, for early signal only) -->
+      <defs>
+        <radialGradient id="strong" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#4F941D" stop-opacity="0.55" />
+          <stop offset="100%" stop-color="#4F941D" stop-opacity="0" />
+        </radialGradient>
+        <radialGradient id="closed" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#D64B4A" stop-opacity="0.45" />
+          <stop offset="100%" stop-color="#D64B4A" stop-opacity="0" />
+        </radialGradient>
+      </defs>
+      <ellipse cx="470" cy="130" rx="140" ry="70" fill="url(#strong)" />
+      <ellipse cx="380" cy="220" rx="90" ry="60" fill="url(#closed)" />
+
+      <!-- Offense: thrower + 6 cutters -->
+      <circle cx="360" cy="160" r="6" fill="#4F941D" stroke="#18181b" stroke-width="1.5" />
+      <text x="360" y="163" text-anchor="middle" font-size="5" fill="white">T</text>
+      <circle cx="440" cy="160" r="5" fill="#4F941D" /><text x="440" y="163" text-anchor="middle" font-size="5" fill="white">1</text>
+      <circle cx="480" cy="160" r="5" fill="#4F941D" /><text x="480" y="163" text-anchor="middle" font-size="5" fill="white">2</text>
+      <circle cx="520" cy="160" r="5" fill="#4F941D" /><text x="520" y="163" text-anchor="middle" font-size="5" fill="white">3</text>
+      <circle cx="560" cy="160" r="5" fill="#4F941D" /><text x="560" y="163" text-anchor="middle" font-size="5" fill="white">4</text>
+      <circle cx="600" cy="160" r="5" fill="#4F941D" /><text x="600" y="163" text-anchor="middle" font-size="5" fill="white">5</text>
+      <circle cx="640" cy="160" r="5" fill="#4F941D" /><text x="640" y="163" text-anchor="middle" font-size="5" fill="white">6</text>
+
+      <!-- Defense: mark + 6 defenders -->
+      <circle cx="340" cy="184" r="6" fill="#D64B4A" stroke="#18181b" stroke-width="1.5" />
+      <text x="340" y="187" text-anchor="middle" font-size="5" fill="white">M</text>
+      <line x1="340" y1="184" x2="326" y2="198" stroke="#18181b" stroke-width="1.5" />
+      <circle cx="420" cy="176" r="5" fill="#D64B4A" /><text x="420" y="179" text-anchor="middle" font-size="5" fill="white">1</text>
+      <circle cx="460" cy="144" r="5" fill="#D64B4A" /><text x="460" y="147" text-anchor="middle" font-size="5" fill="white">2</text>
+      <circle cx="500" cy="176" r="5" fill="#D64B4A" /><text x="500" y="179" text-anchor="middle" font-size="5" fill="white">3</text>
+      <circle cx="540" cy="144" r="5" fill="#D64B4A" /><text x="540" y="147" text-anchor="middle" font-size="5" fill="white">4</text>
+      <circle cx="580" cy="176" r="5" fill="#D64B4A" /><text x="580" y="179" text-anchor="middle" font-size="5" fill="white">5</text>
+      <circle cx="620" cy="144" r="5" fill="#D64B4A" /><text x="620" y="147" text-anchor="middle" font-size="5" fill="white">6</text>
+
+      <!-- Disc, docked to the thrower -->
+      <circle cx="366" cy="154" r="2.5" fill="#f4f4f5" stroke="#18181b" stroke-width="1" />
+    </svg>
+  </div>
+  <div class="legend">
+    <span><span class="swatch" style="background:#D64B4A"></span>Closed</span>
+    <span><span class="swatch" style="background:#EF9F27"></span>Open, low value</span>
+    <span><span class="swatch" style="background:#4F941D"></span>Strong space</span>
+  </div>
+</body>
+</html>

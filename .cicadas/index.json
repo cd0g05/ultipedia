@@ -1,0 +1,138 @@
+{
+  "schema_version": "2.0",
+  "entries": [
+    {
+      "timestamp": "2026-07-02T01:50:17.162286+00:00",
+      "branch": "feat/foundation",
+      "summary": "Foundation: submission envelope schema, Supabase storage (sole writer + in-memory fallback), server-side validation/anti-troll, POST /api/submissions + /api/events, migrations 001/002, 12 passing tests.",
+      "decisions": "",
+      "modules": []
+    },
+    {
+      "timestamp": "2026-07-02T02:16:21.208859+00:00",
+      "branch": "feat/form-ui",
+      "summary": "Mobile-first React intake form over the submission API: flow, optional fields+freeform, autosave/restore, offline retry queue, contributor prefill, switch-away warning, tap tooltips. 13 tests.",
+      "decisions": "",
+      "modules": []
+    },
+    {
+      "timestamp": "2026-07-02T02:16:32.787754+00:00",
+      "branch": "feat/seed-kb-entities",
+      "summary": "Seed corpus + entity resolution (confirm-then-resolve) + per-aspect coverage model + RAG index + pgvector migrations. 12 tests.",
+      "decisions": "",
+      "modules": []
+    },
+    {
+      "timestamp": "2026-07-02T02:28:31.892263+00:00",
+      "branch": "feat/polish-analytics",
+      "summary": "Polish + analytics: Framer Motion transitions, per-section palette, reduced-motion, learn-more page, collapsible info bar, Plausible loader + field_completed. v1 shippable. 16 frontend tests.",
+      "decisions": "",
+      "modules": []
+    },
+    {
+      "timestamp": "2026-07-02T04:38:00.099937+00:00",
+      "branch": "feat/ai-interview",
+      "summary": "AI interview engine (deterministic routing + LLM phrasing), confirm-then-resolve, coverage-routed deflection, guardrails, /api/interview/*, chat UI, eval harness (gates pass). 36 backend + 18 frontend tests.",
+      "decisions": "",
+      "modules": []
+    },
+    {
+      "timestamp": "2026-07-02T05:32:38.919653+00:00",
+      "branch": "feat/persist-v2",
+      "summary": "Durable v2 state: Persistence port (Null/InMemory/Supabase), write-through + hydrate for entities/coverage/sessions, resume across restart, migration 005. 42 backend tests.",
+      "decisions": "",
+      "modules": []
+    },
+    {
+      "timestamp": "2026-07-06T07:08:01.625342+00:00",
+      "branch": "feat/frontend-routing",
+      "summary": "react-router-dom scaffold: encyclopedia shell at /, intake relocated to /contribute/*; audit found zero root-path coupling; 4 new regression tests (22/22)",
+      "decisions": "",
+      "modules": []
+    },
+    {
+      "timestamp": "2026-07-06T07:08:01.684256+00:00",
+      "branch": "feat/encyclopedia-foundation",
+      "summary": "Backend foundation: 006 schema (entries/tags/entry_tags/media), EncyclopediaService facade (Factory/Flyweight/CoR/Strategy, published-gate), read-only /api/entries + /api/search (50 new tests, 92/92)",
+      "decisions": "",
+      "modules": []
+    },
+    {
+      "timestamp": "2026-07-06T19:08:39.104757+00:00",
+      "branch": "feat/encyclopedia-browse",
+      "summary": "PRD Feature 1: Layout shell + Home/Section/EntryDetail/404, Template Method sections, Decorator entry blocks, SimilarEntries; 36 new tests (58/58)",
+      "decisions": "",
+      "modules": []
+    },
+    {
+      "timestamp": "2026-07-06T19:08:39.374464+00:00",
+      "branch": "feat/encyclopedia-search",
+      "summary": "PRD Feature 2: /search page, FilterPanel/FilterChips/SearchBar, URL-driven AND/OR filters, measured empty state, header mount at merge; 15 new tests (73/73 combined)",
+      "decisions": "",
+      "modules": []
+    },
+    {
+      "timestamp": "2026-07-07T02:11:46.247826+00:00",
+      "branch": "initiative/encyclopedia",
+      "summary": "Encyclopedia + Search/Filtering/Discovery shipped: 5 partitions (foundation, routing, browse, search, seo-polish), 92 backend + 107 frontend tests, canon synthesized (5 new ADRs, encyclopedia module snapshot)",
+      "decisions": "",
+      "modules": []
+    },
+    {
+      "timestamp": "2026-07-25T01:39:45.122516+00:00",
+      "branch": "feat/scene-foundation",
+      "summary": "Scene foundation merged into initiative/field-view: scene types, field geometry, pure ops, rAF-coalesced store, four built-in presets, SVG field layer, /field-view + /field-view/designer routes. 26 new tests, full suite 133/133 green.",
+      "decisions": "",
+      "modules": []
+    },
+    {
+      "timestamp": "2026-07-25T02:26:21.999230+00:00",
+      "branch": "feat/whiteboard",
+      "summary": "Whiteboard merged into initiative/field-view: tokens.ts, pieceLayer drag (thrower-carries-mark, clamping, keyboard nudge), preset system (registry + PresetMenu with save/rename/delete-undo/export/import), PNG export. 65 new tests, full suite 172/172 green.",
+      "decisions": "",
+      "modules": []
+    },
+    {
+      "timestamp": "2026-07-25T03:29:56.940372+00:00",
+      "branch": "feat/space-model",
+      "summary": "Headless space model complete: brief \u00a74 as a pure library (constants/math/layers/score/explain/palette), \u00a78 model checks + FR-3.2 regression as tests, 74 tests, computeGrid ~10 ms; vert preset recalibrated for \u00a78.1 geometry.",
+      "decisions": "",
+      "modules": []
+    },
+    {
+      "timestamp": "2026-07-25T08:34:44.301747+00:00",
+      "branch": "feat/play-designer",
+      "summary": "Mode 2: versioned PlayFile v1 (client-approved, annotations reserved via drop-unknown-keys forward compat), boundary validation, PlayStore seam, id-paired linear tween, keyframe timeline with transport/retime/reorder/undo, play metadata + JSON import-export, whiteboard->designer scene handoff. 38 new tests; frontend suite 289/289.",
+      "decisions": "",
+      "modules": []
+    },
+    {
+      "timestamp": "2026-07-25T17:53:33.065042+00:00",
+      "branch": "feat/heatmap-overlay",
+      "summary": "Mode 3 UI: model-agnostic canvas painter (built and measured on a synthetic grid first \u2014 grid 9.42ms + paint 0.70ms = 10.18ms of a 16ms frame), shared FieldCanvas stage owning the frame loop, overlay rail + tuning panel + imperative hover readout (0 React commits across 25 pointer moves), validated localStorage prefs, ?perf=1 readout. Fixed a PNG-export regression the new canvas layer introduced. space/ untouched, enforced by a git-based guard. 39 new tests; frontend suite 322/322.",
+      "decisions": "",
+      "modules": []
+    },
+    {
+      "timestamp": "2026-07-27T17:58:52.096592+00:00",
+      "branch": "feat/acceptance-polish",
+      "summary": "Partition 6: written acceptance checklist mapping all nine brief-8 checks to test or manual script, md/xl responsive breakpoints with sub-768 notice, full a11y sweep (axe + keyboard traversal on both routes), perf assertions split into an isolated npm run test:perf. Client visual review deferred past the initiative boundary to a deployed preview by Builder decision.",
+      "decisions": "",
+      "modules": []
+    },
+    {
+      "timestamp": "2026-07-27T20:56:14.814693+00:00",
+      "branch": "initiative/field-view",
+      "summary": "Field View initiative complete: coaching whiteboard, keyframed play designer, and live strong/weak space heatmap at /field-view. Six partitions, 229 new tests (336 frontend total). Client-only. Canon synthesized: new modules/fieldview.md plus product/tech/ux/summary updates. Client visual review deferred to the deployed site.",
+      "decisions": "",
+      "modules": []
+    },
+    {
+      "timestamp": "2026-07-30T00:47:08.528379+00:00",
+      "branch": "tweak/field-view-ux",
+      "summary": "Field View UX tweak: nearest-piece picking, focus ring, sizing (pieces 9 -> 7.5), attack-arrow label, present mode, marquee selection, advanced settings rail; /fieldview route rename with legacy redirects; Druk trial fonts removed and replaced with self-hosted Archivo Black (OFL)",
+      "decisions": "",
+      "modules": []
+    }
+  ]
+}

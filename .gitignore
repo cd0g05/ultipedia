@@ -26,8 +26,8 @@ node_modules/
 .claude/
 
 # Cicadas state (local to the main checkout by design)
-.cicadas/
+#.cicadas/
 
 # Cicadas per-worktree helpers (regenerated per branch)
 context.md
-.cicadas-skill
+#.cicadas-skill

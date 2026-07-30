@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ultipedia — Light Film Room Concept</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: Oswald (Fallback) & JetBrains Mono (Data/Tags) -->
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Oswald:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        film: {
+                            base: '#ffffff', // white
+                            panel: '#f4f4f5', // zinc-100
+                            border: '#d4d4d8', // zinc-300
+                            accentPink: '#be185d', // pink-700
+                            accentGreen: '#047857' // emerald-700
+                        }
+                    },
+                    fontFamily: {
+                        heading: ['"druk"', '"druk Fallback"', '"Oswald"', '"Arial Narrow"', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                        sans: ['Helvetica Neue', 'Arial', 'sans-serif'] // Clean fallback for body
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        body { background-color: #ffffff; color: #18181b; }
+        /* Hard corners globally to fit the concept */
+        * { border-radius: 0 !important; }
+        
+        /* Custom scrollbar for light UI */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f4f4f5; }
+        ::-webkit-scrollbar-thumb { background: #d4d4d8; }
+        ::-webkit-scrollbar-thumb:hover { background: #be185d; }
+
+        /* Search input expanding underline animation */
+        .search-input {
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid #d4d4d8;
+            transition: border-color 0.3s, width 0.3s;
+            width: 120px;
+        }
+        .search-input:focus {
+            outline: none;
+            border-bottom: 1px solid #be185d;
+            width: 200px;
+        }
+    </style>
+</head>
+<body class="antialiased min-h-screen flex flex-col">
+
+    <!-- Mockup Utility Nav (To switch between pages) -->
+    <div class="bg-film-border text-xs font-mono p-2 flex justify-center gap-4 text-zinc-600">
+        <span>MOCKUP CONTROLS:</span>
+        <button onclick="showPage('page1')" class="hover:text-film-accentPink text-zinc-900 transition-colors font-bold" id="btn-page1">[ VIEW PAGE 1: LANDING ]</button>
+        <button onclick="showPage('page2')" class="hover:text-film-accentPink transition-colors" id="btn-page2">[ VIEW PAGE 2: BROWSE ]</button>
+    </div>
+
+    <!-- Header / Nav Bar (Shared) -->
+    <header class="bg-white border-b border-film-border sticky top-0 z-50">
+        <div class="max-w-[1400px] mx-auto px-6 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-10">
+                <!-- Site logo/name -->
+                <a href="#" class="font-heading text-2xl font-bold tracking-widest text-zinc-900 uppercase">
+                    Ultipedia<span class="text-film-accentPink">.</span>
+                </a>
+                
+                <!-- Nav links -->
+                <nav class="hidden lg:flex items-center gap-6 font-mono text-sm text-zinc-500">
+                    <a href="#" class="hover:text-zinc-900 transition-colors">Drills</a>
+                    <span class="text-zinc-300">·</span>
+                    <a href="#" class="hover:text-zinc-900 transition-colors">Strategies</a>
+                    <span class="text-zinc-300">·</span>
+                    <a href="#" class="hover:text-zinc-900 transition-colors">Formations</a>
+                    <span class="text-zinc-300">·</span>
+                    <a href="#" class="hover:text-zinc-900 transition-colors">Plays</a>
+                    <span class="text-zinc-300">·</span>
+                    <a href="#" class="hover:text-zinc-900 transition-colors">Skills</a>
+                </nav>
+            </div>
+
+            <div class="flex items-center gap-6">
+                <!-- Persistent search bar / icon -->
+                <div class="flex items-center gap-2 text-zinc-500">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    <input type="text" placeholder="Search..." class="search-input text-sm font-mono text-zinc-900 pb-1">
+                </div>
+                <!-- Call-to-action button -->
+                <a href="#" class="border border-film-accentPink text-film-accentPink font-mono text-sm px-4 py-1.5 hover:bg-film-accentPink hover:text-white transition-colors uppercase tracking-wider">Sign In</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow">
+        <!-- ========================================== -->
+        <!-- PAGE 1: LANDING PAGE -->
+        <!-- ========================================== -->
+        <div id="page1" class="block">
+            
+            <!-- Hero Section -->
+            <section class="border-b border-film-border bg-white">
+                <div class="max-w-[1400px] mx-auto px-6 py-24 flex flex-col lg:flex-row items-center gap-12">
+                    <div class="w-full lg:w-1/2 space-y-8">
+                        <h1 class="font-heading text-6xl lg:text-7xl font-bold uppercase leading-none tracking-tight text-zinc-900">
+                            Everything your team needs to run a great practice.
+                        </h1>
+                        <p class="text-xl text-zinc-600 max-w-lg font-sans">
+                            A free encyclopedia of ultimate frisbee drills, strategies, and formations — built for coaches and captains who don't have a playbook yet.
+                        </p>
+                        <div class="flex flex-col sm:flex-row gap-4 pt-4">
+                            <a href="#" class="bg-film-accentPink text-white font-mono font-bold text-sm px-8 py-4 text-center hover:bg-pink-800 transition-colors uppercase tracking-wider">Browse the Encyclopedia</a>
+                            <a href="#" class="bg-film-panel border border-film-border text-zinc-900 font-mono text-sm px-8 py-4 text-center hover:border-zinc-400 transition-colors uppercase tracking-wider">Generate a Practice Plan</a>
+                        </div>
+                    </div>
+                    <!-- Large visual placeholder -->
+                    <div class="w-full lg:w-1/2">
+                        <div class="aspect-video bg-film-panel border border-film-border relative overflow-hidden flex items-center justify-center">
+                            <!-- Tactical Board Grid Simulation (Light Mode) -->
+                            <div class="absolute inset-0 bg-[linear-gradient(to_right,#e4e4e7_1px,transparent_1px),linear-gradient(to_bottom,#e4e4e7_1px,transparent_1px)] bg-[size:2rem_2rem]"></div>
+                            <span class="font-mono text-zinc-400 text-sm tracking-widest relative z-10 bg-white px-2 py-1 border border-zinc-200">[ VISUAL PLACEHOLDER: TACTICAL TIMELINE ]</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Value Proposition & Featured Content Grid -->
+            <section class="border-b border-film-border max-w-[1400px] mx-auto flex flex-col lg:flex-row">
+                
+                <!-- Left Side: Value Props (Arranged Vertically) -->
+                <div class="w-full lg:w-1/3 border-r border-film-border bg-film-panel p-8 lg:p-12 space-y-12">
+                    <div>
+                        <svg class="w-8 h-8 text-film-accentGreen mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                        <h3 class="font-heading text-xl text-zinc-900 uppercase tracking-wide mb-2">Searchable Encyclopedia</h3>
+                        <p class="text-sm text-zinc-600 font-sans leading-relaxed">Find the right drill in seconds, filtered by skill level, team size, and focus.</p>
+                    </div>
+                    <div>
+                        <svg class="w-8 h-8 text-film-accentGreen mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        <h3 class="font-heading text-xl text-zinc-900 uppercase tracking-wide mb-2">Automatic Practice Plans</h3>
+                        <p class="text-sm text-zinc-600 font-sans leading-relaxed">Generate a full warm-up-to-scrimmage session, ready to export as a PDF.</p>
+                    </div>
+                    <div>
+                        <svg class="w-8 h-8 text-film-accentGreen mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                        <h3 class="font-heading text-xl text-zinc-900 uppercase tracking-wide mb-2">Built by the Community</h3>
+                        <p class="text-sm text-zinc-600 font-sans leading-relaxed">Coaches contribute drills and strategies so the library keeps growing.</p>
+                    </div>
+                </div>
+
+                <!-- Right Side: Featured Content -->
+                <div class="w-full lg:w-2/3 p-8 lg:p-12 bg-white">
+                    <h2 class="font-heading text-2xl uppercase tracking-wide text-zinc-900 mb-8 border-l-4 border-film-accentPink pl-3">Popular Resources</h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <!-- Card 1 -->
+                        <div class="bg-white border border-film-border group cursor-pointer hover:border-film-accentPink transition-colors">
+                            <div class="aspect-video bg-zinc-100 relative flex items-center justify-center overflow-hidden border-b border-film-border">
+                                <span class="absolute top-0 left-0 bg-zinc-900 text-white font-mono text-[10px] font-bold px-2 py-1 uppercase z-10">Drill</span>
+                                <span class="font-mono text-xs text-zinc-400">[ IMAGE ]</span>
+                            </div>
+                            <div class="p-4 bg-film-panel">
+                                <h4 class="font-heading text-lg text-zinc-900 mb-2 truncate">Give-and-Go Warmup</h4>
+                                <p class="text-xs text-zinc-600 font-sans mb-4 line-clamp-2">A fast-paced passing warmup that builds first-step quickness and timing.</p>
+                                <div class="flex flex-wrap gap-1.5 font-mono text-[9px] uppercase tracking-wider text-film-accentGreen">
+                                    <span class="bg-white border border-film-border px-1.5 py-0.5">Beginner</span>
+                                    <span class="bg-white border border-film-border px-1.5 py-0.5">10 min</span>
+                                    <span class="bg-white border border-film-border px-1.5 py-0.5">6+ players</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card 2 -->
+                        <div class="bg-white border border-film-border group cursor-pointer hover:border-film-accentPink transition-colors">
+                            <div class="aspect-video bg-zinc-100 relative flex items-center justify-center overflow-hidden border-b border-film-border">
+                                <span class="absolute top-0 left-0 bg-zinc-900 text-white font-mono text-[10px] font-bold px-2 py-1 uppercase z-10">Strategy</span>
+                                <span class="font-mono text-xs text-zinc-400">[ IMAGE ]</span>
+                            </div>
+                            <div class="p-4 bg-film-panel">
+                                <h4 class="font-heading text-lg text-zinc-900 mb-2 truncate">3-3-1 Person-Zone Hybrid</h4>
+                                <p class="text-xs text-zinc-600 font-sans mb-4 line-clamp-2">A hybrid defensive look that pressures handlers while covering deep space.</p>
+                                <div class="flex flex-wrap gap-1.5 font-mono text-[9px] uppercase tracking-wider text-film-accentGreen">
+                                    <span class="bg-white border border-film-border px-1.5 py-0.5">Advanced</span>
+                                    <span class="bg-white border border-film-border px-1.5 py-0.5">Defense</span>
+                                    <span class="bg-white border border-film-border px-1.5 py-0.5">7 players</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card 3 -->
+                        <div class="bg-white border border-film-border group cursor-pointer hover:border-film-accentPink transition-colors">
+                            <div class="aspect-video bg-zinc-100 relative flex items-center justify-center overflow-hidden border-b border-film-border">
+                                <span class="absolute top-0 left-0 bg-zinc-900 text-white font-mono text-[10px] font-bold px-2 py-1 uppercase z-10">Formation</span>
+                                <span class="font-mono text-xs text-zinc-400">[ IMAGE ]</span>
+                            </div>
+                            <div class="p-4 bg-film-panel">
+                                <h4 class="font-heading text-lg text-zinc-900 mb-2 truncate">Horizontal Stack Offense</h4>
+                                <p class="text-xs text-zinc-600 font-sans mb-4 line-clamp-2">A spread offensive formation that opens up handler resets and break-side cuts.</p>
+                                <div class="flex flex-wrap gap-1.5 font-mono text-[9px] uppercase tracking-wider text-film-accentGreen">
+                                    <span class="bg-white border border-film-border px-1.5 py-0.5">Intermediate</span>
+                                    <span class="bg-white border border-film-border px-1.5 py-0.5">Offense</span>
+                                    <span class="bg-white border border-film-border px-1.5 py-0.5">7 players</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Practice Planner Teaser Section -->
+            <section class="bg-white border-b border-film-border">
+                <div class="max-w-[1400px] mx-auto px-6 py-20 flex flex-col lg:flex-row items-center gap-16">
+                    <div class="w-full lg:w-5/12 space-y-6">
+                        <h2 class="font-heading text-4xl uppercase font-bold text-zinc-900 leading-tight">Build a practice plan in under a minute</h2>
+                        <p class="text-zinc-600 font-sans">Tell us your practice length, team size, and focus — we'll build a warm-up, drills, and a scrimmage, complete with coaching points. Export it as a PDF and send it to your team.</p>
+                        <div class="pt-4">
+                            <a href="#" class="bg-white border border-zinc-900 text-zinc-900 font-mono text-sm px-6 py-3 hover:bg-zinc-900 hover:text-white transition-colors uppercase tracking-wider inline-block">Try the Planner</a>
+                        </div>
+                    </div>
+                    <div class="w-full lg:w-7/12">
+                        <!-- Data Table / Export Module Visual Placeholder -->
+                        <div class="bg-film-panel border border-film-border p-4 relative">
+                            <div class="flex items-center justify-between border-b border-film-border pb-2 mb-4">
+                                <span class="font-mono text-xs text-film-accentPink font-bold">EXPORT_MODULE_v1.0</span>
+                                <span class="font-mono text-xs text-zinc-500">.PDF</span>
+                            </div>
+                            <div class="space-y-2 opacity-60">
+                                <div class="h-4 bg-zinc-300 w-full"></div>
+                                <div class="h-4 bg-zinc-300 w-5/6"></div>
+                                <div class="h-4 bg-zinc-300 w-4/6"></div>
+                                <div class="h-4 bg-zinc-300 w-full"></div>
+                            </div>
+                            <div class="absolute inset-0 flex items-center justify-center">
+                                <span class="bg-white px-4 py-1 border border-zinc-300 font-mono text-sm tracking-widest text-zinc-600 shadow-sm">[ GENERATED PLAN VISUAL ]</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Community Callout Section -->
+            <section class="bg-film-panel border-b border-film-border">
+                <div class="max-w-[1400px] mx-auto px-6 py-12 flex flex-col sm:flex-row items-center justify-between gap-6">
+                    <div class="flex-1">
+                        <h2 class="font-heading text-2xl uppercase text-zinc-900 mb-2">Have a drill worth sharing?</h2>
+                        <p class="text-zinc-600 font-sans text-sm">Ultipedia is built by coaches, for coaches. Submit a drill, strategy, or coaching tip and help other teams get better.</p>
+                    </div>
+                    <a href="#" class="bg-film-accentGreen text-white font-mono font-bold text-sm px-6 py-3 hover:bg-emerald-800 transition-colors uppercase tracking-wider shrink-0 shadow-[4px_4px_0_0_#064e3b]">Submit a Drill</a>
+                </div>
+            </section>
+
+        </div>
+
+
+        <!-- ========================================== -->
+        <!-- PAGE 2: ENCYCLOPEDIA BROWSE PAGE -->
+        <!-- ========================================== -->
+        <div id="page2" class="hidden">
+            
+            <!-- Browse Page Header (Command Palette Style) -->
+            <section class="bg-film-panel border-b border-film-border pt-12 pb-8">
+                <div class="max-w-[1400px] mx-auto px-6 text-center">
+                    <h1 class="font-mono text-xs text-film-accentPink font-bold uppercase tracking-widest mb-4">The Encyclopedia</h1>
+                    <p class="font-heading text-2xl text-zinc-900 uppercase tracking-wide mb-8">Browse drills, strategies, and formations — or search for exactly what you need.</p>
+                    
+                    <div class="max-w-3xl mx-auto relative">
+                        <input type="text" placeholder="Search drills, strategies, formations..." class="w-full bg-white border border-film-border text-zinc-900 font-mono p-4 pl-12 focus:outline-none focus:border-film-accentPink transition-colors text-lg shadow-sm">
+                        <svg class="w-6 h-6 text-zinc-400 absolute left-4 top-1/2 transform -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Main Browse Layout -->
+            <div class="max-w-[1400px] mx-auto flex flex-col lg:flex-row">
+                
+                <!-- Left Sidebar: Filter Control Inspector -->
+                <aside class="w-full lg:w-64 border-r border-film-border bg-white p-6 shrink-0">
+                    <div class="font-mono text-[10px] text-zinc-500 font-bold uppercase tracking-widest mb-6 border-b border-film-border pb-2">Filter Inspector</div>
+                    
+                    <div class="space-y-6">
+                        <!-- Example Filter: Skill Level -->
+                        <div>
+                            <button class="w-full flex items-center justify-between font-mono text-xs text-zinc-900 font-bold uppercase tracking-wider mb-3 hover:text-film-accentPink transition-colors">
+                                <span>Skill Level</span>
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                            </button>
+                        </div>
+                        
+                        <!-- Example Filter: Team Size -->
+                        <div>
+                            <button class="w-full flex items-center justify-between font-mono text-xs text-zinc-900 font-bold uppercase tracking-wider mb-3 hover:text-film-accentPink transition-colors">
+                                <span>Team Size</span>
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                            </button>
+                        </div>
+
+                        <!-- Example Filter: Duration -->
+                        <div>
+                            <button class="w-full flex items-center justify-between font-mono text-xs text-zinc-900 font-bold uppercase tracking-wider mb-3 hover:text-film-accentPink transition-colors">
+                                <span>Duration</span>
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                            </button>
+                        </div>
+
+                        <!-- Example Filter: Focus -->
+                        <div>
+                            <button class="w-full flex items-center justify-between font-mono text-xs text-zinc-900 font-bold uppercase tracking-wider mb-3 hover:text-film-accentPink transition-colors">
+                                <span>Focus</span>
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                            </button>
+                        </div>
+                    </div>
+                </aside>
+
+                <!-- Right Side: Content Sections -->
+                <div class="flex-1 p-6 lg:p-12 space-y-16 bg-film-panel">
+                    
+                    <!-- Section: Drills -->
+                    <section>
+                        <div class="flex items-end justify-between border-b border-film-border pb-3 mb-6">
+                            <h2 class="font-heading text-3xl uppercase tracking-wide text-zinc-900 relative">
+                                Drills
+                                <span class="absolute -bottom-3 left-0 w-full h-[2px] bg-film-accentPink"></span>
+                            </h2>
+                            <a href="#" class="font-mono text-xs text-zinc-500 hover:text-film-accentPink uppercase tracking-wider transition-colors font-bold">View all Drills →</a>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <!-- Drill Card 1 -->
+                            <div class="bg-white border border-film-border group cursor-pointer hover:border-film-accentPink transition-colors">
+                                <div class="aspect-video bg-zinc-100 relative flex items-center justify-center border-b border-film-border"><span class="absolute top-0 left-0 bg-zinc-900 text-white font-mono text-[10px] font-bold px-2 py-1 uppercase z-10">Drill</span><span class="font-mono text-xs text-zinc-400">[ IMAGE ]</span></div>
+                                <div class="p-3">
+                                    <h4 class="font-heading text-base text-zinc-900 mb-1 truncate">Give-and-Go Warmup</h4>
+                                    <p class="text-[11px] text-zinc-600 font-sans mb-3 line-clamp-2">A fast-paced passing warmup that builds first-step quickness and timing.</p>
+                                    <div class="flex flex-wrap gap-1 font-mono text-[8px] uppercase tracking-wider text-film-accentGreen font-bold">
+                                        <span class="bg-zinc-50 border border-film-border px-1 py-0.5">Beginner</span><span class="bg-zinc-50 border border-film-border px-1 py-0.5">10 min</span><span class="bg-zinc-50 border border-film-border px-1 py-0.5">6+ players</span><span class="bg-zinc-50 border border-film-border px-1 py-0.5">Warm-up</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Drill Card 2 -->
+                            <div class="bg-white border border-film-border group cursor-pointer hover:border-film-accentPink transition-colors">
+                                <div class="aspect-video bg-zinc-100 relative flex items-center justify-center border-b border-film-border"><span class="absolute top-0 left-0 bg-zinc-900 text-white font-mono text-[10px] font-bold px-2 py-1 uppercase z-10">Drill</span><span class="font-mono text-xs text-zinc-400">[ IMAGE ]</span></div>
+                                <div class="p-3">
+                                    <h4 class="font-heading text-base text-zinc-900 mb-1 truncate">Break Mark Ladder</h4>
+                                    <p class="text-[11px] text-zinc-600 font-sans mb-3 line-clamp-2">Progressive throwing reps focused on completing around a live mark.</p>
+                                    <div class="flex flex-wrap gap-1 font-mono text-[8px] uppercase tracking-wider text-film-accentGreen font-bold">
+                                        <span class="bg-zinc-50 border border-film-border px-1 py-0.5">Intermediate</span><span class="bg-zinc-50 border border-film-border px-1 py-0.5">15 min</span><span class="bg-zinc-50 border border-film-border px-1 py-0.5">4+ players</span><span class="bg-zinc-50 border border-film-border px-1 py-0.5">Throwing</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Drill Card 3 -->
+                            <div class="bg-white border border-film-border group cursor-pointer hover:border-film-accentPink transition-colors">
+                                <div class="aspect-video bg-zinc-100 relative flex items-center justify-center border-b border-film-border"><span class="absolute top-0 left-0 bg-zinc-900 text-white font-mono text-[10px] font-bold px-2 py-1 uppercase z-10">Drill</span><span class="font-mono text-xs text-zinc-400">[ IMAGE ]</span></div>
+                                <div class="p-3">
+                                    <h4 class="font-heading text-base text-zinc-900 mb-1 truncate">Monarch of the Field</h4>
+                                    <p class="text-[11px] text-zinc-600 font-sans mb-3 line-clamp-2">A competitive small-sided cutting drill that rewards sharp, decisive cuts.</p>
+                                    <div class="flex flex-wrap gap-1 font-mono text-[8px] uppercase tracking-wider text-film-accentGreen font-bold">
+                                        <span class="bg-zinc-50 border border-film-border px-1 py-0.5">Advanced</span><span class="bg-zinc-50 border border-film-border px-1 py-0.5">20 min</span><span class="bg-zinc-50 border border-film-border px-1 py-0.5">8+ players</span><span class="bg-zinc-50 border border-film-border px-1 py-0.5">Cutting</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Section: Strategies -->
+                    <section>
+                        <div class="flex items-end justify-between border-b border-film-border pb-3 mb-6">
+                            <h2 class="font-heading text-3xl uppercase tracking-wide text-zinc-900 relative">
+                                Strategies
+                                <span class="absolute -bottom-3 left-0 w-full h-[2px] bg-film-accentPink"></span>
+                            </h2>
+                            <a href="#" class="font-mono text-xs text-zinc-500 hover:text-film-accentPink uppercase tracking-wider transition-colors font-bold">View all Strategies →</a>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <!-- Strategy Card 1 -->
+                            <div class="bg-white border border-film-border group cursor-pointer hover:border-film-accentPink transition-colors">
+                                <div class="aspect-video bg-zinc-100 relative flex items-center justify-center border-b border-film-border"><span class="absolute top-0 left-0 bg-zinc-900 text-white font-mono text-[10px] font-bold px-2 py-1 uppercase z-10">Strategy</span><span class="font-mono text-xs text-zinc-400">[ IMAGE ]</span></div>
+                                <div class="p-3">
+                                    <h4 class="font-heading text-base text-zinc-900 mb-1 truncate">3-3-1 Person-Zone Hybrid</h4>
+                                    <p class="text-[11px] text-zinc-600 font-sans mb-3 line-clamp-2">A hybrid defensive look that pressures handlers while covering deep space.</p>
+                                    <div class="flex flex-wrap gap-1 font-mono text-[8px] uppercase tracking-wider text-film-accentGreen font-bold">
+                                        <span class="bg-zinc-50 border border-film-border px-1 py-0.5">Advanced</span><span class="bg-zinc-50 border border-film-border px-1 py-0.5">Defense</span><span class="bg-zinc-50 border border-film-border px-1 py-0.5">7 players</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Strategy Card 2 -->
+                            <div class="bg-white border border-film-border group cursor-pointer hover:border-film-accentPink transition-colors">
+                                <div class="aspect-video bg-zinc-100 relative flex items-center justify-center border-b border-film-border"><span class="absolute top-0 left-0 bg-zinc-900 text-white font-mono text-[10px] font-bold px-2 py-1 uppercase z-10">Strategy</span><span class="font-mono text-xs text-zinc-400">[ IMAGE ]</span></div>
+                                <div class="p-3">
+                                    <h4 class="font-heading text-base text-zinc-900 mb-1 truncate">Force Home Person Defense</h4>
+                                    <p class="text-[11px] text-zinc-600 font-sans mb-3 line-clamp-2">A straightforward marking strategy that funnels the offense to one sideline.</p>
+                                    <div class="flex flex-wrap gap-1 font-mono text-[8px] uppercase tracking-wider text-film-accentGreen font-bold">
+                                        <span class="bg-zinc-50 border border-film-border px-1 py-0.5">Beginner</span><span class="bg-zinc-50 border border-film-border px-1 py-0.5">Defense</span><span class="bg-zinc-50 border border-film-border px-1 py-0.5">7 players</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Strategy Card 3 -->
+                            <div class="bg-white border border-film-border group cursor-pointer hover:border-film-accentPink transition-colors">
+                                <div class="aspect-video bg-zinc-100 relative flex items-center justify-center border-b border-film-border"><span class="absolute top-0 left-0 bg-zinc-900 text-white font-mono text-[10px] font-bold px-2 py-1 uppercase z-10">Strategy</span><span class="font-mono text-xs text-zinc-400">[ IMAGE ]</span></div>
+                                <div class="p-3">
+                                    <h4 class="font-heading text-base text-zinc-900 mb-1 truncate">Junk Defense</h4>
+                                    <p class="text-[11px] text-zinc-600 font-sans mb-3 line-clamp-2">A mixed look combining zone and person principles to disrupt offensive rhythm.</p>
+                                    <div class="flex flex-wrap gap-1 font-mono text-[8px] uppercase tracking-wider text-film-accentGreen font-bold">
+                                        <span class="bg-zinc-50 border border-film-border px-1 py-0.5">Advanced</span><span class="bg-zinc-50 border border-film-border px-1 py-0.5">Defense</span><span class="bg-zinc-50 border border-film-border px-1 py-0.5">7 players</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Section: Formations -->
+                    <section>
+                        <div class="flex items-end justify-between border-b border-film-border pb-3 mb-6">
+                            <h2 class="font-heading text-3xl uppercase tracking-wide text-zinc-900 relative">
+                                Formations
+                                <span class="absolute -bottom-3 left-0 w-full h-[2px] bg-film-accentPink"></span>
+                            </h2>
+                            <a href="#" class="font-mono text-xs text-zinc-500 hover:text-film-accentPink uppercase tracking-wider transition-colors font-bold">View all Formations →</a>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <!-- Formation Card 1 -->
+                            <div class="bg-white border border-film-border group cursor-pointer hover:border-film-accentPink transition-colors">
+                                <div class="aspect-video bg-zinc-100 relative flex items-center justify-center border-b border-film-border"><span class="absolute top-0 left-0 bg-zinc-900 text-white font-mono text-[10px] font-bold px-2 py-1 uppercase z-10">Formation</span><span class="font-mono text-xs text-zinc-400">[ IMAGE ]</span></div>
+                                <div class="p-3">
+                                    <h4 class="font-heading text-base text-zinc-900 mb-1 truncate">Horizontal Stack Offense</h4>
+                                    <p class="text-[11px] text-zinc-600 font-sans mb-3 line-clamp-2">A spread offensive formation that opens up handler resets and break-side cuts.</p>
+                                    <div class="flex flex-wrap gap-1 font-mono text-[8px] uppercase tracking-wider text-film-accentGreen font-bold">
+                                        <span class="bg-zinc-50 border border-film-border px-1 py-0.5">Intermediate</span><span class="bg-zinc-50 border border-film-border px-1 py-0.5">Offense</span><span class="bg-zinc-50 border border-film-border px-1 py-0.5">7 players</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Formation Card 2 -->
+                            <div class="bg-white border border-film-border group cursor-pointer hover:border-film-accentPink transition-colors">
+                                <div class="aspect-video bg-zinc-100 relative flex items-center justify-center border-b border-film-border"><span class="absolute top-0 left-0 bg-zinc-900 text-white font-mono text-[10px] font-bold px-2 py-1 uppercase z-10">Formation</span><span class="font-mono text-xs text-zinc-400">[ IMAGE ]</span></div>
+                                <div class="p-3">
+                                    <h4 class="font-heading text-base text-zinc-900 mb-1 truncate">Vertical Stack Offense</h4>
+                                    <p class="text-[11px] text-zinc-600 font-sans mb-3 line-clamp-2">A traditional stack formation that isolates deep and under cuts one at a time.</p>
+                                    <div class="flex flex-wrap gap-1 font-mono text-[8px] uppercase tracking-wider text-film-accentGreen font-bold">
+                                        <span class="bg-zinc-50 border border-film-border px-1 py-0.5">Beginner</span><span class="bg-zinc-50 border border-film-border px-1 py-0.5">Offense</span><span class="bg-zinc-50 border border-film-border px-1 py-0.5">7 players</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Formation Card 3 -->
+                            <div class="bg-white border border-film-border group cursor-pointer hover:border-film-accentPink transition-colors">
+                                <div class="aspect-video bg-zinc-100 relative flex items-center justify-center border-b border-film-border"><span class="absolute top-0 left-0 bg-zinc-900 text-white font-mono text-[10px] font-bold px-2 py-1 uppercase z-10">Formation</span><span class="font-mono text-xs text-zinc-400">[ IMAGE ]</span></div>
+                                <div class="p-3">
+                                    <h4 class="font-heading text-base text-zinc-900 mb-1 truncate">Side Stack Offense</h4>
+                                    <p class="text-[11px] text-zinc-600 font-sans mb-3 line-clamp-2">An off-center stack designed to create space on the break side.</p>
+                                    <div class="flex flex-wrap gap-1 font-mono text-[8px] uppercase tracking-wider text-film-accentGreen font-bold">
+                                        <span class="bg-zinc-50 border border-film-border px-1 py-0.5">Intermediate</span><span class="bg-zinc-50 border border-film-border px-1 py-0.5">Offense</span><span class="bg-zinc-50 border border-film-border px-1 py-0.5">7 players</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer (Shared) -->
+    <footer class="bg-white border-t border-film-border">
+        <div class="max-w-[1400px] mx-auto px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="font-heading text-xl font-bold tracking-widest text-zinc-900 uppercase">
+                Ultipedia<span class="text-film-accentPink">.</span>
+            </div>
+            
+            <div class="flex items-center gap-4 font-mono text-xs text-zinc-600 uppercase tracking-wider font-bold">
+                <a href="#" class="hover:text-film-accentPink transition-colors">About</a>
+                <span class="text-zinc-300">/</span>
+                <a href="#" class="hover:text-film-accentPink transition-colors">Contact</a>
+                <span class="text-zinc-300">/</span>
+                <a href="#" class="hover:text-film-accentPink transition-colors">Submit a Drill</a>
+                <span class="text-zinc-300">/</span>
+                <a href="#" class="hover:text-film-accentPink transition-colors">Privacy</a>
+            </div>
+
+            <div class="font-mono text-xs text-zinc-400">
+                © 2026 Ultipedia
+            </div>
+        </div>
+    </footer>
+
+    <!-- JS for Toggling Pages in the Mockup -->
+    <script>
+        function showPage(pageId) {
+            document.getElementById('page1').style.display = 'none';
+            document.getElementById('page2').style.display = 'none';
+            document.getElementById('btn-page1').classList.remove('text-film-accentPink');
+            document.getElementById('btn-page2').classList.remove('text-film-accentPink');
+            
+            if(pageId === 'page1') {
+                document.getElementById('page1').style.display = 'block';
+                document.getElementById('btn-page1').classList.add('text-film-accentPink');
+            } else {
+                document.getElementById('page2').style.display = 'block';
+                document.getElementById('btn-page2').classList.add('text-film-accentPink');
+            }
+            window.scrollTo(0,0);
+        }
+        
+        // Init active state
+        document.getElementById('btn-page1').classList.add('text-film-accentPink');
+    </script>
+</body>
+</html>

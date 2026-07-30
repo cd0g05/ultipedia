@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Give-and-Go Warmup — Ultipedia</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: Oswald (Fallback) & JetBrains Mono (Data/Tags) -->
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Oswald:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        film: {
+                            base: '#ffffff', // white
+                            panel: '#f4f4f5', // zinc-100
+                            border: '#d4d4d8', // zinc-300
+                            accentPink: '#be185d', // pink-700
+                            accentGreen: '#047857' // emerald-700
+                        }
+                    },
+                    fontFamily: {
+                        heading: ['"druk"', '"druk Fallback"', '"Oswald"', '"Arial Narrow"', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                        sans: ['Helvetica Neue', 'Arial', 'sans-serif'] // Clean fallback for body
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        body { background-color: #f4f4f5; color: #18181b; }
+        * { border-radius: 0 !important; }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f4f4f5; }
+        ::-webkit-scrollbar-thumb { background: #d4d4d8; }
+        ::-webkit-scrollbar-thumb:hover { background: #be185d; }
+    </style>
+</head>
+<body class="antialiased min-h-screen flex flex-col">
+
+    <!-- Global Header -->
+    <header class="bg-white border-b border-film-border sticky top-0 z-50 h-16">
+        <div class="max-w-[1400px] mx-auto px-6 h-full flex items-center justify-between">
+            <div class="flex items-center gap-10">
+                <a href="#" class="font-heading text-2xl font-bold tracking-widest text-zinc-900 uppercase">
+                    Ultipedia<span class="text-film-accentPink">.</span>
+                </a>
+                
+                <nav class="hidden lg:flex items-center gap-6 font-mono text-sm text-zinc-500">
+                    <a href="#" class="text-zinc-900 transition-colors font-bold">Drills</a>
+                    <span class="text-zinc-300">·</span>
+                    <a href="#" class="hover:text-zinc-900 transition-colors">Strategies</a>
+                    <span class="text-zinc-300">·</span>
+                    <a href="#" class="hover:text-zinc-900 transition-colors">Formations</a>
+                    <span class="text-zinc-300">·</span>
+                    <a href="#" class="hover:text-zinc-900 transition-colors">Plays</a>
+                    <span class="text-zinc-300">·</span>
+                    <a href="#" class="hover:text-zinc-900 transition-colors">Skills</a>
+                </nav>
+            </div>
+
+            <div class="flex items-center gap-6">
+                <div class="flex items-center gap-2 text-zinc-500">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    <input type="text" placeholder="Search..." class="bg-transparent border-none border-b border-zinc-300 focus:outline-none focus:border-film-accentPink transition-colors w-32 focus:w-48 text-sm font-mono text-zinc-900 pb-1">
+                </div>
+                <a href="#" class="border border-film-accentPink text-film-accentPink font-mono text-sm px-4 py-1.5 hover:bg-film-accentPink hover:text-white transition-colors uppercase tracking-wider">Sign In</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="flex-grow max-w-[1400px] mx-auto w-full border-x border-film-border bg-white flex flex-col md:flex-row items-stretch">
+        
+        <!-- Left Side: Sticky Visual Focus (Diagram/Video) -->
+        <div class="w-full md:w-1/2 lg:w-5/12 bg-film-panel border-r border-film-border flex flex-col relative md:sticky md:top-16 md:h-[calc(100vh-4rem)]">
+            
+            <!-- Utility Bar -->
+            <div class="h-10 border-b border-film-border flex items-center justify-between px-4 bg-white shrink-0">
+                <a href="#" class="font-mono text-xs text-zinc-500 hover:text-film-accentPink transition-colors flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                    BACK TO DIRECTORY
+                </a>
+                <span class="font-mono text-[10px] text-zinc-400 uppercase tracking-widest">ID: 4092</span>
+            </div>
+
+            <!-- Media Area -->
+            <div class="flex-1 relative flex items-center justify-center p-8 overflow-hidden">
+                <div class="absolute inset-0 bg-[linear-gradient(to_right,#e4e4e7_1px,transparent_1px),linear-gradient(to_bottom,#e4e4e7_1px,transparent_1px)] bg-[size:2rem_2rem]"></div>
+                
+                <!-- Main Diagram/Video Frame -->
+                <div class="w-full aspect-square max-w-md bg-white border border-zinc-300 shadow-sm relative z-10 flex flex-col">
+                    <div class="h-8 border-b border-zinc-200 bg-zinc-50 flex items-center justify-between px-3">
+                        <span class="font-mono text-[10px] text-zinc-500">PLAYBOOK_VIEW_V1</span>
+                        <div class="flex gap-1"><div class="w-2 h-2 bg-zinc-300 rounded-full"></div><div class="w-2 h-2 bg-zinc-300 rounded-full"></div></div>
+                    </div>
+                    <div class="flex-1 flex items-center justify-center text-zinc-400 font-mono text-sm">
+                        [ FULLSCREEN INTERACTIVE DIAGRAM ]
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Media Controls Placeholder -->
+            <div class="h-14 border-t border-film-border bg-white flex items-center justify-center gap-6 shrink-0">
+                <button class="w-8 h-8 rounded-full bg-zinc-100 border border-zinc-300 flex items-center justify-center hover:bg-film-accentPink hover:text-white hover:border-film-accentPink transition-colors"><svg class="w-4 h-4 ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+                <div class="flex-1 h-1 bg-zinc-200 max-w-xs relative"><div class="absolute left-0 top-0 bottom-0 w-1/3 bg-film-accentPink"></div></div>
+                <span class="font-mono text-[10px] text-zinc-500">00:04 / 00:12</span>
+            </div>
+        </div>
+
+        <!-- Right Side: Scrollable Deep-Dive Information -->
+        <div class="w-full md:w-1/2 lg:w-7/12 bg-white">
+            <div class="p-8 md:p-12 lg:p-16 max-w-3xl">
+                
+                <!-- Breadcrumbs & Type -->
+                <div class="flex items-center gap-3 mb-6">
+                    <span class="bg-zinc-900 text-white font-mono text-[10px] font-bold px-2 py-1 uppercase">Drill</span>
+                    <div class="font-mono text-xs text-zinc-400 uppercase tracking-widest flex gap-2">
+                        <a href="#" class="hover:text-film-accentPink">Home</a> / 
+                        <a href="#" class="hover:text-film-accentPink">Drills</a> / 
+                        <span class="text-zinc-800">Warmups</span>
+                    </div>
+                </div>
+
+                <!-- Title -->
+                <h1 class="font-heading text-5xl lg:text-6xl uppercase text-zinc-900 mb-6 leading-[1.1]">Give-and-Go Warmup</h1>
+                
+                <!-- Tag Metadata Grid -->
+                <div class="flex flex-wrap gap-2 font-mono text-xs uppercase tracking-wider text-film-accentGreen font-bold mb-8">
+                    <span class="bg-zinc-50 border border-film-border px-3 py-1.5 flex items-center gap-2">
+                        <svg class="w-3.5 h-3.5 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                        Beginner
+                    </span>
+                    <span class="bg-zinc-50 border border-film-border px-3 py-1.5 flex items-center gap-2">
+                        <svg class="w-3.5 h-3.5 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        10 min
+                    </span>
+                    <span class="bg-zinc-50 border border-film-border px-3 py-1.5 flex items-center gap-2">
+                        <svg class="w-3.5 h-3.5 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                        6+ players
+                    </span>
+                </div>
+
+                <p class="font-sans text-lg text-zinc-600 mb-12 border-l-4 border-film-accentPink pl-5 leading-relaxed">
+                    A fast-paced passing warmup that builds first-step quickness and timing. Essential for instilling immediate handler movement after a reset.
+                </p>
+
+                <!-- Content Grid Blocks -->
+                <div class="space-y-16">
+                    
+                    <!-- Instruction Block -->
+                    <div>
+                        <div class="flex items-center gap-3 mb-6 border-b border-film-border pb-2">
+                            <span class="bg-film-accentPink text-white font-mono text-[10px] px-2 py-1">01</span>
+                            <h2 class="font-mono text-sm text-zinc-900 font-bold uppercase tracking-widest">Setup & Instructions</h2>
+                        </div>
+                        <ol class="list-decimal list-outside ml-5 font-sans text-base text-zinc-700 space-y-4 leading-relaxed">
+                            <li class="pl-2">Form two lines facing each other, approximately 15 yards apart. Place a cone 5 yards to the side of one line to dictate the cut angle.</li>
+                            <li class="pl-2">Player 1 throws a firm forehand to Player 2.</li>
+                            <li class="pl-2">Immediately after releasing the disc, Player 1 sprints diagonally towards the cone without watching the throw.</li>
+                            <li class="pl-2">Player 2 receives the disc and immediately throws a leading backhand pass to Player 1 in stride.</li>
+                            <li class="pl-2">Player 1 catches, pivots, and passes to the next person in line, then jogs to the back of the opposite line.</li>
+                        </ol>
+                    </div>
+
+                    <!-- Coaching Block -->
+                    <div>
+                        <div class="flex items-center gap-3 mb-6 border-b border-film-border pb-2">
+                            <span class="bg-film-accentPink text-white font-mono text-[10px] px-2 py-1">02</span>
+                            <h2 class="font-mono text-sm text-zinc-900 font-bold uppercase tracking-widest">Coaching Focus</h2>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                            <div class="border border-film-border p-5 bg-film-panel hover:border-film-accentGreen transition-colors">
+                                <h3 class="font-heading text-xl text-zinc-900 mb-2">Explosive Step</h3>
+                                <p class="font-sans text-sm text-zinc-600 leading-relaxed">Do not watch your throw. Sprint immediately upon release to catch the defense off guard. The defender should never see your shoulders square up.</p>
+                            </div>
+                            <div class="border border-film-border p-5 bg-film-panel hover:border-film-accentGreen transition-colors">
+                                <h3 class="font-heading text-xl text-zinc-900 mb-2">Lead Space</h3>
+                                <p class="font-sans text-sm text-zinc-600 leading-relaxed">Put the disc out in space so the receiver doesn't have to break stride to catch it. Aim for the hip closest to the sideline.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Variations Block -->
+                    <div>
+                        <div class="flex items-center gap-3 mb-6 border-b border-film-border pb-2">
+                            <span class="bg-film-accentPink text-white font-mono text-[10px] px-2 py-1">03</span>
+                            <h2 class="font-mono text-sm text-zinc-900 font-bold uppercase tracking-widest">Variations</h2>
+                        </div>
+                        <div class="space-y-4 font-sans text-base text-zinc-700">
+                            <div class="flex gap-4 p-4 border border-zinc-200">
+                                <strong class="text-zinc-900 whitespace-nowrap">Add a Mark:</strong>
+                                <span>Place a static mark on the thrower to practice breaking a force before executing the give-and-go cut.</span>
+                            </div>
+                            <div class="flex gap-4 p-4 border border-zinc-200">
+                                <strong class="text-zinc-900 whitespace-nowrap">Change Angles:</strong>
+                                <span>Move the cone directly upfield to force an upline cut instead of a lateral strike.</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Action Block -->
+                    <div class="pt-8 border-t border-film-border">
+                        <button class="w-full bg-white border-2 border-zinc-900 text-zinc-900 font-mono text-base font-bold py-5 hover:bg-zinc-900 hover:text-white transition-colors uppercase tracking-widest flex items-center justify-center gap-3">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                            Add to Current Practice Plan
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Global Footer -->
+    <footer class="bg-film-panel border-t border-film-border">
+        <div class="max-w-[1400px] mx-auto px-6 py-12 flex flex-col sm:flex-row items-center justify-between gap-6">
+            <div class="font-heading text-xl font-bold tracking-widest text-zinc-900 uppercase">
+                Ultipedia<span class="text-film-accentPink">.</span>
+            </div>
+            
+            <div class="flex items-center gap-4 font-mono text-xs text-zinc-600 uppercase tracking-wider font-bold">
+                <a href="#" class="hover:text-film-accentPink transition-colors">About</a>
+                <span class="text-zinc-300">/</span>
+                <a href="#" class="hover:text-film-accentPink transition-colors">Contact</a>
+                <span class="text-zinc-300">/</span>
+                <a href="#" class="hover:text-film-accentPink transition-colors">Submit a Drill</a>
+                <span class="text-zinc-300">/</span>
+                <a href="#" class="hover:text-film-accentPink transition-colors">Privacy</a>
+            </div>
+
+            <div class="font-mono text-xs text-zinc-400">
+                © 2026 Ultipedia
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>

@@ -1,0 +1,91 @@
+{
+  "name": "field-view",
+  "type": "initiative",
+  "registry_entry": {
+    "intent": "Field View: Ultipedia's play-design toolset \u2014 one shared scene model exposed as a coaching whiteboard, a keyframed play designer/animator, and a live-repainting strong/weak space heatmap implementing the client's validated space model. Client-only; adds /field-view and /field-view/designer to the existing SPA.",
+    "owner": "unknown",
+    "signals": [
+      {
+        "timestamp": "2026-07-25T03:28:35.476550+00:00",
+        "message": "feat/space-model recalibrated the vert/force-side preset data in scene/presets.ts (P1 module): mark now angles upfield-lateral, stack shortened to 2-yd spacing ending at gain 20, defense gains two sags, a break bracket, and a deep-centre last back. Cutter 1 stays at (50,20). Visual-only impact on whiteboard/designer; required for the brief \u00a78.1 acceptance geometry.",
+        "from_branch": "feat/space-model"
+      },
+      {
+        "timestamp": "2026-07-25T08:35:21.111474+00:00",
+        "message": "feat/play-designer added an optional `disabled` prop to render/pieceLayer.tsx (pointer-events off, tabIndex -1, aria-disabled) so Designer can block edits while playing or scrubbed between keyframes. feat/heatmap-overlay owns render/ next \u2014 the prop is additive and defaults to false, but FieldCanvas/OverlayRail work must preserve it. Also: PlayEntity now lives in play/format.ts (scene/presetFormat.ts re-exports), and the Designer stage is role=group not role=img.",
+        "from_branch": "initiative/field-view"
+      }
+    ],
+    "created_at": "2026-07-25T00:13:36.060848+00:00"
+  },
+  "timestamp": "20260727-205607",
+  "associated_branches": {
+    "feat/scene-foundation": {
+      "intent": "Blocking scene foundation for Field View: scene types, field geometry, pure scene ops, subscribe-store with rAF coalescing, four presets, SVG field layer, and the two route shells.",
+      "modules": [
+        "frontend/src/fieldview/scene",
+        "frontend/src/fieldview/render",
+        "frontend/src/fieldview/pages",
+        "frontend/src/router.tsx"
+      ],
+      "owner": "unknown",
+      "created_at": "2026-07-25T01:29:30.323265+00:00",
+      "worktree_path": "/Users/cartercripe/dev/code/projects/ulti-pedia-feat-scene-foundation",
+      "initiative": "field-view"
+    },
+    "feat/whiteboard": {
+      "intent": "Whiteboard mode 1 in full: piece visuals in render/tokens.ts (ADR-10), pointer drag with thrower-carries-mark, the preset system (registry + save/rename/delete/export/import over localStorage, ADR-9), PNG export, keyboard nudge.",
+      "modules": [
+        "frontend/src/fieldview/render",
+        "frontend/src/fieldview/pages",
+        "frontend/src/fieldview/ui"
+      ],
+      "owner": "unknown",
+      "created_at": "2026-07-25T01:39:58.492555+00:00",
+      "initiative": "field-view"
+    },
+    "feat/space-model": {
+      "intent": "Headless space model: brief \u00a74 transcribed as a pure framework-free library (constants, math, five layer functions, computeGrid, explainCell, palette) plus every model-property acceptance check from brief \u00a78 (1,2,3,4,6,7,8) and the FR-3.2 no-receiver-gate regression as executable tests. No UI.",
+      "modules": [
+        "frontend/src/fieldview/tests",
+        "frontend/src/fieldview/space"
+      ],
+      "owner": "unknown",
+      "created_at": "2026-07-25T02:31:09.503703+00:00",
+      "initiative": "field-view"
+    },
+    "feat/play-designer": {
+      "intent": "Mode 2: versioned PlayFile format, serialization behind PlayStore, import validation, linear tween, keyframe timeline UI, transport, metadata, JSON import/export",
+      "modules": [
+        "frontend/src/fieldview/play",
+        "frontend/src/fieldview/pages",
+        "frontend/src/fieldview/ui"
+      ],
+      "owner": "unknown",
+      "created_at": "2026-07-25T07:40:39.178034+00:00",
+      "initiative": "field-view"
+    },
+    "feat/heatmap-overlay": {
+      "intent": "Mode 3 UI: canvas heatmap painter, overlay rail (Space toggle, lens, layer toggles, legend), tuning panel, hover readout, localStorage prefs, ?perf=1 frame budget validation. Must not modify space/.",
+      "modules": [
+        "frontend/src/fieldview/pages",
+        "frontend/src/fieldview/ui",
+        "frontend/src/fieldview/render"
+      ],
+      "owner": "unknown",
+      "created_at": "2026-07-25T16:55:35.970357+00:00",
+      "initiative": "field-view"
+    },
+    "feat/acceptance-polish": {
+      "intent": "Client acceptance pass and cross-cutting polish: written \u00a78 checklist, manual check run + deferred visuals/presets/UI review, tablet layout, sub-768 message, full a11y sweep, full-suite regression",
+      "modules": [
+        "frontend/src/fieldview/tests",
+        "frontend/src/fieldview/pages",
+        "frontend/src/fieldview/ui"
+      ],
+      "owner": "unknown",
+      "created_at": "2026-07-25T17:56:53.210969+00:00",
+      "initiative": "field-view"
+    }
+  }
+}
