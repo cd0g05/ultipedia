@@ -20,7 +20,7 @@ function Wordmark() {
   return (
     <Link
       to="/"
-      className="font-heading text-2xl font-bold uppercase tracking-widest text-zinc-900"
+      className="font-heading text-2xl uppercase tracking-widest text-zinc-900"
     >
       Ultipedia<span className="text-film-accentPink">.</span>
     </Link>

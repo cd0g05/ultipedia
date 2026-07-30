@@ -25,13 +25,10 @@ export default {
         },
       },
       fontFamily: {
-        heading: [
-          '"Druk"',
-          '"DrukaatieBurti"',
-          '"Oswald"',
-          '"Arial Narrow"',
-          'sans-serif',
-        ],
+        // Archivo Black is the display face, self-hosted via @font-face in
+        // index.css (OFL — see the note there on the two faces this replaced).
+        // Single weight; the fallbacks only matter before the font loads.
+        heading: ['"Archivo Black"', '"Oswald"', '"Arial Narrow"', "sans-serif"],
         // Mockup config: mono is the "film room / spec sheet" UI voice
         // (nav, pills, buttons, badges); sans is body prose. Self-hosted
         // JetBrains Mono via @font-face in index.css.

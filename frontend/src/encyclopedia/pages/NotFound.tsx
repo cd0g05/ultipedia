@@ -12,7 +12,7 @@ export function NotFound({ section }: { section?: SectionMeta }) {
       <p className="font-mono text-xs font-bold uppercase tracking-widest text-film-accentPink">
         404 — Not Found
       </p>
-      <h1 className="font-heading text-4xl font-bold uppercase leading-tight tracking-tight text-zinc-900 lg:text-5xl">
+      <h1 className="font-heading text-4xl uppercase leading-tight tracking-tight text-zinc-900 lg:text-5xl">
         We couldn&apos;t find that entry
       </h1>
       <p className="max-w-lg text-lg text-zinc-600">

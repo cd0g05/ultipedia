@@ -31,3 +31,6 @@ node_modules/
 # Cicadas per-worktree helpers (regenerated per branch)
 context.md
 .cicadas-skill
+
+# Font sources: licensed/trial originals stay out of git (see style-guide/README.md)
+fonts/
