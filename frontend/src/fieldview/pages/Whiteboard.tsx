@@ -15,7 +15,6 @@ import { HEATMAP_ALPHA } from "../render/heatmap";
 import { STAGE_MARGIN } from "../render/coords";
 import { FIELD_PX_HEIGHT, FIELD_PX_WIDTH } from "../render/fieldLayer";
 import { PresetMenu } from "../ui/PresetMenu";
-import { SmallScreenNotice } from "../ui/SmallScreenNotice";
 import { FieldCanvas } from "../ui/FieldCanvas";
 import { OverlayRail } from "../ui/OverlayRail";
 import { CellReadout } from "../ui/CellReadout";
@@ -162,8 +161,12 @@ export function Whiteboard() {
 
   return (
     <>
-      <SmallScreenNotice />
-      <div className="mx-auto hidden max-w-[1600px] flex-col items-center gap-6 px-4 py-10 md:flex">
+      {/* PRD FR-6.2: no viewport width may block Field View from rendering.
+          This legacy `md:flex` split (tablet-stacked / xl-side-by-side) is
+          superseded by ShellLayout's desktop/mobile breakpoint (Integration
+          partition); removed the `hidden` gate here so nothing hides the
+          tool below md in the meantime. */}
+      <div className="mx-auto flex max-w-[1600px] flex-col items-center gap-6 px-4 py-10">
         <h1 className="font-heading text-2xl uppercase tracking-widest text-zinc-900">
           Field View
         </h1>
