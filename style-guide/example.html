@@ -5,23 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Light Film Room — Design System Mockup</title>
   <style>
-    /* Fonts */
+    /* Fonts — Archivo Black (SIL OFL 1.1, self-hostable) is the display face.
+       This standalone mockup points at the main project's copy; see
+       design.md § Typography for why the display face must permit web embedding. */
     @font-face {
-      font-family: "Druk";
+      font-family: "Archivo Black";
       font-weight: 400;
-      src: url("./fonts/Druk-Medium-Trial.otf") format("opentype");
-    }
-
-    @font-face {
-      font-family: "Druk";
-      font-weight: 700;
-      src: url("./fonts/Druk-Bold-Trial.otf") format("opentype");
-    }
-
-    @font-face {
-      font-family: "Druk";
-      font-weight: 900;
-      src: url("./fonts/Druk-Super-Trial.otf") format("opentype");
+      font-display: swap;
+      src: url("../frontend/public/fonts/ArchivoBlack-Regular.ttf") format("truetype");
     }
 
     /* CSS Reset */
@@ -70,7 +61,7 @@
 
     /* Typography */
     h1 {
-      font-family: "Druk", "Oswald", sans-serif;
+      font-family: "Archivo Black", "Oswald", "Arial Narrow", sans-serif;
       font-size: 3rem;
       font-weight: 900;
       line-height: 1.1;
@@ -79,7 +70,7 @@
     }
 
     h2 {
-      font-family: "Druk", "Oswald", sans-serif;
+      font-family: "Archivo Black", "Oswald", "Arial Narrow", sans-serif;
       font-size: 2rem;
       font-weight: 700;
       margin-top: 32px;
@@ -88,7 +79,7 @@
     }
 
     h3 {
-      font-family: "Druk", "Oswald", sans-serif;
+      font-family: "Archivo Black", "Oswald", "Arial Narrow", sans-serif;
       font-size: 1.5rem;
       font-weight: 700;
       margin-top: 24px;
@@ -447,9 +438,9 @@
       <h2>Typography</h2>
       <p>Three-tier font system: display headings, UI text, and body prose.</p>
 
-      <h3>Heading Font (Druk)</h3>
+      <h3>Heading Font (Archivo Black)</h3>
       <div class="card">
-        <h1 style="margin: 0;">DRUK DISPLAY</h1>
+        <h1 style="margin: 0;">ARCHIVO BLACK DISPLAY</h1>
         <p class="small">Geometric, bold, commanding presence. Used for page titles and section headers.</p>
       </div>
 
@@ -467,13 +458,13 @@
       <h3>Font Sizes & Weights</h3>
       <div class="card">
         <div style="margin-bottom: 16px;">
-          <p style="font-family: 'Druk', sans-serif; font-size: 2.5rem; font-weight: 900; margin: 0;">Display (2.5rem)</p>
+          <p style="font-family: 'Archivo Black', 'Oswald', 'Arial Narrow', sans-serif; font-size: 2.5rem; font-weight: 900; margin: 0;">Display (2.5rem)</p>
         </div>
         <div style="margin-bottom: 16px;">
-          <p style="font-family: 'Druk', sans-serif; font-size: 2rem; font-weight: 700; margin: 0;">Heading Large (2rem)</p>
+          <p style="font-family: 'Archivo Black', 'Oswald', 'Arial Narrow', sans-serif; font-size: 2rem; font-weight: 700; margin: 0;">Heading Large (2rem)</p>
         </div>
         <div style="margin-bottom: 16px;">
-          <p style="font-family: 'Druk', sans-serif; font-size: 1.5rem; font-weight: 700; margin: 0;">Heading Medium (1.5rem)</p>
+          <p style="font-family: 'Archivo Black', 'Oswald', 'Arial Narrow', sans-serif; font-size: 1.5rem; font-weight: 700; margin: 0;">Heading Medium (1.5rem)</p>
         </div>
         <div style="margin-bottom: 16px;">
           <p style="font-size: 1rem; margin: 0;">Body Large (1rem) — default reading size for all prose</p>
@@ -646,7 +637,7 @@
   <footer>
     <div class="container">
       <p>Light Film Room Design System © 2024. Designed for clarity, precision, and authority.</p>
-      <p style="margin-top: 8px;">Uses Druk (display), JetBrains Mono (UI), and Helvetica Neue (body).</p>
+      <p style="margin-top: 8px;">Uses Archivo Black (display), JetBrains Mono (UI), and Helvetica Neue (body).</p>
     </div>
   </footer>
 

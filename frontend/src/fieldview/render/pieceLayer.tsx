@@ -1,16 +1,21 @@
-// SVG piece layer: pointer drag writes directly to the scene store via
-// imperative DOM transforms (ADR-2) — no React state changes per pointer
-// move. React only re-renders this layer when the *identity* list (props)
-// changes, e.g. on a preset load, which is a discrete, human-speed event
-// owned by the page component.
+// SVG piece layer: rendering and keyboard only.
+//
+// The per-frame position writes are imperative DOM transforms (ADR-2) — no
+// React state changes per pointer move. React only re-renders this layer when
+// the *identity* list (props) changes, e.g. on a preset load, which is a
+// discrete, human-speed event owned by the page component.
+//
+// Pointer dragging deliberately does NOT live here. It is a container-level
+// concern (see ui/FieldCanvas.tsx + render/pick.ts): grabbing the nearest
+// piece needs to compare distances across every piece at once, which no
+// per-element handler can do.
 
 import { useEffect, useRef } from "react";
-import type { KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerEvent } from "react";
+import type { KeyboardEvent as ReactKeyboardEvent } from "react";
 import type { Player } from "../scene/types";
 import type { SceneStore } from "../scene/store";
 import { movePlayer, moveThrower } from "../scene/scene";
-import { clientToYard, getStageViewBox, yardToPixel } from "./coords";
-import { FIELD_PX_HEIGHT, FIELD_PX_WIDTH } from "./fieldLayer";
+import { yardToPixel } from "./coords";
 import { NUDGE, PIECE_TOKENS } from "./tokens";
 
 export interface PieceIdentity {
@@ -23,18 +28,16 @@ export interface PieceIdentity {
 interface PieceLayerProps {
   players: PieceIdentity[];
   store: SceneStore;
-  getSvg: () => SVGSVGElement | null;
   // Designer mode blocks editing while playing back or while scrubbed
   // between keyframes — the pieces still render and still repaint every
   // frame, they just stop accepting input.
   disabled?: boolean;
 }
 
-export function PieceLayer({ players, store, getSvg, disabled = false }: PieceLayerProps) {
+export function PieceLayer({ players, store, disabled = false }: PieceLayerProps) {
   const pieceRefs = useRef(new Map<string, SVGGElement>());
   const discRef = useRef<SVGGElement | null>(null);
   const markDirRef = useRef<SVGLineElement | null>(null);
-  const draggingId = useRef<string | null>(null);
 
   function repaint() {
     const scene = store.getScene();
@@ -75,36 +78,6 @@ export function PieceLayer({ players, store, getSvg, disabled = false }: PieceLa
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(repaint, [players, store]);
 
-  function moveTo(id: string, pos: { x: number; y: number }) {
-    store.mutate((draft) => {
-      const player = draft.players.find((p) => p.id === id);
-      if (!player) return;
-      if (player.role === "thrower") moveThrower(draft, pos);
-      else movePlayer(draft, id, pos);
-    });
-  }
-
-  function handlePointerDown(id: string, e: ReactPointerEvent<SVGGElement>) {
-    if (disabled) return;
-    draggingId.current = id;
-    (e.target as Element).setPointerCapture?.(e.pointerId);
-  }
-
-  function handlePointerMove(id: string, e: ReactPointerEvent<SVGGElement>) {
-    if (draggingId.current !== id) return;
-    const svg = getSvg();
-    if (!svg) return;
-    const rect = svg.getBoundingClientRect();
-    const viewBox = getStageViewBox(FIELD_PX_WIDTH, FIELD_PX_HEIGHT);
-    const pos = clientToYard(rect, viewBox, { x: e.clientX, y: e.clientY });
-    moveTo(id, pos);
-  }
-
-  function handlePointerUp(id: string, e: ReactPointerEvent<SVGGElement>) {
-    if (draggingId.current === id) draggingId.current = null;
-    (e.target as Element).releasePointerCapture?.(e.pointerId);
-  }
-
   function handleKeyDown(id: string, e: ReactKeyboardEvent<SVGGElement>) {
     if (disabled) return;
     const step = e.shiftKey ? NUDGE.shiftYards : NUDGE.yards;
@@ -118,8 +91,20 @@ export function PieceLayer({ players, store, getSvg, disabled = false }: PieceLa
     e.preventDefault();
     const player = store.getScene().players.find((p) => p.id === id);
     if (!player) return;
-    moveTo(id, { x: player.pos.x + dx, y: player.pos.y + dy });
+    const pos = { x: player.pos.x + dx, y: player.pos.y + dy };
+    store.mutate((draft) => {
+      const target = draft.players.find((p) => p.id === id);
+      if (!target) return;
+      if (target.role === "thrower") moveThrower(draft, pos);
+      else movePlayer(draft, id, pos);
+    });
   }
+
+  // The disc and the mark's force indicator are derived decorations, not
+  // pieces — so they follow whether their owner is being drawn. A force arrow
+  // hanging in space under a hidden mark reads as a bug.
+  const throwerShown = players.some((p) => p.role === "thrower");
+  const markShown = players.some((p) => p.role === "mark");
 
   return (
     <g data-testid="pieces">
@@ -130,6 +115,10 @@ export function PieceLayer({ players, store, getSvg, disabled = false }: PieceLa
         return (
           <g
             key={p.id}
+            className="fv-piece"
+            // How the drag controller hands keyboard focus to the piece it
+            // just grabbed, so click-then-arrow-key nudging still works.
+            data-piece-id={p.id}
             ref={(el) => {
               if (el) pieceRefs.current.set(p.id, el);
               else pieceRefs.current.delete(p.id);
@@ -138,20 +127,26 @@ export function PieceLayer({ players, store, getSvg, disabled = false }: PieceLa
             role="button"
             aria-disabled={disabled || undefined}
             aria-label={`${p.team} ${p.role}${p.label ? ` ${p.label}` : ""}`}
-            onPointerDown={(e) => handlePointerDown(p.id, e)}
-            onPointerMove={(e) => handlePointerMove(p.id, e)}
-            onPointerUp={(e) => handlePointerUp(p.id, e)}
             onKeyDown={(e) => handleKeyDown(p.id, e)}
             style={{
               cursor: disabled ? "default" : "grab",
               outline: "none",
-              touchAction: "none",
-              pointerEvents: disabled ? "none" : undefined,
+              // The container owns the drag; a piece must never swallow the
+              // pointerdown that the picker needs to see.
+              pointerEvents: "none",
             }}
           >
-            {/* Invisible hit target: comfortably clears the 44x44px minimum
-                regardless of the visual glyph's radius. */}
-            <circle r={PIECE_TOKENS.hitArea.radiusPx} fill="transparent" />
+            {/* Focus indicator. Drawn explicitly rather than left to the
+                browser's default ring, which boxes the <g>'s bounding box —
+                that is what used to put a black rectangle on the field. */}
+            <circle
+              className="fv-piece-focus-ring"
+              r={radius + PIECE_TOKENS.focusRing.gap}
+              fill="none"
+              stroke={PIECE_TOKENS.focusRing.stroke}
+              strokeWidth={PIECE_TOKENS.focusRing.strokeWidth}
+              opacity={0}
+            />
             <circle
               r={radius}
               fill={style.fill}
@@ -174,22 +169,29 @@ export function PieceLayer({ players, store, getSvg, disabled = false }: PieceLa
       })}
 
       {/* Disc — docked to the thrower, derived every frame, never stored. */}
-      <g ref={discRef} aria-hidden="true">
-        <circle
-          r={PIECE_TOKENS.disc.radius}
-          fill={PIECE_TOKENS.disc.fill}
-          stroke={PIECE_TOKENS.disc.stroke}
-          strokeWidth={PIECE_TOKENS.disc.strokeWidth}
-        />
-      </g>
+      {throwerShown && (
+        <g ref={discRef} data-testid="disc" aria-hidden="true" pointerEvents="none">
+          <circle
+            r={PIECE_TOKENS.disc.radius}
+            fill={PIECE_TOKENS.disc.fill}
+            stroke={PIECE_TOKENS.disc.stroke}
+            strokeWidth={PIECE_TOKENS.disc.strokeWidth}
+          />
+        </g>
+      )}
 
-      {/* Mark's directional indicator: the only force input in the UI. */}
-      <line
-        ref={markDirRef}
-        stroke={PIECE_TOKENS.markDirection.stroke}
-        strokeWidth={PIECE_TOKENS.markDirection.strokeWidth}
-        aria-hidden="true"
-      />
+      {/* Mark's directional indicator: the only force input in the UI. It is
+          drawn from the mark toward the thrower, so it needs both on screen. */}
+      {throwerShown && markShown && (
+        <line
+          ref={markDirRef}
+          data-testid="mark-direction"
+          stroke={PIECE_TOKENS.markDirection.stroke}
+          strokeWidth={PIECE_TOKENS.markDirection.strokeWidth}
+          pointerEvents="none"
+          aria-hidden="true"
+        />
+      )}
     </g>
   );
 }

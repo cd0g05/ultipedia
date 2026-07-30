@@ -61,8 +61,22 @@ export function FieldLayer() {
         r={FIELD_TOKENS.brickRadius}
         fill={FIELD_TOKENS.lineColor}
       />
-      {/* Attacking-direction indicator: an arrow pointing toward +x */}
-      <g transform={`translate(${FIELD_PX_WIDTH / 2 - 20}, -14)`}>
+      {/* Attacking-direction indicator: a labelled arrow pointing toward +x.
+          The arrow alone was read as decoration, so the label carries the
+          meaning and the arrow carries the direction. Anchored so the label
+          runs leftward from the arrow — the pair sits roughly centred over
+          the field without needing to measure the text. */}
+      <g transform={`translate(${FIELD_PX_WIDTH / 2 + 22}, -16)`}>
+        <text
+          x={-FIELD_TOKENS.attackLabel.gapPx}
+          y={FIELD_TOKENS.attackLabel.fontSize / 3}
+          textAnchor="end"
+          fontSize={FIELD_TOKENS.attackLabel.fontSize}
+          letterSpacing={FIELD_TOKENS.attackLabel.letterSpacing}
+          fill={FIELD_TOKENS.attackLabel.fill}
+        >
+          {FIELD_TOKENS.attackLabel.text}
+        </text>
         <line
           x1={0}
           y1={0}

@@ -101,6 +101,192 @@ describe("piece drag", () => {
   });
 });
 
+describe("grabbing the right piece", () => {
+  // The vert stack is the case that broke: cutters sit 2 yd apart on one
+  // line, and defender "2" sits at (51, 20) — 1 yd from cutter "1" at
+  // (50, 20) and rendered *after* it. Overlapping SVG hit targets are
+  // resolved by document order, so a press just right of cutter 1 used to
+  // pick up the defender behind it. Distance settles it (render/pick.ts).
+  it("picks the nearest piece, not the one rendered last", async () => {
+    render(<MemoryRouter><Whiteboard /></MemoryRouter>);
+    const svg = screen.getByRole("group", { name: /ultimate field/i }) as unknown as SVGSVGElement;
+    mockSvgRect(svg);
+
+    const cutter = screen.getByRole("button", { name: "offense cutter 1" });
+    const defender = screen.getByRole("button", { name: "defense defender 2" });
+    const defenderBefore = defender.getAttribute("transform");
+
+    fireEvent.pointerDown(svg, { pointerId: 10, ...clientFor({ x: 50.2, y: 20 }) });
+    fireEvent.pointerMove(svg, { pointerId: 10, ...clientFor({ x: 60.2, y: 20 }) });
+    await nextFrame();
+
+    expect(cutter.getAttribute("transform")).toBe("translate(480, 160)");
+    expect(defender.getAttribute("transform")).toBe(defenderBefore);
+  });
+
+  it("preserves the grab offset so an off-centre grab does not snap", async () => {
+    render(<MemoryRouter><Whiteboard /></MemoryRouter>);
+    const svg = screen.getByRole("group", { name: /ultimate field/i }) as unknown as SVGSVGElement;
+    mockSvgRect(svg);
+    const cutter = screen.getByRole("button", { name: "offense cutter 1" });
+
+    // Grabbed 0.8 yd left of cutter 1's centre (still its nearest piece),
+    // then moved 10 yd right: it should end at 60, following the pointer —
+    // not at 59.2, snapped to it.
+    fireEvent.pointerDown(svg, { pointerId: 11, ...clientFor({ x: 49.2, y: 20 }) });
+    fireEvent.pointerMove(svg, { pointerId: 11, ...clientFor({ x: 59.2, y: 20 }) });
+    await nextFrame();
+
+    expect(cutter.getAttribute("transform")).toBe("translate(480, 160)");
+  });
+
+  it("moves nothing when the press lands in open space", async () => {
+    render(<MemoryRouter><Whiteboard /></MemoryRouter>);
+    const svg = screen.getByRole("group", { name: /ultimate field/i }) as unknown as SVGSVGElement;
+    mockSvgRect(svg);
+    const cutter = screen.getByRole("button", { name: "offense cutter 1" });
+    const before = cutter.getAttribute("transform");
+
+    fireEvent.pointerDown(svg, { pointerId: 12, ...clientFor({ x: 5, y: 35 }) });
+    fireEvent.pointerMove(svg, { pointerId: 12, ...clientFor({ x: 50, y: 20 }) });
+    await nextFrame();
+
+    expect(cutter.getAttribute("transform")).toBe(before);
+  });
+});
+
+describe("marquee selection", () => {
+  // Selecting is a *drag on empty grass*, so every marquee here has to start
+  // more than the 3 yd grab radius from any piece — otherwise the press is a
+  // grab, which is exactly the disambiguation being tested.
+  function selectedLabels(svg: SVGSVGElement) {
+    return Array.from(svg.querySelectorAll('[data-selected="true"]'))
+      .map((el) => el.getAttribute("aria-label"))
+      .sort();
+  }
+
+  function marquee(svg: SVGSVGElement, from: { x: number; y: number }, to: { x: number; y: number }) {
+    fireEvent.pointerDown(svg, { pointerId: 20, ...clientFor(from) });
+    fireEvent.pointerMove(svg, { pointerId: 20, ...clientFor(to) });
+    fireEvent.pointerUp(svg, { pointerId: 20, ...clientFor(to) });
+  }
+
+  function setup() {
+    render(<MemoryRouter><Whiteboard /></MemoryRouter>);
+    const svg = screen.getByRole("group", { name: /ultimate field/i }) as unknown as SVGSVGElement;
+    mockSvgRect(svg);
+    return svg;
+  }
+
+  it("selects exactly the pieces inside the box", () => {
+    const svg = setup();
+    // Down-field right quarter: cutters 5 and 6 plus defenders 5 and 6.
+    marquee(svg, { x: 75, y: 35 }, { x: 57, y: 18 });
+
+    expect(selectedLabels(svg)).toEqual([
+      "defense defender 5",
+      "defense defender 6",
+      "offense cutter 5",
+      "offense cutter 6",
+    ]);
+  });
+
+  it("moves the whole selection by one delta when any member is dragged", async () => {
+    const svg = setup();
+    marquee(svg, { x: 75, y: 35 }, { x: 57, y: 18 });
+
+    const members = [
+      screen.getByRole("button", { name: "offense cutter 5" }), // (58, 20)
+      screen.getByRole("button", { name: "offense cutter 6" }), // (60, 20)
+      screen.getByRole("button", { name: "defense defender 5" }), // (62, 23)
+      screen.getByRole("button", { name: "defense defender 6" }), // (70, 20)
+    ];
+    const outsider = screen.getByRole("button", { name: "offense cutter 1" });
+    const outsiderBefore = outsider.getAttribute("transform");
+
+    // Grab cutter 6 and pull the group 5 yd downfield, 2 yd across.
+    fireEvent.pointerDown(svg, { pointerId: 21, ...clientFor({ x: 60, y: 20 }) });
+    fireEvent.pointerMove(svg, { pointerId: 21, ...clientFor({ x: 65, y: 22 }) });
+    await nextFrame();
+
+    expect(members.map((el) => el.getAttribute("transform"))).toEqual([
+      "translate(504, 176)", // (63, 22)
+      "translate(520, 176)", // (65, 22)
+      "translate(536, 200)", // (67, 25)
+      "translate(600, 176)", // (75, 22)
+    ]);
+    // The formation kept its shape, and nothing outside the box moved.
+    expect(outsider.getAttribute("transform")).toBe(outsiderBefore);
+  });
+
+  it("slides a group along the sideline instead of letting it compress", async () => {
+    const svg = setup();
+    // Thrower (40, 20) and mark (41, 23) — 3 yd apart across the field.
+    marquee(svg, { x: 38, y: 25 }, { x: 43, y: 18 });
+    expect(selectedLabels(svg)).toEqual(["defense mark M", "offense thrower T"]);
+
+    // Pull 30 yd toward the near sideline. Only 20 yd of that is available,
+    // so the delta is clamped once, for the group — not per piece, which
+    // would flatten both onto y = 0 and lose the mark's angle.
+    fireEvent.pointerDown(svg, { pointerId: 22, ...clientFor({ x: 40, y: 20 }) });
+    fireEvent.pointerMove(svg, { pointerId: 22, ...clientFor({ x: 40, y: -10 }) });
+    await nextFrame();
+
+    expect(screen.getByRole("button", { name: "offense thrower T" }).getAttribute("transform")).toBe(
+      "translate(320, 0)", // (40, 0)
+    );
+    expect(screen.getByRole("button", { name: "defense mark M" }).getAttribute("transform")).toBe(
+      "translate(328, 24)", // (41, 3) — still 3 yd off the thrower
+    );
+  });
+
+  it("does not carry the mark twice when the thrower and mark are both selected", async () => {
+    const svg = setup();
+    marquee(svg, { x: 38, y: 25 }, { x: 43, y: 18 });
+
+    // Thrower-carries-mark (FR-2.2) still applies to a lone thrower, but a
+    // mark that is itself in the group must take the delta once, not once as
+    // a member and again as the thrower's passenger.
+    fireEvent.pointerDown(svg, { pointerId: 23, ...clientFor({ x: 40, y: 20 }) });
+    fireEvent.pointerMove(svg, { pointerId: 23, ...clientFor({ x: 45, y: 20 }) });
+    await nextFrame();
+
+    expect(screen.getByRole("button", { name: "defense mark M" }).getAttribute("transform")).toBe(
+      "translate(368, 184)", // (46, 23), not (51, 23)
+    );
+  });
+
+  it("clears the selection on a click in open space", () => {
+    const svg = setup();
+    marquee(svg, { x: 75, y: 35 }, { x: 57, y: 18 });
+    expect(selectedLabels(svg)).toHaveLength(4);
+
+    // Press and release without drawing a box.
+    fireEvent.pointerDown(svg, { pointerId: 24, ...clientFor({ x: 5, y: 35 }) });
+    fireEvent.pointerUp(svg, { pointerId: 24, ...clientFor({ x: 5, y: 35 }) });
+
+    expect(selectedLabels(svg)).toEqual([]);
+  });
+
+  it("abandons the selection when an unselected piece is grabbed", async () => {
+    const svg = setup();
+    marquee(svg, { x: 75, y: 35 }, { x: 57, y: 18 });
+
+    const cutter5 = screen.getByRole("button", { name: "offense cutter 5" });
+    const before = cutter5.getAttribute("transform");
+
+    fireEvent.pointerDown(svg, { pointerId: 25, ...clientFor({ x: 50, y: 20 }) });
+    fireEvent.pointerMove(svg, { pointerId: 25, ...clientFor({ x: 45, y: 20 }) });
+    await nextFrame();
+
+    expect(selectedLabels(svg)).toEqual([]);
+    expect(screen.getByRole("button", { name: "offense cutter 1" }).getAttribute("transform")).toBe(
+      "translate(360, 160)",
+    );
+    expect(cutter5.getAttribute("transform")).toBe(before);
+  });
+});
+
 describe("keyboard nudge", () => {
   it("moves a focused piece 1 yd per arrow key, 5 yd with Shift", async () => {
     render(<MemoryRouter><Whiteboard /></MemoryRouter>);

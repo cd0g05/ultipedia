@@ -39,6 +39,16 @@ function turnOverlayOn() {
   fireEvent.click(screen.getByRole("button", { name: "Space" }));
 }
 
+// The lens, the layer flags, and the six sliders all live behind one
+// disclosure now — reaching any of them means opening it first.
+function openAdvanced() {
+  fireEvent.click(screen.getByRole("button", { name: /Advanced settings/ }));
+}
+
+function lensCheckbox() {
+  return screen.getByRole("checkbox", { name: /Include offense in space calculations/ });
+}
+
 // The SVG has no layout in jsdom; give it the stage's real aspect so
 // clientToYard produces meaningful field coordinates.
 function stubStageRect() {
@@ -55,57 +65,130 @@ function stubStageRect() {
   });
 }
 
+// Where to press to grab a given piece. Grabbing is nearest-within-radius
+// (render/pick.ts), so a drag has to start near the piece — pressing on the
+// element is not, by itself, a grab.
+function grabPointFor(piece: Element) {
+  const match = piece.getAttribute("transform")!.match(/translate\(([-\d.]+), ([-\d.]+)\)/)!;
+  return { clientX: Number(match[1]) - viewBox.x, clientY: Number(match[2]) - viewBox.y };
+}
+
 describe("overlay rail", () => {
-  it("shows only the Space toggle until the overlay is on", () => {
+  it("shows only the visibility toggles and the Space button until the overlay is on", () => {
     renderWhiteboard();
     expect(screen.getByRole("button", { name: "Space" })).toHaveAttribute("aria-pressed", "false");
-    expect(screen.queryByRole("radio", { name: /Offense/ })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("checkbox", { name: /Include offense in space calculations/ }),
+    ).not.toBeInTheDocument();
     expect(screen.queryByRole("checkbox", { name: "Coverage" })).not.toBeInTheDocument();
     expect(screen.queryByText("Closed")).not.toBeInTheDocument();
+
+    // ...but the two show/hide checkboxes are diagram controls, not overlay
+    // controls, so they are reachable with the map off.
+    expect(screen.getByRole("checkbox", { name: "Offense" })).toBeChecked();
+    expect(screen.getByRole("checkbox", { name: "Defense" })).toBeChecked();
   });
 
-  it("reveals lens, layers, legend and tuning when toggled on", () => {
+  it("reveals the legend and a collapsed Advanced settings when toggled on", () => {
     renderWhiteboard();
     turnOverlayOn();
 
     expect(screen.getByRole("button", { name: "Space" })).toHaveAttribute("aria-pressed", "true");
-    expect(screen.getByRole("radio", { name: /Offense/ })).toBeChecked();
-    expect(screen.getByText("Counts whether a cutter could get there first.")).toBeInTheDocument();
-    expect(screen.getByText("Ignores the cutters — pure defensive shape.")).toBeInTheDocument();
 
+    // Three-swatch legend, meaning carried by words not hue — and by the same
+    // words the readout uses, so "contested" means one thing in this UI.
+    expect(screen.getByText("Closed")).toBeInTheDocument();
+    expect(screen.getByText("Contested")).toBeInTheDocument();
+    expect(screen.getByText("Strong space")).toBeInTheDocument();
+
+    // The model's settings are stowed by default; the map is the product.
+    expect(screen.getByRole("button", { name: /Advanced settings/ })).toHaveAttribute(
+      "aria-expanded",
+      "false",
+    );
+    expect(screen.queryByRole("checkbox", { name: "Coverage" })).not.toBeInTheDocument();
+
+    openAdvanced();
+    expect(lensCheckbox()).toBeChecked();
+    expect(screen.getByText("Counts whether a cutter could get there first.")).toBeInTheDocument();
     for (const layer of ["Mark / force", "Coverage", "Throwing lanes", "Field value"]) {
       expect(screen.getByRole("checkbox", { name: layer })).toBeChecked();
     }
-
-    // Three-swatch legend, meaning carried by words not hue.
-    expect(screen.getByText("Closed")).toBeInTheDocument();
-    expect(screen.getByText("Open, low value")).toBeInTheDocument();
-    expect(screen.getByText("Strong space")).toBeInTheDocument();
-
-    // Tuning is collapsed by default.
-    expect(screen.getByRole("button", { name: /Tuning/ })).toHaveAttribute("aria-expanded", "false");
   });
 
   it("switches the lens", () => {
     renderWhiteboard();
     turnOverlayOn();
-    fireEvent.click(screen.getByRole("radio", { name: /Defense only/ }));
-    expect(screen.getByRole("radio", { name: /Defense only/ })).toBeChecked();
+    openAdvanced();
+    fireEvent.click(lensCheckbox());
+    expect(lensCheckbox()).not.toBeChecked();
+    expect(screen.getByText("Ignores the cutters — pure defensive shape.")).toBeInTheDocument();
   });
 
   it("toggles a layer off", () => {
     renderWhiteboard();
     turnOverlayOn();
+    openAdvanced();
     fireEvent.click(screen.getByRole("checkbox", { name: "Coverage" }));
     expect(screen.getByRole("checkbox", { name: "Coverage" })).not.toBeChecked();
   });
 });
 
-describe("tuning panel", () => {
+describe("team visibility", () => {
+  it("hides a team's pieces from the diagram without touching the model", () => {
+    renderWhiteboard();
+    expect(screen.getByRole("button", { name: "defense mark M" })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("checkbox", { name: "Defense" }));
+
+    expect(screen.queryByRole("button", { name: "defense mark M" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "defense defender 1" })).not.toBeInTheDocument();
+    // The offense is untouched...
+    expect(screen.getByRole("button", { name: "offense thrower T" })).toBeInTheDocument();
+    // ...and so is the scene the model reads. Hiding is a display choice; the
+    // separate lens toggle is what changes what the map counts.
+    expect(screen.getByRole("checkbox", { name: "Defense" })).not.toBeChecked();
+
+    // The mark's force indicator goes with it — an arrow left hanging in
+    // space under a mark that is not there reads as a rendering bug. The
+    // disc belongs to the thrower, so it stays.
+    expect(screen.queryByTestId("mark-direction")).not.toBeInTheDocument();
+    expect(screen.getByTestId("disc")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("checkbox", { name: "Offense" }));
+    expect(screen.queryByTestId("disc")).not.toBeInTheDocument();
+  });
+
+  it("will not let a hidden piece be grabbed", () => {
+    const rect = stubStageRect();
+    try {
+      renderWhiteboard();
+      const mark = screen.getByRole("button", { name: "defense mark M" });
+      const at = grabPointFor(mark);
+      fireEvent.click(screen.getByRole("checkbox", { name: "Defense" }));
+
+      const stage = screen.getByRole("group", { name: /Ultimate field/i });
+      const thrower = screen.getByRole("button", { name: "offense thrower T" });
+      const before = thrower.getAttribute("transform");
+
+      // Press exactly where the mark used to be. Nothing there is grabbable,
+      // so this begins a marquee rather than dragging the invisible piece.
+      fireEvent.pointerDown(stage, { ...at, pointerId: 1 });
+      fireEvent.pointerMove(stage, { clientX: at.clientX + 200, clientY: at.clientY, pointerId: 1 });
+      fireEvent.pointerUp(stage, { pointerId: 1 });
+
+      expect(thrower.getAttribute("transform")).toBe(before);
+    } finally {
+      rect.mockRestore();
+    }
+  });
+});
+
+describe("advanced settings panel", () => {
   it("expands to six sliders with live numeric values and a reset", () => {
     renderWhiteboard();
     turnOverlayOn();
-    fireEvent.click(screen.getByRole("button", { name: /Tuning/ }));
+    openAdvanced();
 
     for (const label of [
       "Top speed",
@@ -124,7 +207,7 @@ describe("tuning panel", () => {
   it("marks the header as modified when a slider leaves its default, and clears it on reset", () => {
     renderWhiteboard();
     turnOverlayOn();
-    fireEvent.click(screen.getByRole("button", { name: /Tuning/ }));
+    openAdvanced();
 
     expect(screen.queryByText("• modified")).not.toBeInTheDocument();
     fireEvent.change(screen.getByRole("slider", { name: "Mark strength" }), { target: { value: "0.4" } });
@@ -138,7 +221,7 @@ describe("tuning panel", () => {
   it("converts mark width between stored radians and displayed degrees", () => {
     renderWhiteboard();
     turnOverlayOn();
-    fireEvent.click(screen.getByRole("button", { name: /Tuning/ }));
+    openAdvanced();
 
     const slider = screen.getByRole("slider", { name: "Mark width" });
     // Stored in radians, shown in degrees — the round trip is what matters,
@@ -188,7 +271,8 @@ describe("hover readout", () => {
     try {
       renderWhiteboard();
       turnOverlayOn();
-      fireEvent.click(screen.getByRole("radio", { name: /Defense only/ }));
+      openAdvanced();
+      fireEvent.click(lensCheckbox());
 
       const stage = screen.getByRole("group", { name: /Ultimate field/i });
       fireEvent.pointerMove(stage, { clientX: 400, clientY: 200 });
@@ -238,7 +322,7 @@ describe("hover readout", () => {
 });
 
 describe("ADR-2: React is not in the drag path", () => {
-  it("commits zero React renders across a burst of pointer moves during a drag", () => {
+  it("commits zero React renders across a burst of pointer moves during a drag", async () => {
     const rect = stubStageRect();
     try {
       let commits = 0;
@@ -252,13 +336,72 @@ describe("ADR-2: React is not in the drag path", () => {
       fireEvent.click(screen.getByRole("button", { name: "Space" }));
 
       const cutter = screen.getByRole("button", { name: "offense cutter 1" });
-      fireEvent.pointerDown(cutter, { pointerId: 1, clientX: 400, clientY: 160 });
+      const grab = grabPointFor(cutter);
+      const atRest = cutter.getAttribute("transform");
+      fireEvent.pointerDown(cutter, { pointerId: 1, ...grab });
 
       commits = 0; // count only the drag itself
       for (let i = 0; i < 25; i += 1) {
-        fireEvent.pointerMove(cutter, { pointerId: 1, clientX: 400 + i * 4, clientY: 160 });
+        fireEvent.pointerMove(cutter, {
+          pointerId: 1,
+          clientX: grab.clientX + i * 4,
+          clientY: grab.clientY,
+        });
       }
 
+      expect(commits).toBe(0);
+      // Zero commits is only meaningful if the drag actually happened —
+      // a grab that missed would satisfy the assertion for the wrong reason.
+      await new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
+      expect(cutter.getAttribute("transform")).not.toBe(atRest);
+      expect(commits).toBe(0);
+    } finally {
+      rect.mockRestore();
+    }
+  });
+
+  it("commits zero React renders while drawing a marquee and dragging the group", async () => {
+    const rect = stubStageRect();
+    // The same client coordinates the drag tests use: 1 px per SVG unit,
+    // 8 SVG units per yard, offset by the stage margin.
+    const at = (x: number, y: number) => ({
+      clientX: x * 8 - viewBox.x,
+      clientY: y * 8 - viewBox.y,
+    });
+    try {
+      let commits = 0;
+      render(
+        <MemoryRouter>
+          <Profiler id="whiteboard" onRender={() => (commits += 1)}>
+            <Whiteboard />
+          </Profiler>
+        </MemoryRouter>,
+      );
+
+      const stage = screen.getByRole("group", { name: /Ultimate field/i });
+      const cutter = screen.getByRole("button", { name: "offense cutter 6" });
+      const atRest = cutter.getAttribute("transform");
+
+      commits = 0; // count the marquee and the group drag, nothing before them
+      fireEvent.pointerDown(stage, { pointerId: 2, ...at(75, 35) });
+      for (let i = 0; i < 10; i += 1) {
+        fireEvent.pointerMove(stage, { pointerId: 2, ...at(75 - i * 2, 35 - i * 2) });
+      }
+      fireEvent.pointerUp(stage, { pointerId: 2, ...at(57, 18) });
+
+      // Selecting four pieces is a DOM attribute write, not a render.
+      expect(stage.querySelectorAll('[data-selected="true"]')).toHaveLength(4);
+      expect(commits).toBe(0);
+
+      fireEvent.pointerDown(stage, { pointerId: 2, ...at(60, 20) });
+      for (let i = 1; i <= 25; i += 1) {
+        fireEvent.pointerMove(stage, { pointerId: 2, ...at(60 + i * 0.2, 20) });
+      }
+
+      expect(commits).toBe(0);
+      // Again, zero commits only means something if the group actually moved.
+      await new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
+      expect(cutter.getAttribute("transform")).not.toBe(atRest);
       expect(commits).toBe(0);
     } finally {
       rect.mockRestore();
@@ -273,9 +416,10 @@ describe("ADR-2: React is not in the drag path", () => {
 
       const mark = screen.getByRole("button", { name: "defense mark M" });
       const atRest = mark.getAttribute("transform");
+      const grab = grabPointFor(mark);
 
-      fireEvent.pointerDown(mark, { pointerId: 1, clientX: 400, clientY: 180 });
-      fireEvent.pointerMove(mark, { pointerId: 1, clientX: 480, clientY: 180 });
+      fireEvent.pointerDown(mark, { pointerId: 1, ...grab });
+      fireEvent.pointerMove(mark, { pointerId: 1, clientX: grab.clientX + 80, clientY: grab.clientY });
 
       // A frame lands while the pointer is still down: the repaint is driven
       // by pointermove, not by pointerup. (Releasing first would make this
@@ -285,7 +429,7 @@ describe("ADR-2: React is not in the drag path", () => {
       const midDrag = mark.getAttribute("transform");
       expect(midDrag).not.toBe(atRest);
 
-      fireEvent.pointerMove(mark, { pointerId: 1, clientX: 560, clientY: 180 });
+      fireEvent.pointerMove(mark, { pointerId: 1, clientX: grab.clientX + 160, clientY: grab.clientY });
       await new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
       expect(mark.getAttribute("transform")).not.toBe(midDrag);
 
@@ -433,8 +577,8 @@ describe("preferences", () => {
   it("persists the rail state across a remount but never the scene", async () => {
     const { unmount } = renderWhiteboard();
     turnOverlayOn();
-    fireEvent.click(screen.getByRole("radio", { name: /Defense only/ }));
-    fireEvent.click(screen.getByRole("button", { name: /Tuning/ }));
+    openAdvanced();
+    fireEvent.click(lensCheckbox());
     fireEvent.change(screen.getByRole("slider", { name: "Mark strength" }), { target: { value: "0.3" } });
 
     // Move a piece — scene state that must NOT come back.
@@ -448,8 +592,8 @@ describe("preferences", () => {
 
     renderWhiteboard();
     expect(screen.getByRole("button", { name: "Space" })).toHaveAttribute("aria-pressed", "true");
-    expect(screen.getByRole("radio", { name: /Defense only/ })).toBeChecked();
-    expect(screen.getByRole("button", { name: /Tuning/ })).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByRole("button", { name: /Advanced settings/ })).toHaveAttribute("aria-expanded", "true");
+    expect(lensCheckbox()).not.toBeChecked();
     expect(screen.getByText("0.30")).toBeInTheDocument();
 
     expect(localStorage.getItem("fieldview.overlayPrefs")).not.toContain("players");
@@ -463,6 +607,23 @@ describe("preferences", () => {
     expect(parsePrefs("nonsense")).toEqual(DEFAULT_PREFS);
     expect(parsePrefs({ lens: "telescope", on: "yes" }).lens).toBe("offense");
     expect(parsePrefs({ lens: "telescope", on: "yes" }).on).toBe(false);
+    // Both teams are shown unless storage says otherwise, and a hand-edited
+    // non-boolean is not trusted into hiding half the diagram.
+    expect(parsePrefs({ visible: { offense: "no" } }).visible).toEqual({
+      offense: true,
+      defense: true,
+    });
+    expect(parsePrefs({ visible: { defense: false } }).visible).toEqual({
+      offense: true,
+      defense: false,
+    });
+  });
+
+  it("honours the pre-rename tuningExpanded key", () => {
+    // The panel grew from "Tuning" to "Advanced settings"; a coach who had it
+    // open should not find it shut after the upgrade.
+    expect(parsePrefs({ tuningExpanded: true }).advancedExpanded).toBe(true);
+    expect(parsePrefs({ advancedExpanded: false, tuningExpanded: true }).advancedExpanded).toBe(false);
   });
 
   it("clamps out-of-range slider values rather than trusting them", () => {
@@ -503,6 +664,6 @@ describe("the overlay is a toggle, not a route", () => {
     expect(screen.getByTestId("heatmap-canvas")).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Space" }));
-    expect(screen.getByRole("radio", { name: /Defense only/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Advanced settings/ })).toBeInTheDocument();
   });
 });

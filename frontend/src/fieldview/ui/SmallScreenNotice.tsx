@@ -13,7 +13,7 @@ export function SmallScreenNotice() {
           the two is ever displayed (the other is `display: none`, so it is
           out of the a11y tree), but distinct wording keeps the heading
           unambiguous to anything reading the DOM directly. */}
-      <h1 className="font-heading text-xl font-bold uppercase tracking-widest text-zinc-900">
+      <h1 className="font-heading text-xl uppercase tracking-widest text-zinc-900">
         Field View needs a bigger screen
       </h1>
       <p className="text-sm text-zinc-700">

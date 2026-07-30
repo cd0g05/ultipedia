@@ -53,8 +53,9 @@ describe("tablet (768–1279) vs desktop (1280+)", () => {
     (page) => {
       renderPage(page);
       const stage = screen.getByRole("group", { name: /Ultimate field/i });
-      // FieldCanvas's own wrapper, then the split container above it.
-      const split = stage.closest("div")!.parentElement!;
+      // Up past FieldCanvas's own wrappers (the fullscreen target and the
+      // aspect-locked inner box) to the split container the page owns.
+      const split = stage.closest(".fv-stage")!.parentElement!;
       expect(split.className).toContain("flex-col");
       expect(split.className).toContain("xl:flex-row");
     },
@@ -62,7 +63,7 @@ describe("tablet (768–1279) vs desktop (1280+)", () => {
 
   it("lays the rail out as a horizontal bar on tablet and a vertical rail on desktop", () => {
     renderPage("whiteboard");
-    const rail = screen.getByRole("complementary", { name: "Space overlay controls" });
+    const rail = screen.getByRole("complementary", { name: "Field view controls" });
     expect(rail.className).toContain("flex-row");
     expect(rail.className).toContain("xl:flex-col");
   });
@@ -76,7 +77,7 @@ describe("tablet (768–1279) vs desktop (1280+)", () => {
 
   it("gives the field the width, not the rail, on tablet", () => {
     renderPage("whiteboard");
-    const rail = screen.getByRole("complementary", { name: "Space overlay controls" });
+    const rail = screen.getByRole("complementary", { name: "Field view controls" });
     const railColumn = rail.parentElement!;
     // Full width when stacked; a fixed 320px column only from xl.
     expect(railColumn.className).toContain("w-full");

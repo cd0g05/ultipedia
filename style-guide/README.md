@@ -17,7 +17,7 @@ Comprehensive design system documentation covering:
 ### `example.html`
 A fully functional mockup website showcasing all design system components:
 - Live color swatches with hex codes
-- Typography demonstrations (Druk, JetBrains Mono, Helvetica Neue)
+- Typography demonstrations (Archivo Black, JetBrains Mono, Helvetica Neue)
 - Interactive buttons, forms, and inputs
 - Card and panel layouts
 - Responsive grid examples
@@ -26,28 +26,36 @@ A fully functional mockup website showcasing all design system components:
 
 **To view**: Open `example.html` in a web browser. The page includes working form submissions, smooth scrolling, and demonstrates all responsive behaviors.
 
-### `fonts/`
-Druk font files (required for the display font):
-- `Druk-Medium-Trial.otf` (font-weight: 400)
-- `Druk-Bold-Trial.otf` (font-weight: 700)
-- `Druk-Super-Trial.otf` (font-weight: 900)
+### `fonts/` — removed
+Fonts now live in one place only: the main project's `frontend/public/fonts/`.
+Keeping a second copy here meant two things to license and two to keep in sync.
 
-**Note**: These are trial versions. For production use, you'll need to license the full Druk typeface from Commercial Type.
+- **Archivo Black** (`ArchivoBlack-Regular.ttf` + `ArchivoBlack-OFL.txt`) — display
+- **JetBrains Mono** (Regular + Bold) — UI/mono
+
+Both are SIL OFL 1.1: free for commercial use *and* web embedding, so both are
+safely self-hosted.
+
+**Previously**: Druk *trial* builds lived here and were served from production —
+removed, since a trial license does not cover public distribution. Arena was
+considered and rejected: personal-use only, and its terms forbid distributing the
+file on any website. Do not reintroduce either.
 
 ## Quick Start
 
 To use this design system in your own project:
 
-1. **Copy the fonts** from `fonts/` to your project's public/static folder
+1. **Copy the fonts** from the main project's `frontend/public/fonts/`
+   (Archivo Black + its OFL text, JetBrains Mono) into your public/static folder
 2. **Reference the color palette** in your CSS/Tailwind config using the values in `design.md`
 3. **Use the CSS** from `example.html` as a template
-4. **Follow the typography rules**: Druk for headings, JetBrains Mono for UI, Helvetica Neue for body
+4. **Follow the typography rules**: Archivo Black for headings, JetBrains Mono for UI, Helvetica Neue for body
 
 ## Key Characteristics
 
 - **Hard corners** (no border-radius) for a technical, precise aesthetic
 - **Minimal color palette** with strategic pink and green accents
-- **Three-tier typography**: display (Druk), UI (JetBrains Mono), body (Helvetica Neue)
+- **Three-tier typography**: display (Archivo Black), UI (JetBrains Mono), body (Helvetica Neue)
 - **Grid-based spacing** using 8px baseline
 - **Light backgrounds** with clear visual hierarchy through subtle grays
 - **100% WCAG AA compliant** contrast ratios
@@ -63,13 +71,20 @@ To adapt this system to your brand:
 
 ## Reference
 
-- **Druk**: A geometric, bold display typeface by Commercial Type (requires license)
-- **JetBrains Mono**: Free, open-source monospace typeface
+- **Archivo Black**: Heavy geometric display typeface, SIL OFL 1.1 — free for
+  commercial use and web embedding (https://fonts.google.com/specimen/Archivo+Black).
+  Single weight (400) by design
+- **JetBrains Mono**: Free, open-source monospace typeface (SIL OFL 1.1)
 - **Helvetica Neue**: System fallback for body text (falls back to Arial)
-- **DrukaatieBurti**: Free, open-source alternative to Druk (included in main project)
+- **Anton / Oswald**: Other OFL display faces, if you want a different flavour of
+  the same tier
 
 ## License Notes
 
-- Druk fonts are trial versions; license from Commercial Type for production
-- JetBrains Mono and DrukaatieBurti are open-source
+- Every font here is SIL OFL 1.1 — free for commercial use and web embedding.
+  Ship each font's license text alongside it; the OFL requires it.
+- **The rule**: this repo is public and auto-deploys, so a committed font is a
+  *distributed* font. A display face must be self-hostable under a license that
+  permits web embedding. Trial builds (Druk) and personal-use freeware (Arena)
+  do not qualify and have both been removed.
 - CSS and HTML examples in this guide are free to use and modify

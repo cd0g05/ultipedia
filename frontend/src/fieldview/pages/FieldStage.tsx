@@ -13,9 +13,9 @@ export function FieldStage({ scene }: { scene: Scene }) {
   return (
     <svg
       role="img"
-      aria-label={`Ultimate field, ${FIELD.length} by ${FIELD.width} yards`}
+      aria-label={`Ultimate field, ${FIELD.length} by ${FIELD.width} yards. Offense attacks left to right.`}
       viewBox={viewBox}
-      className="h-auto w-full max-w-4xl"
+      className="h-auto w-full"
     >
       <FieldLayer />
       <g data-testid="pieces">

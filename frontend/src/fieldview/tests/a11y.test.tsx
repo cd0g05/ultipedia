@@ -1,4 +1,4 @@
-// axe-core audit for /field-view and /field-view/designer (P2 and P4
+// axe-core audit for /fieldview and /fieldview/designer (P2 and P4
 // acceptance criteria). color-contrast
 // is disabled per the same rationale as encyclopedia/tests/a11y.test.tsx:
 // jsdom does not paint, so axe cannot compute real contrast.
@@ -27,30 +27,30 @@ async function expectNoViolations(container: Element) {
 }
 
 describe("axe-core audit", () => {
-  it("/field-view has no violations", async () => {
+  it("/fieldview has no violations", async () => {
     const { container } = render(<MemoryRouter><Whiteboard /></MemoryRouter>);
     await expectNoViolations(container);
   });
 
-  it("/field-view/designer has no violations", async () => {
+  it("/fieldview/designer has no violations", async () => {
     const { container } = render(<MemoryRouter><Designer /></MemoryRouter>);
     await expectNoViolations(container);
   });
 
-  it("/field-view has no violations with the space overlay on", async () => {
+  it("/fieldview has no violations with the space overlay on", async () => {
     const { container } = render(<MemoryRouter><Whiteboard /></MemoryRouter>);
     fireEvent.click(screen.getByRole("button", { name: "Space" }));
-    fireEvent.click(screen.getByRole("button", { name: /Tuning/ }));
+    fireEvent.click(screen.getByRole("button", { name: /Advanced settings/ }));
     await expectNoViolations(container);
   });
 
-  it("/field-view/designer has no violations with the space overlay on", async () => {
+  it("/fieldview/designer has no violations with the space overlay on", async () => {
     const { container } = render(<MemoryRouter><Designer /></MemoryRouter>);
     fireEvent.click(screen.getByRole("button", { name: "Space" }));
     await expectNoViolations(container);
   });
 
-  it("/field-view/designer has no violations with multiple keyframes", async () => {
+  it("/fieldview/designer has no violations with multiple keyframes", async () => {
     const { container } = render(<MemoryRouter><Designer /></MemoryRouter>);
     fireEvent.click(screen.getByRole("button", { name: "+ Keyframe" }));
     await expectNoViolations(container);
@@ -96,23 +96,24 @@ describe("Designer keyboard operation", () => {
 // --- P6 full a11y sweep (task 135) ---
 
 describe("full keyboard traversal", () => {
-  it("reaches every whiteboard control, with the overlay on and tuning open", () => {
+  it("reaches every whiteboard control, with the overlay on and advanced settings open", () => {
     render(<MemoryRouter><Whiteboard /></MemoryRouter>);
     fireEvent.click(screen.getByRole("button", { name: "Space" }));
-    fireEvent.click(screen.getByRole("button", { name: /Tuning/ }));
+    fireEvent.click(screen.getByRole("button", { name: /Advanced settings/ }));
 
     const controls = [
       screen.getByRole("button", { name: "Presets" }),
       screen.getByRole("button", { name: "Export frame" }),
       screen.getByRole("link", { name: "Designer" }),
       screen.getByRole("button", { name: "Space" }),
-      screen.getByRole("radio", { name: /Offense/ }),
-      screen.getByRole("radio", { name: /Defense only/ }),
+      screen.getByRole("checkbox", { name: "Offense" }),
+      screen.getByRole("checkbox", { name: "Defense" }),
+      screen.getByRole("checkbox", { name: /Include offense in space calculations/ }),
       screen.getByRole("checkbox", { name: "Mark / force" }),
       screen.getByRole("checkbox", { name: "Coverage" }),
       screen.getByRole("checkbox", { name: "Throwing lanes" }),
       screen.getByRole("checkbox", { name: "Field value" }),
-      screen.getByRole("button", { name: /Tuning/ }),
+      screen.getByRole("button", { name: /Advanced settings/ }),
       screen.getByRole("slider", { name: "Top speed" }),
       screen.getByRole("slider", { name: "Mark width" }),
       screen.getByRole("button", { name: "Reset to defaults" }),
@@ -165,7 +166,7 @@ describe("colour is never the sole carrier of meaning", () => {
     render(<MemoryRouter><Whiteboard /></MemoryRouter>);
     fireEvent.click(screen.getByRole("button", { name: "Space" }));
 
-    for (const label of ["Closed", "Open, low value", "Strong space"]) {
+    for (const label of ["Closed", "Contested", "Strong space"]) {
       const entry = screen.getByText(label);
       const swatch = entry.querySelector("span[aria-hidden='true']");
       expect(swatch).not.toBeNull();

@@ -8,21 +8,53 @@ export const FIELD_TOKENS = {
   lineWidth: 1.5,
   brickRadius: 2.5,
   attackArrowColor: "#EF4B8A", // film-accentPink
+  attackLabel: {
+    // The arrow alone reads as decoration. Say what it means.
+    text: "ATTACKING",
+    fill: "#EF4B8A",
+    fontSize: 11,
+    letterSpacing: 1.5,
+    gapPx: 10, // between the end of the label and the tail of the arrow
+  },
+  // The hover reticle marks the cell the readout is describing. White rather
+  // than black: it sits on top of the heatmap, which runs red → amber → green,
+  // and a dark mark on a dark red cell reads as a rendering artefact.
+  reticle: {
+    stroke: "#ffffff",
+    strokeWidth: 1.5,
+    opacity: 0.9,
+  },
+  // The marquee: drag a box over empty grass to select the players inside it.
+  marquee: {
+    stroke: "#EF4B8A", // film-accentPink
+    strokeWidth: 1.5,
+    strokeDasharray: "4 3",
+    fill: "#EF4B8A",
+    fillOpacity: 0.08,
+  },
 };
 
+// Sizes are in SVG user units, i.e. PIXELS_PER_YARD (8) per yard. A real
+// player occupies about a yard, but this is a coaching diagram, not a scale
+// drawing — pieces are drawn at roughly 1.9 yd across so they read across a
+// room. Grab distance is deliberately NOT derived from these (see pick.ts),
+// which is what lets the pieces shrink without the board getting fiddlier to
+// use: at 9 (2.25 yd) all fourteen read as crowded and made the field itself
+// feel small, so this is a third of a yard back off that.
 export const PIECE_TOKENS = {
   offense: {
     fill: "#4F941D", // film-accentGreen
-    radius: 5,
+    radius: 7.5,
   },
   defense: {
     fill: "#D64B4A",
-    radius: 5,
+    radius: 7.5,
   },
   special: {
-    // thrower + mark get a heavier stroke and a slightly larger radius so
-    // they're identifiable at a glance
-    radius: 6,
+    // thrower + mark are the same size as everyone else — a bigger dot read as
+    // "more important" rather than "different". Their outline and their T / M
+    // labels are what identify them.
+    radius: 7.5,
     stroke: "#18181b", // zinc-900
     strokeWidth: 1.5,
   },
@@ -30,26 +62,25 @@ export const PIECE_TOKENS = {
     fill: "#f4f4f5", // zinc-100
     stroke: "#18181b",
     strokeWidth: 1,
-    radius: 2.5,
-    offsetPx: { dx: 6, dy: -6 }, // docked this far from the thrower, in screen pixels
+    radius: 3.5,
+    offsetPx: { dx: 10, dy: -10 }, // docked this far from the thrower, in screen pixels
   },
   markDirection: {
     stroke: "#18181b",
     strokeWidth: 1.5,
-    lengthPx: 14,
+    lengthPx: 20,
   },
   label: {
     fill: "#ffffff",
-    fontSize: 5,
-  },
-  hitArea: {
-    // Invisible pointer target; kept well above the visual radius so every
-    // piece clears the 44x44px minimum hit target regardless of its glyph size.
-    radiusPx: 22,
+    // Tracks the piece radius: a 9 px glyph in a 7.5 px circle touches the rim.
+    fontSize: 8,
   },
   focusRing: {
     stroke: "#EF4B8A",
     strokeWidth: 2,
+    // Sits outside the glyph rather than on it, so the piece's own colour
+    // stays readable while focused.
+    gap: 3,
   },
 };
 

@@ -194,7 +194,7 @@ function EntryDetailContent({
       </div>
 
       {/* Title */}
-      <h1 className="font-heading mb-6 text-5xl font-bold uppercase leading-[1.1] tracking-tight text-zinc-900 lg:text-6xl">
+      <h1 className="font-heading mb-6 text-5xl uppercase leading-[1.1] tracking-tight text-zinc-900 lg:text-6xl">
         {entry.title}
       </h1>
 
