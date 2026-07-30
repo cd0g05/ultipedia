@@ -66,12 +66,13 @@ ulti-pedia/
 │   │   ├── types.ts             # domain types + SECTIONS table + entryUrl() helper
 │   │   └── tests/
 │   ├── fieldview/              # play-design toolset (client-only; no API calls)
-│   │   ├── scene/              # shared scene model, geometry, pure ops, rAF store, presets
+│   │   ├── scene/              # shared scene model, geometry, pure ops, rAF store, selection, presets
 │   │   ├── space/              # headless strong/weak space model (framework-free)
 │   │   ├── render/             # tokens.ts (ALL visuals), SVG layers, canvas heatmap, PNG export
 │   │   ├── play/               # versioned PlayFile, validation, tween, PlayStore seam
-│   │   ├── ui/                 # FieldCanvas stage, overlay rail, tuning, readout, timeline
-│   │   └── pages/              # Whiteboard, Designer
+│   │   ├── ui/                 # FieldCanvas stage, readout, timeline, presets, overlay prefs store
+│   │   │   └── shell/          # three-pane desktop grid / mobile sheet, panel registry, panels
+│   │   └── pages/              # Whiteboard (shell-composed), Designer (pre-shell until Init. D)
 │   └── router.tsx               # / (Layout: Home/Section/EntryDetail/Search/fieldview/404) · /contribute/*
 ├── seed-kb/                   # rights-clean seed corpus (entities.json, kb_chunks.json)
 ├── eval/                      # interview eval harness + scenarios
@@ -131,7 +132,7 @@ ADR-Enc-1 below) — react-router now owns top-level routing for both verticals.
 ### Field View Architecture Decisions (ADRs)
 
 Field View is a third vertical in the same SPA and the only one with **no server component
-at all**. Full detail in [`modules/fieldview.md`](modules/fieldview.md); the two that constrain
+at all**. Full detail in [`modules/fieldview.md`](modules/fieldview.md); the ones that constrain
 future work anywhere near it:
 
 - **ADR-FV-2 — Mutable subscribe-store + rAF loop; React is never in the drag path.** Pointer
@@ -144,6 +145,15 @@ future work anywhere near it:
   drops unknown keys rather than rejecting them.** That property — not the version number — is
   the forward-compatibility guarantee. It is why the client's requested `annotations` feature
   can be added additively later instead of forcing a `formatVersion` bump and a migration.
+- **ADR-FV-11 — Field orientation lives only in `render/coords.ts`.** The field draws vertically
+  (offense attacking up), but `scene/` stays in yards and orientation-agnostic: `+x = attacking`
+  is a model fact, not a screen fact. Anything that needs screen space goes through `coords.ts`;
+  nothing else may encode which way is up.
+- **ADR-FV-13 — The shell's contextual sidebar is a typed panel registry.** Future Field View
+  initiatives (play model, motion, designer v2) add UI by calling `registerPanel(kind, Component)`,
+  **not** by editing `LeftSidebar`/`BottomSheet`/`ShellLayout`. The registry is keyed by a closed
+  union, so an unhandled selection state is a compile error rather than a blank panel. Desktop and
+  mobile read the same registry — there must never be a second path to panel content.
 
 ### Key Components
 

@@ -21,7 +21,7 @@ enhancement, not the base case.
 /skills                   Section browse grids (one Section.tsx, param'd by URL segment)
 /{section}/{slug}         Entry detail (coaching points/mistakes/variations — self-omitting; similar entries)
 /search                   Full-text + faceted search (URL-driven state; shareable/pre-filterable)
-/fieldview                Coaching whiteboard + space heatmap overlay (desktop/tablet only)
+/fieldview                Coaching whiteboard + space heatmap overlay (three-pane shell / mobile sheet)
 /fieldview/designer       Keyframed play designer (same stage, plus a timeline)
   (/field-view and /field-view/designer redirect here — the shipped URLs)
 /contribute               Intake flow (relocated from root; internals unchanged)
@@ -107,11 +107,22 @@ verified by an automated test (`contrast.test.ts`); 44×44px touch targets.
 
 ## Field View-Specific Patterns
 
-- **The tool is desktop/tablet only.** Below 768 px a coach gets a "needs a bigger screen"
-  message rather than a field squeezed to phone width — a readable refusal is the deliverable
-  there. Pure CSS (`md:hidden` / `hidden md:flex`): no resize listener, no hydration flash.
-  Tablet puts the controls in a horizontal bar under the field; at `xl` (1280) they move into a
-  320 px rail beside it. The field gets the width until there is enough for both.
+- **The tool works at every width — mobile-at-practice is a primary use case.** This reverses the
+  original "needs a bigger screen" refusal, which is gone. `/fieldview` renders a three-pane shell
+  (280 px contextual sidebar / field / collapsible 320 px Play Designer slot) at `lg` (1024 px) and
+  above; below that the field fills the viewport and the same controls live in a bottom sheet
+  (TOOLS / SELECTION / SETTINGS tabs) behind a thin handle bar. Still pure CSS — no resize
+  listener, no hydration flash. *(`/fieldview/designer` still shows the old rail until Initiative D
+  rebuilds it.)*
+- **The field is vertical, offense attacking up** — the orientation a coach sketches on a
+  whiteboard, and the one that makes a phone screen usable.
+- **The sidebar answers "what did I just click."** With nothing selected it shows offense/defense
+  visibility; selecting a player or the mark swaps the middle section to that piece's panel. Panels
+  for features that haven't shipped yet render a labelled `PENDING` placeholder, and ribbon buttons
+  for them are visibly disabled with a "Ships in a future update." tooltip — never silently inert,
+  never a blank box that reads as broken.
+- **Selecting something on mobile never yanks the sheet open** — an indicator dot appears on the
+  SELECTION tab instead, so a drag in progress is not interrupted.
 - **The heatmap repaints live under the pointer**, not on release — this is the product, and the
   architecture (ADR-FV-2) exists to protect it.
 - **Colour is never the only carrier of meaning.** The hover readout states the verdict in words
@@ -142,3 +153,10 @@ built-in preset arrangements, the heatmap ramp, and copy were all deferred to a 
 now runs against the deployed site. Built-in preset coordinates were always a first pass, not a
 calibration. One open observation from the agent's own browser check: pieces render at roughly
 1.5 yd diameter — geometrically honest, but possibly too small to read as a coaching diagram.
+
+**The fieldview-shell overhaul (2026-07-30) merged ahead of its review too**, by the same explicit
+decision. Unreviewed by anyone but the tests: the vertical field, the three-pane layout, the bottom
+sheet, and the 1024 px breakpoint — which was reasoned from the pane widths, never measured on a
+real tablet. A portrait tablet currently gets the phone treatment. The overlay legend
+(Closed / Contested / Strong space) was dropped from the whiteboard when it stopped composing
+`OverlayRail`; the shell IA has no slot for it, so restoring it is a design decision, not a patch.
