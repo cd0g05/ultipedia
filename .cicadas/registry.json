@@ -1,5 +1,36 @@
 {
   "schema_version": "2.0",
-  "initiatives": {},
-  "branches": {}
+  "initiatives": {
+    "fieldview-shell": {
+      "intent": "Rebuild Field View's chrome around a three-pane Light Film Room shell: vertical field orientation, store-based selection model, panel registry for future initiatives, and a mobile bottom-sheet layout replacing the SmallScreenNotice block.",
+      "owner": "unknown",
+      "signals": [],
+      "created_at": "2026-07-30T19:33:38.056731+00:00"
+    }
+  },
+  "branches": {
+    "feat/fieldview-shell-foundation": {
+      "intent": "Selection state added to SceneStore; vertical field orientation transform in coords.ts",
+      "modules": [
+        "frontend/src/fieldview/scene/selection.ts",
+        "frontend/src/fieldview/scene/store.ts",
+        "frontend/src/fieldview/render/coords.ts"
+      ],
+      "owner": "unknown",
+      "created_at": "2026-07-30T19:34:04.115677+00:00",
+      "worktree_path": "/Users/cartercripe/dev/code/projects/ulti-pedia-feat-fieldview-shell-foundation",
+      "initiative": "fieldview-shell"
+    },
+    "feat/fieldview-shell-tokens": {
+      "intent": "Light Film Room design tokens (SHELL_TOKENS) and Tailwind theme pass",
+      "modules": [
+        "frontend/tailwind.config",
+        "frontend/src/fieldview/render/tokens.ts"
+      ],
+      "owner": "unknown",
+      "created_at": "2026-07-30T19:34:53.954800+00:00",
+      "worktree_path": "/Users/cartercripe/dev/code/projects/ulti-pedia-feat-fieldview-shell-tokens",
+      "initiative": "fieldview-shell"
+    }
+  }
 }

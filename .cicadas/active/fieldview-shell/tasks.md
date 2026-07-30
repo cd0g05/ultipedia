@@ -1,0 +1,98 @@
+---
+summary: "34 tasks across 6 partitions (Foundation, Tokens, Panels, Desktop Shell, Mobile Sheet, Integration) plus one initiative-boundary merge task. No PR boundaries anywhere (lifecycle.json: all pr_boundaries false) — every merge is direct. Foundation and Tokens have no task dependencies on each other; Desktop and Mobile both wait on Panels+Tokens; Integration is last."
+phase: "tasks"
+when_to_load:
+  - "When selecting the next implementation task or reviewing partition completion state."
+  - "When checking which partition to start next given the approach.md dependency graph."
+depends_on:
+  - "prd.md"
+  - "ux.md"
+  - "tech-design.md"
+  - "approach.md"
+modules:
+  - "frontend/src/fieldview"
+index:
+  partition_foundation: "## Partition: feat/fieldview-shell-foundation"
+  partition_tokens: "## Partition: feat/fieldview-shell-tokens"
+  partition_panels: "## Partition: feat/fieldview-shell-panels"
+  partition_desktop: "## Partition: feat/fieldview-shell-desktop"
+  partition_mobile: "## Partition: feat/fieldview-shell-mobile"
+  partition_integration: "## Partition: feat/fieldview-shell-integration"
+  initiative_boundary: "## Initiative Boundary"
+next_section: "## Partition: feat/fieldview-shell-foundation"
+---
+
+# Tasks: fieldview-shell
+
+## Partition: feat/fieldview-shell-foundation
+
+- [ ] Define `SelectionState` union (`none | multi | offense | defense | mark`) in `scene/selection.ts` <!-- id: 1 -->
+- [ ] Implement `selectPlayer`, `clearSelection`, `selectMarquee` pure transition helpers <!-- id: 2 -->
+- [ ] Unit test each transition helper in `scene/selection.test.ts` <!-- id: 3 -->
+- [ ] Add `selection` field + dedicated `Set<() => void>` subscriber list to `createSceneStore` <!-- id: 4 -->
+- [ ] Expose `getSelection()`, `setSelection()`, `subscribeSelection()` on `SceneStore`, additive to existing interface <!-- id: 5 -->
+- [ ] Unit test that scene subscribers and selection subscribers fire independently of each other <!-- id: 6 -->
+- [ ] Add orientation rotation to `yardToPixel`/`pixelToYard` in `render/coords.ts` <!-- id: 7 -->
+- [ ] Update `getStageViewBox` for the rotated (swapped width/height) dimensions <!-- id: 8 -->
+- [ ] Unit test yard↔pixel round-trips under the new orientation <!-- id: 9 -->
+- [ ] Run full existing fieldview suite; confirm zero regressions outside touched files <!-- id: 10 -->
+
+## Partition: feat/fieldview-shell-tokens
+
+- [x] Add `SHELL_TOKENS` (accent `#be185d`, grounds `#ffffff`/`#f4f4f5`, border `#d4d4d8`) to `render/tokens.ts` <!-- id: 20 -->
+- [x] Confirm `FIELD_TOKENS`/`PIECE_TOKENS` (`#EF4B8A` etc.) remain untouched (ADR-6) <!-- id: 21 -->
+- [x] Extend Tailwind theme with the shell palette and zero-radius default <!-- id: 22 -->
+- [x] Confirm `font-heading` maps to Archivo Black with no `font-bold` variant exposed on it <!-- id: 23 -->
+- [x] Extend `tokensGuard.test.ts` to assert `SHELL_TOKENS` exists and existing tokens are unmodified <!-- id: 24 -->
+
+## Partition: feat/fieldview-shell-panels
+
+- [ ] Build `panelRegistry.ts`: `Record<SelectionStateKind, ComponentType<PanelProps>>` + `registerPanel()` <!-- id: 30 -->
+- [ ] Build `useSelection()` hook via `useSyncExternalStore` over `store.subscribeSelection`/`getSelection` <!-- id: 31 -->
+- [ ] Migrate `OverlayRail` visibility-toggle logic into `DefaultVisibilityPanel` (covers `none`/`multi`) <!-- id: 32 -->
+- [ ] Migrate `AdvancedPanel` into `AdvancedSettingsPanel` <!-- id: 33 -->
+- [ ] Build `OffensePlayerPanel` placeholder with UX copy ("Matchup and mark controls ship in a future update.") <!-- id: 34 -->
+- [ ] Build `DefensePlayerPanel` placeholder with the same copy convention <!-- id: 35 -->
+- [ ] Build `MarkPanel` placeholder with the same copy convention <!-- id: 36 -->
+- [ ] Write `shellGuard.test.ts`: registry has an entry for every `SelectionStateKind` <!-- id: 37 -->
+- [ ] Test `DefaultVisibilityPanel` and `AdvancedSettingsPanel` reproduce prior `OverlayRail`/`AdvancedPanel` behavior <!-- id: 38 -->
+
+## Partition: feat/fieldview-shell-desktop
+
+- [ ] Build `ShellLayout.tsx` desktop three-pane grid (280px / fluid / 320px) <!-- id: 40 -->
+- [ ] Build `ToolRibbon.tsx`: row of 4 side-by-side buttons, Marquee + Space View active, Throw to Player + Advanced Stats disabled with tooltip "Ships in a future update." <!-- id: 41 -->
+- [ ] Build `LeftSidebar.tsx` wiring `useSelection()` → `panelRegistry` for the middle section <!-- id: 42 -->
+- [ ] Wire Advanced Settings slide-up override (full sidebar replacement + "← Back") <!-- id: 43 -->
+- [ ] Build `RightSidebarSlot.tsx`: open/close toggle, Play Designer placeholder copy + link to `/fieldview/designer` <!-- id: 44 -->
+- [ ] Keyboard navigation: Tab/Enter/Space reach every ribbon/toggle/menu button <!-- id: 45 -->
+- [ ] `aria-disabled` on disabled ribbon buttons; confirm tooltip is reachable via keyboard focus, not hover-only <!-- id: 46 -->
+- [ ] `aria-live="polite"` on middle-section panel swap <!-- id: 47 -->
+- [ ] Test suite: selection change swaps the correct panel; ribbon disabled-state renders; right slot open/close <!-- id: 48 -->
+
+## Partition: feat/fieldview-shell-mobile
+
+- [ ] Build collapsed handle bar (ribbon icons only) <!-- id: 50 -->
+- [ ] Build expanded sheet (~46% viewport height) with TOOLS / SELECTION / SETTINGS tabs <!-- id: 51 -->
+- [ ] Wire SELECTION tab to `useSelection()` + `panelRegistry`; empty state shows "Select a player on the field to see options here." <!-- id: 52 -->
+- [ ] Selecting a player while sheet is collapsed does not auto-expand it; add indicator on SELECTION tab position <!-- id: 53 -->
+- [ ] Build Play Designer full-screen overlay variant (not a 320px slot) with the same placeholder copy <!-- id: 54 -->
+- [ ] Respect `prefers-reduced-motion`: instant show/hide instead of animated expand/collapse <!-- id: 55 -->
+- [ ] Remove `SmallScreenNotice.tsx` and its call site entirely <!-- id: 56 -->
+- [ ] Test suite: collapsed/expanded states, tab switching, empty-selection copy, reduced-motion behavior <!-- id: 57 -->
+
+## Partition: feat/fieldview-shell-integration
+
+- [ ] Wire `ShellLayout` into `Whiteboard.tsx`, replacing direct `OverlayRail`/`SmallScreenNotice` composition <!-- id: 60 -->
+- [ ] Delete `OverlayRail.tsx` and `AdvancedPanel.tsx` (superseded by shell panels) <!-- id: 61 -->
+- [ ] Relocate `PresetMenu.tsx` into the shell's bottom-menu area; confirm localStorage keys unchanged <!-- id: 62 -->
+- [ ] Verify `render/heatmap.ts` paints correctly aligned to the rotated field (patch only if a real bug surfaces; expected to need no logic change) <!-- id: 63 -->
+- [ ] Verify `render/exportImage.ts` produces a correctly-oriented PNG under rotation <!-- id: 64 -->
+- [ ] Verify `render/pick.ts` needs no change (pure yard-space, orientation-agnostic by construction) <!-- id: 65 -->
+- [ ] Check `pages/FieldStage.tsx` for orientation-dependent chrome not yet inventoried; patch if found <!-- id: 66 -->
+- [ ] Extend the Profiler-based drag test to include a selection change mid-drag; confirm 0 React commits still holds <!-- id: 67 -->
+- [ ] Run the full fieldview suite (229 existing + all new tests from Partitions 1–5); fix any regressions <!-- id: 68 -->
+- [ ] Request a deployed preview; review against desktop/mobile mockups <!-- id: 69 --> <!-- NEEDS MANUAL REVIEW: Builder + client sign-off per PRD Quality Gates -->
+
+## Initiative Boundary
+
+- [ ] Merge `initiative/fieldview-shell` directly into `main` (lifecycle has no PR at this boundary — confirm with Builder before merging, since this is a direct-to-main merge) <!-- id: 100 -->
