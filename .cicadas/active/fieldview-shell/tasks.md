@@ -89,15 +89,27 @@ independently, which is consistent but redundant) — noted here so it isn't red
 
 ## Partition: feat/fieldview-shell-desktop
 
-- [ ] Build `ShellLayout.tsx` desktop three-pane grid (280px / fluid / 320px) <!-- id: 40 -->
-- [ ] Build `ToolRibbon.tsx`: row of 4 side-by-side buttons, Marquee + Space View active, Throw to Player + Advanced Stats disabled with tooltip "Ships in a future update." <!-- id: 41 -->
-- [ ] Build `LeftSidebar.tsx` wiring `useSelection()` → `panelRegistry` for the middle section <!-- id: 42 -->
-- [ ] Wire Advanced Settings slide-up override (full sidebar replacement + "← Back") <!-- id: 43 -->
-- [ ] Build `RightSidebarSlot.tsx`: open/close toggle, Play Designer placeholder copy + link to `/fieldview/designer` <!-- id: 44 -->
-- [ ] Keyboard navigation: Tab/Enter/Space reach every ribbon/toggle/menu button <!-- id: 45 -->
-- [ ] `aria-disabled` on disabled ribbon buttons; confirm tooltip is reachable via keyboard focus, not hover-only <!-- id: 46 -->
-- [ ] `aria-live="polite"` on middle-section panel swap <!-- id: 47 -->
-- [ ] Test suite: selection change swaps the correct panel; ribbon disabled-state renders; right slot open/close <!-- id: 48 -->
+- [x] Build `ShellLayout.tsx` desktop three-pane grid (280px / fluid / 320px) <!-- id: 40 -->
+- [x] Build `ToolRibbon.tsx`: row of 4 side-by-side buttons, Marquee + Space View active, Throw to Player + Advanced Stats disabled with tooltip "Ships in a future update." <!-- id: 41 -->
+- [x] Build `LeftSidebar.tsx` wiring `useSelection()` → `panelRegistry` for the middle section <!-- id: 42 -->
+- [x] Wire Advanced Settings slide-up override (full sidebar replacement + "← Back") <!-- id: 43 -->
+- [x] Build `RightSidebarSlot.tsx`: open/close toggle, Play Designer placeholder copy + link to `/fieldview/designer` <!-- id: 44 -->
+- [x] Keyboard navigation: Tab/Enter/Space reach every ribbon/toggle/menu button <!-- id: 45 -->
+- [x] `aria-disabled` on disabled ribbon buttons; confirm tooltip is reachable via keyboard focus, not hover-only <!-- id: 46 -->
+- [x] `aria-live="polite"` on middle-section panel swap <!-- id: 47 -->
+- [x] Test suite: selection change swaps the correct panel; ribbon disabled-state renders; right slot open/close <!-- id: 48 -->
+
+**Note (deviation from plan):** ux.md describes the right-slot open and Advanced
+Settings override as animated slide transitions (with `prefers-reduced-motion`
+falling back to instant). None of tasks 40-48 call out building that animation
+explicitly, so this partition implemented instant show/hide only (a CSS
+transition pass, if wanted, is a low-risk follow-up — no state model changes
+required). Also: `ToolRibbon`'s Space-view toggle and `LeftSidebar`'s single
+`useOverlayState()` call are threaded down as props rather than each shell
+component calling the hook independently, to avoid adding a third redundant
+`fieldview.overlayPrefs` reader beyond the two the Panels partition already
+flagged (`Whiteboard.tsx` and the panels themselves) — consolidating those
+two is still Integration's call, not resolved here.
 
 ## Partition: feat/fieldview-shell-mobile
 
