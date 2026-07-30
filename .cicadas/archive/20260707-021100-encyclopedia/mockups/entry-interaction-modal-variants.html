@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ultipedia — Entry Interaction Designs</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: Oswald (Fallback) & JetBrains Mono (Data/Tags) -->
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Oswald:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        film: {
+                            base: '#ffffff', // white
+                            panel: '#f4f4f5', // zinc-100
+                            border: '#d4d4d8', // zinc-300
+                            accentPink: '#be185d', // pink-700
+                            accentGreen: '#047857' // emerald-700
+                        }
+                    },
+                    fontFamily: {
+                        heading: ['"druk"', '"druk Fallback"', '"Oswald"', '"Arial Narrow"', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                        sans: ['Helvetica Neue', 'Arial', 'sans-serif'] // Clean fallback for body
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        body { background-color: #f4f4f5; color: #18181b; overflow: hidden; }
+        * { border-radius: 0 !important; }
+        
+        /* Custom scrollbar for light UI */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #f4f4f5; }
+        ::-webkit-scrollbar-thumb { background: #d4d4d8; }
+        ::-webkit-scrollbar-thumb:hover { background: #be185d; }
+    </style>
+</head>
+<body class="antialiased h-screen flex flex-col">
+
+    <!-- Mockup Controls -->
+    <div class="bg-white border-b border-film-border text-xs font-mono p-3 flex justify-center gap-6 text-zinc-600 relative z-[100] shadow-sm">
+        <span class="font-bold text-zinc-900">INTERACTION MODELS:</span>
+        <button onclick="showDesign('A')" class="hover:text-film-accentPink transition-colors font-bold text-film-accentPink" id="btn-designA">[ DESIGN A: INSPECTOR PANEL ]</button>
+        <button onclick="showDesign('B')" class="hover:text-film-accentPink transition-colors font-bold text-zinc-500" id="btn-designB">[ DESIGN B: FOCUS MODAL ]</button>
+        <button onclick="showDesign('NONE')" class="hover:text-zinc-900 transition-colors font-bold text-zinc-500 ml-8" id="btn-none">[ CLOSE ALL ]</button>
+    </div>
+
+    <!-- Background Context (Simulated Browse Grid to show layering) -->
+    <div class="flex-1 p-8 overflow-hidden relative opacity-40 pointer-events-none select-none">
+        <h2 class="font-heading text-3xl uppercase tracking-wide text-zinc-900 mb-6">Drills</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <!-- Simulated background cards -->
+            <div class="bg-white border border-film-border h-64">
+                <div class="h-32 bg-zinc-200 border-b border-film-border"></div>
+                <div class="p-4 space-y-2"><div class="h-4 bg-zinc-200 w-3/4"></div><div class="h-3 bg-zinc-100 w-full"></div></div>
+            </div>
+            <div class="bg-white border border-film-accentPink shadow-[0_0_0_1px_#be185d] h-64">
+                <div class="h-32 bg-zinc-200 border-b border-film-border relative flex items-center justify-center">
+                    <span class="font-mono text-xs text-film-accentPink font-bold">CURRENTLY SELECTED</span>
+                </div>
+                <div class="p-4 space-y-2"><div class="h-4 bg-zinc-200 w-3/4"></div><div class="h-3 bg-zinc-100 w-full"></div></div>
+            </div>
+            <div class="bg-white border border-film-border h-64">
+                <div class="h-32 bg-zinc-200 border-b border-film-border"></div>
+                <div class="p-4 space-y-2"><div class="h-4 bg-zinc-200 w-3/4"></div><div class="h-3 bg-zinc-100 w-full"></div></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- DESIGN A: INSPECTOR PANEL (SLIDE-OUT)      -->
+    <!-- ========================================== -->
+    <aside id="designA" class="fixed inset-y-0 right-0 w-[450px] bg-white border-l border-film-border shadow-2xl z-50 flex flex-col pt-[45px] transition-transform duration-300 translate-x-0">
+        
+        <!-- Header / Toolbar -->
+        <div class="h-12 border-b border-film-border bg-film-panel flex items-center justify-between px-4 shrink-0">
+            <span class="bg-zinc-900 text-white font-mono text-[10px] font-bold px-2 py-1 uppercase">Drill</span>
+            <div class="flex gap-2">
+                <button class="text-zinc-400 hover:text-zinc-900 transition-colors" title="Expand to full window">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
+                </button>
+                <button class="text-zinc-400 hover:text-film-accentPink transition-colors" onclick="showDesign('NONE')" title="Close Panel">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Scrollable Content -->
+        <div class="flex-1 overflow-y-auto">
+            <!-- Media Block (Top-heavy focus) -->
+            <div class="aspect-video bg-zinc-100 relative flex items-center justify-center border-b border-film-border group cursor-pointer">
+                <div class="absolute inset-0 bg-[linear-gradient(to_right,#e4e4e7_1px,transparent_1px),linear-gradient(to_bottom,#e4e4e7_1px,transparent_1px)] bg-[size:1rem_1rem]"></div>
+                
+                <div class="w-12 h-12 bg-white border border-zinc-300 flex items-center justify-center z-10 shadow-sm group-hover:border-film-accentPink transition-colors">
+                    <svg class="w-5 h-5 text-zinc-900 ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                </div>
+                <span class="absolute bottom-2 left-2 font-mono text-[10px] bg-white px-1.5 border border-zinc-200 z-10">CLIP_01.MP4</span>
+            </div>
+
+            <div class="p-6">
+                <!-- Title & Meta -->
+                <h2 class="font-heading text-3xl uppercase text-zinc-900 mb-4 leading-tight">Give-and-Go Warmup</h2>
+                
+                <div class="flex flex-wrap gap-2 font-mono text-[10px] uppercase tracking-wider text-film-accentGreen font-bold mb-6 pb-6 border-b border-film-border">
+                    <span class="bg-zinc-50 border border-film-border px-2 py-1">Beginner</span>
+                    <span class="bg-zinc-50 border border-film-border px-2 py-1">10 min</span>
+                    <span class="bg-zinc-50 border border-film-border px-2 py-1">6+ players</span>
+                </div>
+
+                <!-- Text Content Blocks -->
+                <div class="space-y-8">
+                    <!-- Block 1 -->
+                    <div>
+                        <h3 class="font-mono text-xs text-film-accentPink font-bold uppercase tracking-widest mb-3">01 // Instructions</h3>
+                        <ol class="list-decimal list-inside font-sans text-sm text-zinc-700 space-y-2 leading-relaxed">
+                            <li>Form two lines facing each other, 15 yards apart.</li>
+                            <li>Player 1 throws a forehand to Player 2.</li>
+                            <li>Immediately after release, Player 1 sprints diagonally.</li>
+                            <li>Player 2 receives the disc and immediately throws a leading backhand pass in stride.</li>
+                        </ol>
+                    </div>
+
+                    <!-- Block 2 -->
+                    <div>
+                        <h3 class="font-mono text-xs text-film-accentPink font-bold uppercase tracking-widest mb-3">02 // Coaching Points</h3>
+                        <ul class="font-sans text-sm text-zinc-700 space-y-3">
+                            <li class="pl-3 border-l-2 border-film-accentGreen">
+                                <strong class="text-zinc-900">Explosive first step:</strong> Do not watch your throw. Sprint immediately upon release.
+                            </li>
+                            <li class="pl-3 border-l-2 border-film-accentGreen">
+                                <strong class="text-zinc-900">Lead the receiver:</strong> Put the disc out in space so they don't break stride.
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Action Footer -->
+        <div class="p-4 bg-film-panel border-t border-film-border flex gap-2 shrink-0">
+            <button class="flex-1 bg-white border border-zinc-900 text-zinc-900 font-mono text-xs font-bold py-3 hover:bg-zinc-900 hover:text-white transition-colors uppercase tracking-wider">Add to Plan</button>
+            <button class="px-4 bg-white border border-film-border text-zinc-600 hover:text-film-accentPink transition-colors" title="Share">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
+            </button>
+        </div>
+    </aside>
+
+
+    <!-- ========================================== -->
+    <!-- DESIGN B: FOCUS MODAL (SPLIT SCREEN)       -->
+    <!-- ========================================== -->
+    <div id="designB" class="fixed inset-0 z-50 flex items-center justify-center pt-[45px] bg-zinc-900/60 backdrop-blur-sm hidden">
+        
+        <!-- Modal Container -->
+        <div class="bg-white w-[90%] max-w-6xl h-[80vh] max-h-[800px] flex flex-col border border-zinc-400 shadow-2xl relative">
+            
+            <!-- Global Modal Header -->
+            <div class="h-12 border-b border-film-border flex items-center justify-between px-4 shrink-0 bg-white absolute top-0 left-0 right-0 z-10">
+                <div class="flex items-center gap-3">
+                    <span class="bg-zinc-900 text-white font-mono text-[10px] font-bold px-2 py-1 uppercase">Drill</span>
+                    <span class="font-mono text-xs text-zinc-500 uppercase tracking-widest">Entry ID: 4092</span>
+                </div>
+                <button class="text-zinc-400 hover:text-film-accentPink transition-colors font-mono text-xs font-bold flex items-center gap-2" onclick="showDesign('NONE')">
+                    [ CLOSE ] <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+
+            <!-- Split Content Area -->
+            <div class="flex-1 flex flex-col md:flex-row mt-12 overflow-hidden">
+                
+                <!-- Left Side: Sticky Visual Focus -->
+                <div class="w-full md:w-1/2 bg-film-panel border-r border-film-border flex flex-col relative">
+                    <!-- Media Area takes up all available space -->
+                    <div class="flex-1 relative flex items-center justify-center p-8">
+                        <div class="absolute inset-0 bg-[linear-gradient(to_right,#e4e4e7_1px,transparent_1px),linear-gradient(to_bottom,#e4e4e7_1px,transparent_1px)] bg-[size:2rem_2rem]"></div>
+                        
+                        <!-- Main Diagram/Video Frame -->
+                        <div class="w-full aspect-square max-w-md bg-white border border-zinc-300 shadow-sm relative z-10 flex flex-col">
+                            <div class="h-8 border-b border-zinc-200 bg-zinc-50 flex items-center justify-between px-3">
+                                <span class="font-mono text-[10px] text-zinc-500">PLAYBOOK_VIEW_V1</span>
+                                <div class="flex gap-1"><div class="w-2 h-2 bg-zinc-300 rounded-full"></div><div class="w-2 h-2 bg-zinc-300 rounded-full"></div></div>
+                            </div>
+                            <div class="flex-1 flex items-center justify-center text-zinc-400 font-mono text-sm">
+                                [ INTERACTIVE DIAGRAM ]
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Side: Scrollable Information -->
+                <div class="w-full md:w-1/2 bg-white overflow-y-auto">
+                    <div class="p-10 lg:p-14">
+                        
+                        <!-- Title & Meta -->
+                        <h2 class="font-heading text-4xl lg:text-5xl uppercase text-zinc-900 mb-6 leading-none">Give-and-Go Warmup</h2>
+                        
+                        <div class="flex flex-wrap gap-2 font-mono text-xs uppercase tracking-wider text-film-accentGreen font-bold mb-8">
+                            <span class="bg-white border border-film-border px-2 py-1">Beginner</span>
+                            <span class="bg-white border border-film-border px-2 py-1">10 min</span>
+                            <span class="bg-white border border-film-border px-2 py-1">6+ players</span>
+                        </div>
+
+                        <p class="font-sans text-base text-zinc-600 mb-10 border-l-4 border-film-border pl-4">
+                            A fast-paced passing warmup that builds first-step quickness and timing.
+                        </p>
+
+                        <!-- Content Grid Blocks -->
+                        <div class="space-y-12">
+                            
+                            <!-- Instruction Block -->
+                            <div>
+                                <div class="flex items-center gap-3 mb-4 border-b border-film-border pb-2">
+                                    <span class="bg-film-accentPink text-white font-mono text-[10px] px-2 py-1">01</span>
+                                    <h3 class="font-mono text-sm text-zinc-900 font-bold uppercase tracking-widest">Setup & Instructions</h3>
+                                </div>
+                                <ol class="list-decimal list-outside ml-4 font-sans text-sm text-zinc-700 space-y-3 leading-relaxed">
+                                    <li class="pl-2">Form two lines facing each other, approximately 15 yards apart. Place a cone 5 yards to the side of one line.</li>
+                                    <li class="pl-2">Player 1 throws a forehand to Player 2.</li>
+                                    <li class="pl-2">Immediately after releasing the disc, Player 1 sprints diagonally towards the cone.</li>
+                                    <li class="pl-2">Player 2 receives the disc and immediately throws a leading backhand pass to Player 1 in stride.</li>
+                                </ol>
+                            </div>
+
+                            <!-- Coaching Block -->
+                            <div>
+                                <div class="flex items-center gap-3 mb-4 border-b border-film-border pb-2">
+                                    <span class="bg-film-accentPink text-white font-mono text-[10px] px-2 py-1">02</span>
+                                    <h3 class="font-mono text-sm text-zinc-900 font-bold uppercase tracking-widest">Coaching Focus</h3>
+                                </div>
+                                
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div class="border border-film-border p-4 bg-film-panel">
+                                        <h4 class="font-heading text-lg text-zinc-900 mb-1">Explosive Step</h4>
+                                        <p class="font-sans text-xs text-zinc-600">Do not watch your throw. Sprint immediately upon release to catch the defense off guard.</p>
+                                    </div>
+                                    <div class="border border-film-border p-4 bg-film-panel">
+                                        <h4 class="font-heading text-lg text-zinc-900 mb-1">Lead Space</h4>
+                                        <p class="font-sans text-xs text-zinc-600">Put the disc out in space so the receiver doesn't have to break stride to catch it.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Action Block -->
+                            <div class="pt-6">
+                                <button class="w-full bg-white border-2 border-zinc-900 text-zinc-900 font-mono text-sm font-bold py-4 hover:bg-zinc-900 hover:text-white transition-colors uppercase tracking-widest">
+                                    + Add to Current Practice Plan
+                                </button>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- JS for Toggling Interaction Models -->
+    <script>
+        function showDesign(designId) {
+            const panelA = document.getElementById('designA');
+            const modalB = document.getElementById('designB');
+            const btnA = document.getElementById('btn-designA');
+            const btnB = document.getElementById('btn-designB');
+
+            // Reset states
+            btnA.className = "hover:text-film-accentPink transition-colors font-bold text-zinc-500";
+            btnB.className = "hover:text-film-accentPink transition-colors font-bold text-zinc-500";
+            
+            // Hide Modal B
+            modalB.classList.add('hidden');
+            
+            // Hide Panel A (Slide out to right)
+            panelA.classList.remove('translate-x-0');
+            panelA.classList.add('translate-x-full');
+
+            if(designId === 'A') {
+                panelA.classList.remove('translate-x-full');
+                panelA.classList.add('translate-x-0');
+                btnA.classList.add('text-film-accentPink');
+                btnA.classList.remove('text-zinc-500');
+            } else if (designId === 'B') {
+                modalB.classList.remove('hidden');
+                btnB.classList.add('text-film-accentPink');
+                btnB.classList.remove('text-zinc-500');
+            }
+        }
+    </script>
+</body>
+</html>

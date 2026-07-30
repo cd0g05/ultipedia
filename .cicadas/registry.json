@@ -1,0 +1,87 @@
+{
+  "schema_version": "2.0",
+  "initiatives": {
+    "ulti-pedia-form": {
+      "intent": "Knowledge-intake front door for Ulti-pedia: mobile-first structured form (v1) evolving into an AI-guided coverage-aware interview with voice + seed KB (v2), all writing one versioned envelope to Supabase via a FastAPI backend.",
+      "owner": "unknown",
+      "signals": [],
+      "created_at": "2026-07-02T00:29:37.604119+00:00"
+    }
+  },
+  "branches": {
+    "feat/foundation": {
+      "intent": "Blocking foundation: versioned submission envelope schema, Supabase submissions+form_events tables, FastAPI skeleton, server-side validation/anti-troll, POST /api/submissions and /api/events. The contract every other partition depends on.",
+      "modules": [
+        "backend/app/services",
+        "backend/app/db",
+        "backend/app/api",
+        "backend/app/schemas"
+      ],
+      "owner": "unknown",
+      "created_at": "2026-07-02T01:02:08.077542+00:00",
+      "worktree_path": "/Users/cartercripe/dev/code/projects/ulti-pedia-feat-foundation",
+      "initiative": "ulti-pedia-form"
+    },
+    "feat/form-ui": {
+      "intent": "Mobile-first React form: tutorial->path-select->type sections (Drills/Strategies/Other), optional fields + freeform, tap tooltips, localStorage autosave + save + retry queue, contributor+consent+prefill, confirm->thank-you->submit-another. Posts to the Foundation submission API.",
+      "modules": [
+        "frontend/src/state",
+        "frontend/src/sections",
+        "frontend/src/api",
+        "frontend/src/ui"
+      ],
+      "owner": "unknown",
+      "created_at": "2026-07-02T01:51:43.566332+00:00",
+      "worktree_path": "/Users/cartercripe/dev/code/projects/ulti-pedia-feat-form-ui",
+      "initiative": "ulti-pedia-form"
+    },
+    "feat/seed-kb-entities": {
+      "intent": "Seed KB + canonical entity registry: rights-clean seed corpus to the envelope schema, entities/entity_coverage/kb_chunks tables + pgvector, embedding pipeline, entities.py (semantic resolve -> confirm-then-resolve) and coverage.py (per-aspect gaps/record). Grounds the v2 interview.",
+      "modules": [
+        "backend/app/services",
+        "seed-kb",
+        "backend/app/db"
+      ],
+      "owner": "unknown",
+      "created_at": "2026-07-02T01:51:43.788711+00:00",
+      "worktree_path": "/Users/cartercripe/dev/code/projects/ulti-pedia-feat-seed-kb-entities",
+      "initiative": "ulti-pedia-form"
+    },
+    "feat/polish-analytics": {
+      "intent": "Polish + analytics for the v1 form: Framer Motion section transitions + tutorial->info-bar shrink, warm per-section palette with AA contrast + prefers-reduced-motion, learn-more documentation page, analytics wiring (Plausible/Umami) + field_completed funnel event.",
+      "modules": [
+        "frontend/src/ui",
+        "frontend/src/sections"
+      ],
+      "owner": "unknown",
+      "created_at": "2026-07-02T02:19:13.591571+00:00",
+      "worktree_path": "/Users/cartercripe/dev/code/projects/ulti-pedia-feat-polish-analytics",
+      "initiative": "ulti-pedia-form"
+    },
+    "feat/ai-interview": {
+      "intent": "AI interview engine: hybrid preset->AI-generated follow-ups grounded in the seed KB (RAG), per-aspect coverage routing with compliment-pivot deflection, confirm-then-resolve entity matching, guardrails, /api/interview/* (start/turn/resume/submit) with per-turn autosave, conversational data model writing one envelope row, a chat UI, and an eval harness. LLM behind an interface (FakeLLM for tests; Anthropic when keyed).",
+      "modules": [
+        "eval",
+        "backend/app/services",
+        "backend/app/api",
+        "frontend/src/interview"
+      ],
+      "owner": "unknown",
+      "created_at": "2026-07-02T04:24:48.004928+00:00",
+      "worktree_path": "/Users/cartercripe/dev/code/projects/ulti-pedia-feat-ai-interview",
+      "initiative": "ulti-pedia-form"
+    },
+    "feat/persist-v2": {
+      "intent": "Persist v2 interview state to Supabase behind existing interfaces: entities + variants, entity_coverage (write-through), and interview sessions (resume across restart). In-memory remains the default/fallback; Supabase-backed when configured. Registry/coverage hydrate from Supabase at startup.",
+      "modules": [
+        "backend/app/db",
+        "backend/app/services",
+        "backend/app/api"
+      ],
+      "owner": "unknown",
+      "created_at": "2026-07-02T05:24:16.072542+00:00",
+      "worktree_path": "/Users/cartercripe/dev/code/projects/ulti-pedia-feat-persist-v2",
+      "initiative": "ulti-pedia-form"
+    }
+  }
+}

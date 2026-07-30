@@ -1,0 +1,71 @@
+{
+  "name": "encyclopedia",
+  "type": "initiative",
+  "registry_entry": {
+    "intent": "Public, no-login encyclopedia of ultimate frisbee drills/strategies/formations/plays/skills plus full-text search & attribute filtering (PRD Features 1-2), built into the existing Vite React SPA + FastAPI/Supabase backend via a polymorphic entries schema, EncyclopediaService facade, and react-router-dom; encyclopedia owns '/', intake form relocates to /contribute.",
+    "owner": "unknown",
+    "signals": [],
+    "created_at": "2026-07-05T20:06:29.482714+00:00"
+  },
+  "timestamp": "20260707-021100",
+  "associated_branches": {
+    "feat/encyclopedia-foundation": {
+      "intent": "Blocking backend root: entries/tags/entry_tags/media schema (migration 006), EncyclopediaService facade (search_entries/get_entry/get_similar) with Factory Method/Flyweight/Chain of Responsibility/Strategy patterns, and read-only /api/entries, /api/entries/{type}/{slug}, /api/search endpoints. status='published' gating enforced at the service layer.",
+      "modules": [
+        "backend/app/db/migrations",
+        "backend/app/api",
+        "backend/app/services"
+      ],
+      "owner": "unknown",
+      "created_at": "2026-07-05T20:07:02.031355+00:00",
+      "worktree_path": "/Users/cartercripe/dev/code/projects/ulti-pedia-feat-encyclopedia-foundation",
+      "initiative": "encyclopedia"
+    },
+    "feat/frontend-routing": {
+      "intent": "Frontend routing scaffold: introduces react-router-dom, mounts encyclopedia shell at '/' (placeholder) and existing intake app at /contribute/*, audits intake for root-path-dependent assumptions (localStorage keys, absolute nav) and fixes any found.",
+      "modules": [
+        "frontend/src/intake",
+        "frontend/src/router.tsx",
+        "frontend/src/main.tsx"
+      ],
+      "owner": "unknown",
+      "created_at": "2026-07-05T20:07:04.860507+00:00",
+      "worktree_path": "/Users/cartercripe/dev/code/projects/ulti-pedia-feat-frontend-routing",
+      "initiative": "encyclopedia"
+    },
+    "feat/encyclopedia-browse": {
+      "intent": "PRD Feature 1 (The Encyclopedia): homepage, five section browse pages via one type-parameterized Section.tsx, entry detail template with self-omitting sections + tag-overlap Similar Entries; replaces routing placeholder root",
+      "modules": [
+        "frontend/src/encyclopedia/components",
+        "frontend/src/encyclopedia/types.ts",
+        "frontend/src/encyclopedia/pages",
+        "frontend/src/encyclopedia/api"
+      ],
+      "owner": "unknown",
+      "created_at": "2026-07-06T07:08:17.546238+00:00",
+      "initiative": "encyclopedia"
+    },
+    "feat/encyclopedia-search": {
+      "intent": "PRD Feature 2 (Search, Filtering & Discovery): persistent header search bar, /search results page, AND-across/OR-within filter panel + chips, sort controls, non-dead-end empty state",
+      "modules": [
+        "frontend/src/encyclopedia/components/FilterPanel.tsx",
+        "frontend/src/encyclopedia/pages/Search.tsx",
+        "frontend/src/encyclopedia/components/FilterChips.tsx"
+      ],
+      "owner": "unknown",
+      "created_at": "2026-07-06T07:08:19.065058+00:00",
+      "initiative": "encyclopedia"
+    },
+    "feat/encyclopedia-seo-polish": {
+      "intent": "Partition 5 convergence: Seo.tsx (helmet + JSON-LD HowTo), build-time sitemap, loading skeletons + error/retry states, accessibility pass (aria/keyboard/contrast/reduced-motion), plus merge consolidations (search restyle to Light Film Room, type dedup, film-* tokens, mobile header search)",
+      "modules": [
+        "frontend/scripts",
+        "frontend/src/encyclopedia/seo",
+        "frontend/src/encyclopedia"
+      ],
+      "owner": "unknown",
+      "created_at": "2026-07-06T19:08:41.749218+00:00",
+      "initiative": "encyclopedia"
+    }
+  }
+}
