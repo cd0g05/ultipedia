@@ -1,0 +1,10 @@
+{
+  "pace": "all",
+  "requirements_source": "doc",
+  "requirements_docs": [
+    "form-plan.md",
+    "form-plan-review.md"
+  ],
+  "building_on_ai": true,
+  "eval_status": "will_do"
+}

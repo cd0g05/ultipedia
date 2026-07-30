@@ -1,0 +1,33 @@
+{
+  "schema_version": "2.0",
+  "entries": [
+    {
+      "timestamp": "2026-07-02T01:50:17.162286+00:00",
+      "branch": "feat/foundation",
+      "summary": "Foundation: submission envelope schema, Supabase storage (sole writer + in-memory fallback), server-side validation/anti-troll, POST /api/submissions + /api/events, migrations 001/002, 12 passing tests.",
+      "decisions": "",
+      "modules": []
+    },
+    {
+      "timestamp": "2026-07-02T02:16:21.208859+00:00",
+      "branch": "feat/form-ui",
+      "summary": "Mobile-first React intake form over the submission API: flow, optional fields+freeform, autosave/restore, offline retry queue, contributor prefill, switch-away warning, tap tooltips. 13 tests.",
+      "decisions": "",
+      "modules": []
+    },
+    {
+      "timestamp": "2026-07-02T02:16:32.787754+00:00",
+      "branch": "feat/seed-kb-entities",
+      "summary": "Seed corpus + entity resolution (confirm-then-resolve) + per-aspect coverage model + RAG index + pgvector migrations. 12 tests.",
+      "decisions": "",
+      "modules": []
+    },
+    {
+      "timestamp": "2026-07-02T02:28:31.892263+00:00",
+      "branch": "feat/polish-analytics",
+      "summary": "Polish + analytics: Framer Motion transitions, per-section palette, reduced-motion, learn-more page, collapsible info bar, Plausible loader + field_completed. v1 shippable. 16 frontend tests.",
+      "decisions": "",
+      "modules": []
+    }
+  ]
+}

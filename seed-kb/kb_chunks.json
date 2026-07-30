@@ -1,0 +1,30 @@
+{
+  "_note": "Rights-clean grounding chunks (original summaries) used to keep interview questions domain-credible via RAG. Not copied from external sources.",
+  "chunks": [
+    {
+      "kind": "terminology",
+      "title": "Cut",
+      "content": "A cut is a sharp, deliberate move by an offensive player to get open for a pass, usually setting it up with a fake or jab step in the opposite direction before exploding to the target."
+    },
+    {
+      "kind": "terminology",
+      "title": "Force",
+      "content": "The force is the side of the field the marker takes away, funneling throws to the other side so the defense can predict and pressure the flow. Common forces are force-flick, force-backhand, force-home, and force-away."
+    },
+    {
+      "kind": "drill",
+      "title": "Warmup drill purpose",
+      "content": "Warmup drills prepare a team physically and mentally: raising heart rate, grooving throwing mechanics, and getting players to set up cuts crisply from the start rather than drifting into them."
+    },
+    {
+      "kind": "strategy",
+      "title": "When to run zone",
+      "content": "Zone defense is often chosen in high wind or against teams with weak throwers, trading big-yardage risk for forcing many short throws and generating turnovers on execution errors."
+    },
+    {
+      "kind": "general",
+      "title": "Handler movement",
+      "content": "Good handler movement keeps the disc alive after a swing or dump: resetting position, giving an up-line option, and maintaining a stall-count reset so the offense never gets stuck."
+    }
+  ]
+}
