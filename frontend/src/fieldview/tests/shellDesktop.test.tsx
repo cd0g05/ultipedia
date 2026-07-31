@@ -15,6 +15,7 @@ import { RightSidebarSlot } from "../ui/shell/RightSidebarSlot";
 import { ToolRibbon } from "../ui/shell/ToolRibbon";
 import { SceneStoreProvider } from "../ui/shell/sceneStore";
 import { resetThrowMode } from "../ui/shell/throwMode";
+import { normalize } from "../scene/possession";
 import type { SceneStore } from "../scene/store";
 
 function makeStore(): SceneStore {
@@ -69,6 +70,27 @@ describe("ToolRibbon", () => {
     throwBtn.focus();
     expect(throwBtn).toHaveFocus();
     expect(screen.getByRole("tooltip", { name: "Nobody has the disc." })).toBeInTheDocument();
+  });
+
+  it("disables Throw to Player when a real scene has a loose disc", () => {
+    const store = makeStore();
+    store.mutate((draft) => {
+      draft.possession = null;
+      normalize(draft);
+    });
+    render(
+      <SceneStoreProvider store={store}>
+        <ToolRibbon spaceOn={false} onToggleSpace={() => {}} />
+      </SceneStoreProvider>,
+    );
+
+    const throwBtn = screen.getByRole("button", { name: "Throw to Player" });
+    expect(throwBtn).toHaveAttribute("aria-disabled", "true");
+    expect(screen.getByRole("tooltip", { name: "Nobody has the disc." })).toBeInTheDocument();
+    // aria-disabled, not native disabled: pressing it must do nothing rather
+    // than arm a tool with no disc to throw.
+    fireEvent.click(throwBtn);
+    expect(throwBtn).not.toHaveAttribute("aria-pressed", "true");
   });
 
   it("arms and disarms Throw to Player via aria-pressed when somebody has the disc", () => {

@@ -147,6 +147,24 @@ describe("play-model panels (offense/defense/mark player selected)", () => {
     );
   });
 
+  it("MarkPanel's force click schedules a repaint, so the heatmap follows the mark", async () => {
+    const store = makeStore();
+    let frames = 0;
+    store.onFrame(() => {
+      frames += 1;
+    });
+    withStore(<MarkPanel selection={{ kind: "mark", id: "d1" }} />, store);
+
+    fireEvent.click(screen.getByRole("button", { name: "Around" }));
+    // The force moves a piece through store.mutate, which is the same
+    // coalesced frame channel a drag repaints on (canon ADR-2/ADR-3) — the
+    // panel does not paint anything itself.
+    await act(async () => {
+      await new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
+    });
+    expect(frames).toBeGreaterThan(0);
+  });
+
   it("MarkPanel reads Custom once the mark is dragged off a preset", () => {
     const store = makeStore();
     withStore(<MarkPanel selection={{ kind: "mark", id: "d1" }} />, store);
