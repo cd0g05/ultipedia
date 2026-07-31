@@ -36,6 +36,12 @@ backend, no Supabase, no shared state with the other two.
   layer. The space model is a pure framework-free library with no UI imports. Do not "clean this
   up" by lifting drag state into React — it is what makes the live repaint possible. Selection
   state follows the same rule (store field + own subscriber set, read via `useSyncExternalStore`).
+- Field View motion: `motion/` is a second headless library (like `space/`). One pure
+  `step(state, dt)` drives both the live rAF loop and a headless `simulate()`. Defenders seek a
+  **cushion point** — the cutter's position `react` seconds ago, plus a velocity lead, pushed
+  goalside — not the cutter. Motion never redeclares `vmax`/`react`/flight time (the space model
+  owns them). Routes are **transient**: no `Scene` or format change. Fixed timestep; one
+  `store.mutate()` per rendered frame; React never sees positions.
 - Field View play model: `Scene` stores **possession** and **matchups**; `thrower`/`mark` roles are
   *derived* by `possession.ts`'s `normalize()`, which is the only writer of `Player.role` (a guard
   test enforces it). **Force is never stored** — presets move the mark, and the force is read back
@@ -80,9 +86,12 @@ id→title resolution. `/api/tags` endpoint (filter vocabulary is a frontend con
 Field View: annotations (arrows/text/cones — key name reserved, `validate.ts` drops unknown keys
 so it stays additive), server-side play storage or URL sharing (`PlayStore` seam exists).
 Phone support ships (bottom sheet). Throw-to-player, matchups, and force controls ship too
-(Initiative B, 2026-07-31). Still stubs in the shell: advanced stats, motion/auto-tracking
-(Initiative C), and the frame-based designer in the right slot (D) — `Designer.tsx` remains the
-pre-shell page until D. Disc *flight animation* is deferred to C, where the motion timing lives.
+(Initiative B, 2026-07-31), as do motion physics, defender auto-tracking, multi-waypoint cuts and
+animated disc flight (Initiative C, 2026-07-31). Still a stub in the shell: advanced stats; and the
+frame-based designer in the right slot (D) — `Designer.tsx` remains the pre-shell page until D.
+Deferred out of C: **best-positioned-defender selection** (the assigned defender takes every cut)
+and **saving routes** (D owns that format). Motion tunables are reasoned, not calibrated, and are
+draggable from Advanced Settings.
 
 **Deployed**: frontend only, on Vercel (auto-deploys `main`, root dir `frontend/`). The backend
 is NOT deployed — only `/fieldview` works on the live site. Sitemap `SITE_URL` needs the real

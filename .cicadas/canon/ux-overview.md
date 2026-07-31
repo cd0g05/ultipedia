@@ -122,6 +122,20 @@ verified by an automated test (`contrast.test.ts`); 44×44px touch targets.
   mark shows force controls. Anything not yet shipped is *visibly* pending rather than silently
   inert: a labelled placeholder in a panel, or a disabled ribbon button with a "Ships in a future
   update." tooltip (Advanced Stats is the last one). Never a blank box that reads as broken.
+- **Armed modes all share one grammar.** Throwing and destination-picking arm the same way
+  (`aria-pressed` on the arming control, one line of prose saying what is expected) and cancel the
+  same five ways: Escape, re-clicking the control, selecting something else, clicking the wrong kind
+  of thing, or completing. A coach who learned Throw already knows Route. The one deliberate
+  inversion: throwing *highlights* pieces because a piece is the target, while picking
+  de-emphasises them because the grass is.
+- **Motion is a property of a selected player, not a global tool.** There is no motion button in the
+  ribbon — the ribbon is a fixed 2×2 shared verbatim by both shells. Route controls (Set
+  Destination / Add Waypoint / Clear / Run / Stop / Reset) live in the offensive player's own panel,
+  below its identity lines, the same order the defender panel uses. Waypoints are numbered square
+  markers, draggable to adjust a cut and re-run it.
+- **While a cut runs, the field is read-only and says so.** Dragging is suppressed, and a RUNNING
+  badge sits on the canvas itself — because on a phone the bottom sheet may be collapsed over the
+  panel that would otherwise report it.
 - **A throw is one click, and the tool says it's armed.** The Throw tool highlights eligible
   receivers and shows a hint; clicking one moves the disc, the thrower role, and the mark together.
   Escape, empty grass, a defender, re-clicking Throw, or starting a drag all cancel — a coach can
@@ -166,6 +180,12 @@ built-in preset arrangements, the heatmap ramp, and copy were all deferred to a 
 now runs against the deployed site. Built-in preset coordinates were always a first pass, not a
 calibration. One open observation from the agent's own browser check: pieces render at roughly
 1.5 yd diameter — geometrically honest, but possibly too small to read as a coaching diagram.
+
+**Motion (2026-07-31) is unreviewed in a specific way**: the pursuit model is asserted as geometry
+and passes, but whether it *looks* like defense to a coach has never been judged. The tunables
+(`accel`, `decel`, `cushion`, `lead`) are reasoned rather than measured and live on sliders in
+Advanced Settings, so correcting them costs a drag. One known question: at defaults a defender with
+a 3 yd cushion ends level with a cutter sprinting deep from a standstill.
 
 **The fieldview-shell overhaul (2026-07-30) and the play model (2026-07-31) merged ahead of their
 reviews too**, by the same explicit decision. Unreviewed from the play model: the nine force-preset

@@ -66,6 +66,7 @@ ulti-pedia/
 │   │   ├── types.ts             # domain types + SECTIONS table + entryUrl() helper
 │   │   └── tests/
 │   ├── fieldview/              # play-design toolset (client-only; no API calls)
+│   │                           #   scene/ space/ motion/ render/ play/ ui/ pages/
 │   │   ├── scene/              # scene model + geometry, pure ops, rAF store, selection,
 │   │   │                       #   possession/matchups/force, presets
 │   │   ├── space/              # headless strong/weak space model (framework-free)
@@ -156,6 +157,16 @@ future work anywhere near it:
   that derivation rather than dropping it: `normalize()` is the single writer of `Player.role`, and
   a guard test enforces it statically and behaviourally. Force is likewise never stored — the space
   model derives it from where the mark stands, so force presets simply move the mark.
+- **ADR-FV-26 — Simulation runs on a fixed timestep, and the driver is the only clock.** Field View
+  had no notion of time until 2026-07-31: the rAF was a repaint coalescer fired by mutations. The
+  motion driver clamps real elapsed time per frame, consumes it in `1/120 s` bites, and writes **one
+  `store.mutate()` per rendered frame** — so a run is reproducible whatever the host's frame pacing,
+  which is what lets one pure `step()` drive both live playback and a headless `simulate()` that
+  Initiative D can replay. React is told run *status* and never positions; ADR-FV-2 is unchanged.
+- **ADR-FV-24 — There is one answer to each physical question.** `motion/` must not declare a top
+  speed, a reaction time, or a disc flight duration: those are the space model's `SpaceParams` and
+  `flightTime()`, and the heatmap is already drawn from them. A guard test fails the build on a
+  second value. This is the same rule as derived-force and derived-roles, applied to physics.
 - **ADR-FV-13 — The shell's contextual sidebar is a typed panel registry.** Future Field View
   initiatives (play model, motion, designer v2) add UI by calling `registerPanel(kind, Component)`,
   **not** by editing `LeftSidebar`/`BottomSheet`/`ShellLayout`. The registry is keyed by a closed
@@ -178,6 +189,8 @@ future work anywhere near it:
 | Encyclopedia frontend | Layout shell + Home/Section/EntryDetail/Search pages | `frontend/src/encyclopedia/` |
 | Field View scene + store | Shared scene model; mutable store with rAF coalescing | `frontend/src/fieldview/scene/` |
 | Space model | Headless, framework-free strong/weak space scoring + per-cell explain | `frontend/src/fieldview/space/` |
+| Motion model | Headless kinematics, multi-waypoint routes, cushion pursuit, one stepper for live + headless runs | `frontend/src/fieldview/motion/` |
+| Motion runtime | Fixed-timestep rAF driver over the scene store; transient route/run state | `frontend/src/fieldview/ui/motion/` |
 | Field View render | Visual tokens, SVG field/piece layers, canvas heatmap painter, PNG export | `frontend/src/fieldview/render/` |
 | Play format | Versioned `PlayFile`, boundary validation, tween, storage seam | `frontend/src/fieldview/play/` |
 

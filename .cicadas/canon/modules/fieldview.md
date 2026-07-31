@@ -15,6 +15,10 @@ The scene models a *play*, not just a formation: **possession** is explicit stat
 carries a **matchup**, and a throw is one click that moves the disc, the roles, and the mark
 together. **Force is not stored** — it is read back from where the mark stands.
 
+Since 2026-07-31 the model also has **time**. A coach gives an offensive player one or more
+destinations and presses Run: the cut plays out under real acceleration limits while the assigned
+defender pursues it non-naively, and the disc *travels* to a receiver rather than teleporting.
+
 ## Layout
 
 - `scene/` — the shared model. `types.ts` (Team/Role/Vec2/Scene — Scene owns `possession` and
@@ -28,9 +32,21 @@ together. **Force is not stored** — it is read back from where the mark stands
 - `space/` — the headless model, framework-free and UI-free. `constants.ts` (tunables,
   `RAMP_STOPS`, `GAMMA`), `math.ts`, `layers.ts` (the five layer functions), `score.ts`
   (`computeGrid`), `explain.ts` (`explainCell`), `palette.ts`, `types.ts`.
+- `motion/` — the second headless model, framework-free and UI-free, built to `space/`'s contract.
+  `types.ts` (`Mover`, `Route`, `MotionState`, `MotionParams`, `Trajectory`, `DiscFlight`),
+  `constants.ts` (every motion tunable + ranges, `DT`, the clamps and ceilings), `vec.ts`,
+  `kinematics.ts` (`arrive()` — accel-limited steering with arrival braking), `route.ts` (leg
+  sequencing), `pursuit.ts` (the cushion model), `step.ts` (**the single physics entry point**),
+  `simulate.ts` (the same stepper run headlessly → `Trajectory`, plus `sampleAt`), `disc.ts`
+  (flight interpolation; duration delegated to `space/layers.ts`).
+- `ui/motion/` — the impure half. `driver.ts` (fixed-timestep accumulator over rAF, **the only
+  wall-clock reader in the module**, plus the disc's own flight loop), `motionMode.ts` (transient
+  routes / picking / run status as an external store), `useMotionRun.ts` (status only, never
+  positions), `driverContext.tsx` (per-page provider, on the `sceneStore.tsx` pattern).
 - `render/` — `tokens.ts` (**every** piece and field visual, plus `SHELL_TOKENS` for shell
   chrome), `fieldLayer.tsx`, `pieceLayer.tsx`, `heatmap.ts` (canvas painter), `coords.ts` (**the
-  only place orientation lives**), `exportImage.ts` (PNG, composites heatmap under SVG).
+  only place orientation lives**), `exportImage.ts` (PNG, composites heatmap under SVG), `routeLayer.tsx` (the selected player's
+  numbered waypoint markers and dashed legs).
 - `play/` — `format.ts` (the versioned `PlayFile` contract, owns `PlayEntity`; **v2** adds optional
   `possession`/`matchups`), `validate.ts` (boundary guard), `backfill.ts` (**the one place a
   `Scene` is built from stored data** — recovers possession/matchups, then normalizes),
@@ -138,6 +154,56 @@ together. **Force is not stored** — it is read back from where the mark stands
   would leak "was the throw tool armed" into the play format, into presets, and into Initiative D's
   frames, where it is meaningless.
 
+### Motion ADRs (fieldview-motion, 2026-07-31)
+
+- **ADR-22 — one stepper, driven live or run headlessly.** `motion/step.ts` exports a single pure
+  `step(state, dt, motionParams, spaceParams)`. The live driver calls it once per fixed substep;
+  `simulate()` calls the *same* function in a loop to a settle, recording a `Trajectory`. A test
+  asserts `n × step(DT)` equals `simulate()` sampled at `n·DT` **exactly** — which is the guarantee
+  Initiative D replays against instead of storing baked positions or re-deriving physics. The cost
+  is that `MotionState` must be entirely self-contained: nothing read from a closure, a module
+  variable, or the `Scene`. `step()` **consumes** its input (the reaction ring is written in place,
+  because copying it every substep is O(movers × react/dt) of garbage at 120 Hz); `simulate()`
+  clones on entry, and a test proves callers are protected.
+- **ADR-23 — the defender seeks a cushion point on a delay, not the cutter.** Pursuit steers at
+  `lead = cutterPos(t−react) + cutterVel(t−react)·leadTime`, pushed `cushion` yards goalside along
+  the disc→cutter axis. Gap-closing, carrying a deep cut, and matching lateral movement are all
+  *consequences* of that one expression rather than three hand-coded rules that fight at the
+  boundaries — and because the input is delayed, a direction change costs the defender exactly
+  `react` seconds of committed momentum, which is why a two-part cut beats it and a straight cut
+  does not. **The velocity lead is load-bearing and was discovered in implementation:** with a fixed
+  cushion alone, a defender playing 10 yd deep of a cutter breaking deep drifts *under* to reclaim
+  its cushion instead of turning. Cushion is fixed; the lead is what scales with speed. Falls back
+  to a plain delayed follow when nobody has the disc (no axis to be goalside of).
+- **ADR-24 — motion never redeclares `vmax`, `react`, or a flight time.** Those are `SpaceParams`
+  and `space/layers.ts`'s `flightTime()`, and the heatmap the coach is looking at is computed from
+  them. A second answer would let the overlay say a cutter reaches a cell while the animation shows
+  it cannot — canon ADR-17/ADR-19's failure mode in a third place. `motionGuard.test.ts` fails the
+  build on a *value* being stated for either (type annotations and property reads are fine and are
+  the point). Consequence: the `vmax` slider moves both models, and the sliders stay in one panel.
+- **ADR-25 — motion state is transient.** Routes, run status, pre-run positions and in-flight disc
+  state live in `ui/motion/motionMode.ts` and `ui/shell/throwMode.ts`. `Scene` gains no fields and
+  the play format is **not** versioned up. This is ADR-21 applied unchanged: a pending route is a
+  property of this session's pointer, not of the play, and Initiative D will define a better-shaped
+  representation of the same idea as part of its action model. A coach therefore cannot yet save a
+  route — a deliberate deferral, stated in the panel rather than left to be discovered.
+- **ADR-26 — a fixed-timestep accumulator, owned by the page, writing through the store.** Real
+  elapsed time is clamped **per frame** (`MAX_FRAME_SECONDS`) then consumed in `DT = 1/120` bites,
+  with **one `store.mutate()` per rendered frame, never per substep**. Fixed steps are what make a
+  run reproducible whatever the host's frame pacing — the property ADR-22's agreement guarantee and
+  Initiative D's replay both rest on. The clamp is per-frame rather than on the running total so a
+  backgrounded tab *costs* the run the time it was away instead of replaying it in fast-forward.
+  The driver is bound to one `SceneStore` rather than being a singleton, so a second page can own
+  its own clock; its provider must be mounted **once per page, wrapping both shells**, since the
+  breakpoint is CSS-only and both trees are live (ADR-15). ADR-2 holds throughout: React sees run
+  *status*, never positions, proven by Profiler tests at driver and page level.
+- **ADR-27 — reduced motion is a JS check here, and that is the sanctioned exception.** The module's
+  rule is `motion-safe:` variants and no JS `matchMedia`, which holds for CSS transitions; this is a
+  JS integration loop with no CSS to vary, so a variant would silently do nothing. `run()` instead
+  calls `simulate()` and applies the end state in one mutation, and a throw resolves instantly.
+  Queried once per run rather than subscribed, keeping the no-listener half of the convention. Do
+  not "restore consistency" by deleting it.
+
 ## Conventions
 
 - Buffers in the paint path are reused across frames, never retained by callers.
@@ -161,10 +227,41 @@ together. **Force is not stored** — it is read back from where the mark stands
   localStorage but never re-rendered the copy actually driving `FieldCanvas`. If you add a
   consumer, read it through this hook — do not reintroduce a local copy.
 - Colour is never the sole carrier of meaning — the readout speaks the verdict too.
+- **Every drag is imperative, not just the piece drag.** Waypoint markers move in the DOM during a
+  drag (`drawWaypointDrag`, modelled on `drawMarquee`) and commit to the motion store once, on
+  release. Committing per pointer move would re-render `routeLayer` sixty times a second and put
+  React back in the pointer path — ADR-2 is about the pointer, not about one particular draggable.
+- Turn cost in the motion model is **emergent**, never a rule: `arrive()` caps the change applied to
+  the velocity *vector*, so a mover changing direction spends its budget rotating rather than
+  lengthening and loses speed automatically. There is no turn-penalty constant to tune, and
+  therefore no way for one to disagree with the straight-line case.
+- Intermediate waypoints are rounded through at speed; only the final leg is braked into. That
+  asymmetry is what makes a two-part cut a *setup* rather than two sprints with a stop between.
+- A throw is applied when the disc **lands**, never when the receiver is clicked. The old thrower
+  keeps possession for the whole flight, so the disc never belongs to nobody.
 
 ## Testing
 
-527 tests across 36 files (of 634 frontend total). Notable:
+773 tests across 60 files (up from 634 at the play model). Notable:
+
+- `motionGuard.test.ts` — four scans, each mutation-tested when written: `motion/` imports nothing
+  from React/DOM/canvas/`ui/`/`render/`; reads no random source and no wall clock (determinism is
+  what Initiative D's replay rests on); states no value for `vmax`/`react`/flight time (ADR-24);
+  and inlines no tunable outside `constants.ts`.
+- `pursuit.test.ts` — the Builder's wishlist scenario as executable geometry: a defender 10 yd deep
+  does not charge an approaching cutter, is already accelerating deep before the cutter reaches it,
+  and matches lateral movement. Plus the headline property: **a fake-then-break gains more
+  separation on its final leg than the same break from a standstill** (≈4.4 yd vs ≈2.5 yd). That
+  metric took three attempts — separation at rest converges on the cushion whatever the path,
+  separation at arrival is dominated by the final leg's length, and raw peak separation flatters the
+  *straight* cut because both start from rest and it still has its one-time reaction burst to spend.
+- `simulate.test.ts` — the ADR-22 agreement test, plus termination across every corner of the slider
+  ranges (pursuit is a feedback loop with user-draggable gains; it must not oscillate past the
+  ceiling).
+- `motionDriver.test.tsx` — the clock, driven by hand through an injected `now`/`schedule` seam so
+  nothing depends on jsdom's rAF pacing. Covers the 5-second-gap clamp, one-mutation-per-frame, two
+  drivers not interfering, and 0 React commits across a run **with a companion test proving the
+  Profiler does fire on a status change**, so the zero is not vacuous.
 
 - `modelGuard.test.ts` — the ADR-17 guard, in two halves: random 300-op sequences re-asserting
   after every step that the thrower set is exactly `[possession]`, and a static grep proving
@@ -175,6 +272,8 @@ together. **Force is not stored** — it is read back from where the mark stands
   holding the disc, and must be byte-identical afterwards (the backfill is a reading, not a
   migration).
 
+- `motionUi.test.tsx` / `disc.test.ts` — the route interaction through the real page, and flight
+  duration proven equal to `flightTime()` rather than merely similar.
 - `space-model.test.ts` / `acceptance.test.ts` — brief §8 model properties (1, 2, 3, 4, 6, 7, 8)
   and the FR-3.2 no-receiver-gate regression, as executable checks.
 - `spaceGuard.test.ts`, `tokensGuard.test.ts`, `shellGuard.test.ts` — architectural guards.
@@ -184,7 +283,10 @@ together. **Force is not stored** — it is read back from where the mark stands
   cannot verify computed layout.
 - **Perf assertions are quarantined**: `npm run test:perf` runs the timing files with
   `--no-file-parallelism`, because the same code measures 2–3× slower under a parallel suite.
-  Isolated budgets — grid < 12 ms, frame < 16 ms. The everyday suite keeps a loose ceiling that
+  Isolated budgets — grid < 12 ms, frame < 16 ms. `motionBench.test.ts` measures the stepper at
+  **0.012 ms for four substeps** with 14 movers, and a whole simulated frame including the heatmap
+  recompute at **9.6 ms** of the 16 ms budget. The grid still dominates; motion's share is a
+  rounding error. The everyday suite keeps a loose ceiling that
   still catches an order-of-magnitude regression.
 
 **jsdom limitations that have bitten this module**: no `PointerEvent`, no `Blob.text()` (hence
@@ -220,6 +322,28 @@ Carried out of fieldview-play-model (2026-07-31), which also merged ahead of rev
   The `useOverlayState` precedent does not transfer: overlay prefs are a singleton, but each page
   builds its own `SceneStore`. `panelRegistry`'s type is unchanged and neither shell branches per
   selection kind, so ADR-13's seam holds.
+
+Carried out of fieldview-motion (2026-07-31), which also merged ahead of review — the **third**
+Field View initiative to do so, which is the recurring debt the roadmap warned about:
+
+- **The motion tunables are reasoned, not measured.** `accel` 6.0, `decel` 9.0, `cushion` 3.0,
+  `lead` 0.6 — the same standing as `FORCE_PRESETS` before them. Unlike those, they are draggable
+  from Advanced Settings, so correcting them costs a slider rather than a commit.
+- **A specific calibration question for the client review**: at defaults, a defender starting with a
+  3 yd cushion ends **level** with a cutter who sprints deep from a standstill. It loses the cushion
+  during its reaction and, at equal top speed, can never win it back. That is physically correct and
+  may still read as too generous to the offense — a `cushion`/`react` question, not a code one.
+- **Best-positioned-defender selection is deferred** (Builder decision at kickoff): the defender who
+  takes a cut is the assigned one, never the better-placed one. `matchups` is the defensible
+  default until a leverage heuristic lands.
+- **Routes cannot be saved.** Deliberate (ADR-25) — Initiative D owns the format that will carry
+  them.
+- **Only the selected player's route is drawn**, though several players may hold routes and all run
+  together. A whole play's routes at once is an unreadable tangle; frames are D's answer to it.
+- **Setting a destination is pointer-only.** Every route *control* is keyboard-reachable and Escape
+  cancels, but there is no coordinate-entry affordance — a gap, recorded rather than skipped.
+- **`Designer.tsx` still owns no clock.** The driver is per-store precisely so it can, but nothing
+  is mounted there; Initiative D wires it.
 
 Carried out of fieldview-shell specifically:
 
