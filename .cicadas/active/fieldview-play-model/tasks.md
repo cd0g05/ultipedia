@@ -115,21 +115,81 @@ next_section: "## Partition: feat/fieldview-play-model-core"
 
 ## Partition: feat/fieldview-play-model-ui
 
-- [ ] Build `ui/shell/throwMode.ts` — armed/disarmed UI state, not scene state (ADR-5) <!-- id: 40 -->
-- [ ] Make the ribbon's Throw button live: `aria-pressed` when armed; disabled with `Nobody has the disc.` when possession is null <!-- id: 41 -->
-- [ ] `FieldCanvas`: complete a throw on clicking an offensive player while armed <!-- id: 42 -->
-- [ ] `FieldCanvas`: cancel on Escape, empty grass, a defender, re-clicking Throw, or starting a drag; throw-to-self is a no-op exit <!-- id: 43 -->
-- [ ] `pieceLayer`: render the disc from `possession`; add throwing-mode receiver emphasis using `PIECE_TOKENS` <!-- id: 44 -->
-- [ ] Defender panel: matchup selector + `No assignment`, replacing the placeholder <!-- id: 45 -->
-- [ ] Defender panel: swap confirmation line naming the displaced defender's new mark <!-- id: 46 -->
-- [ ] Mark panel: 3×3 force grid that repositions the mark; active state on the current force <!-- id: 47 -->
-- [ ] Mark panel: `Custom` readout when off-preset; disabled state with the no-thrower message <!-- id: 48 -->
-- [ ] Offense panel: possession status + `Guarded by` readout <!-- id: 49 -->
-- [ ] Accessibility: live-region announcements for arming, throw completion, and swaps; labelled force groups <!-- id: 50 -->
-- [ ] Verify panels render identically in the desktop sidebar and mobile sheet (canon ADR-14) <!-- id: 51 -->
-- [ ] Confirm Profiler drag test still records 0 React commits <!-- id: 52 -->
-- [ ] Re-confirm `space/` zero diff after UI work <!-- id: 53 -->
-- [ ] Run the full fieldview suite; fix any regressions <!-- id: 54 -->
+- [x] Build `ui/shell/throwMode.ts` — armed/disarmed UI state, not scene state (ADR-5) <!-- id: 40 -->
+- [x] Make the ribbon's Throw button live: `aria-pressed` when armed; disabled with `Nobody has the disc.` when possession is null <!-- id: 41 -->
+- [x] `FieldCanvas`: complete a throw on clicking an offensive player while armed <!-- id: 42 -->
+- [x] `FieldCanvas`: cancel on Escape, empty grass, a defender, re-clicking Throw, or starting a drag; throw-to-self is a no-op exit <!-- id: 43 -->
+- [x] `pieceLayer`: render the disc from `possession`; add throwing-mode receiver emphasis using `PIECE_TOKENS` <!-- id: 44 -->
+- [x] Defender panel: matchup selector + `No assignment`, replacing the placeholder <!-- id: 45 -->
+- [x] Defender panel: swap confirmation line naming the displaced defender's new mark <!-- id: 46 -->
+- [x] Mark panel: 3×3 force grid that repositions the mark; active state on the current force <!-- id: 47 -->
+- [x] Mark panel: `Custom` readout when off-preset; disabled state with the no-thrower message <!-- id: 48 -->
+- [x] Offense panel: possession status + `Guarded by` readout <!-- id: 49 -->
+- [x] Accessibility: live-region announcements for arming, throw completion, and swaps; labelled force groups <!-- id: 50 -->
+- [x] Verify panels render identically in the desktop sidebar and mobile sheet (canon ADR-14) <!-- id: 51 -->
+- [x] Confirm Profiler drag test still records 0 React commits <!-- id: 52 -->
+- [x] Re-confirm `space/` zero diff after UI work <!-- id: 53 -->
+- [x] Run the full fieldview suite; fix any regressions <!-- id: 54 -->
+
+### Deviation notes (Partition 4: Panels & throw)
+
+- **Panels reach the store through a new React context (`ui/shell/sceneStore.tsx`), not through
+  `PanelProps`.** Canon ADR-13 fixes `PanelProps` at `{ selection }` and says a panel needing more
+  state manages it itself — `DefaultVisibilityPanel` does that with `useOverlayState()`. That trick
+  does not transfer: unlike overlay prefs, the scene is *not* a module-level singleton (`Whiteboard`
+  and `Designer` each build their own store), so there is nothing global to reach for. Context keeps
+  the registry's type untouched and puts both shells on the same seam; each shell gained one
+  provider wrapper and no per-kind branching, which is the part ADR-13 actually prohibits. The
+  context is nullable rather than throwing, so a panel rendered in isolation degrades to the empty
+  state it has to have anyway.
+- **`ui/playModel.ts` is new and is the ADR-2 pressure point of this partition.** Panels must react
+  to possession/matchup/force changes, but `store.subscribe` fires once per pointer move, so
+  subscribing naively would put React back in the drag path. The hook builds a key string from only
+  the facts a panel can display — **positions are deliberately excluded**, with the one
+  position-derived fact (the force) collapsed to its already-reduced reading — and returns a cached
+  snapshot whose identity changes only when that key does. Dragging a cutter or the thrower costs
+  zero commits; dragging the mark off a preset costs exactly one, at the tolerance boundary, which
+  is the honest `Custom` transition the panel exists to show.
+- **The mark panel ships 6 controls in two labelled rows, not 9 buttons.** tasks id 47 and
+  approach.md say "3×3 grid" / "9 force buttons"; ux.md's UI States, Flow 3 ("clicks **Backhand**…
+  then clicks **Around**"), and the accessibility requirement for groups named `Force side` and
+  `Force angle` all describe two rows. The six controls still span the full 3×3 space, and nine
+  loose buttons could not carry those two group labels. ux.md won as the primary spec.
+  - Corollary, since no spec states it: **from `Custom`, one row alone does not determine the
+    other**, so the missing half anchors on the neutral force (`flat` / `default`). The readout
+    immediately states the whole answer ("Flat · Around") and the mark visibly moves, so nothing is
+    guessed silently.
+- **Throwing mode exits at pointer*down*, not pointer*up*.** A press on a receiver while armed only
+  records a *pending* throw in a ref; it completes on release if the pointer never travelled past
+  `THROW_CLICK_SLOP_YD` (0.75 yd), and is dropped as an ordinary drag if it did (ux.md Flow 1
+  Alternate C). Disarming at the press means the mode-exit's single React commit lands before the
+  moves rather than inside them — ADR-2 again. `setThrowArmed` is a no-op when the value is
+  unchanged, so the cancel paths that fire while disarmed cost nothing.
+- **`FieldCanvas` now re-derives the `players` identity list's roles from the store.** Roles are
+  outputs of possession (ADR-1), so a throw changes them — but `players` is owned by the page and
+  only rebuilt on a preset load, so without this the ring, the T/M glyphs and the aria-labels would
+  keep describing the situation *before* the throw. Membership and labels still come from the prop
+  (visibility filtering is unaffected); only the role is overlaid, off the same zero-commit snapshot.
+- **The swap confirmation is module-level state, not `useState`.** The CSS-only breakpoint means the
+  desktop sidebar and the mobile sheet both mount these panels at once; per-instance state would let
+  the two copies disagree about whether a swap just happened — the exact drift ADR-14 prevents and
+  the exact bug `ui/prefs.ts` documents.
+- `PIECE_TOKENS.throwTarget` was added for the receiver emphasis (canvas accent `#EF4B8A`, ADR-16);
+  `tokensGuard` pins values, not the key set, so this is additive and the guard passes untouched.
+  The armed *hint banner* uses the shell accent instead — it is chrome that happens to overlay the
+  stage, not a game entity.
+- **Seven pre-existing assertions were updated, all in the one legitimate category:** the three
+  `PENDING FIELDVIEW-PLAY-MODEL` placeholders are gone, so `shellPanels`/`shellDesktop`/`bottomSheet`
+  could no longer assert their copy, and Throw is no longer one of the two "Ships in a future
+  update." buttons. Each was replaced with an assertion on the shipped behaviour at the same seam;
+  no test was weakened or deleted. Every other pre-existing test passes **unmodified**, including
+  both ADR-2 Profiler tests, `spaceGuard`, `modelGuard` and `tokensGuard`.
+- Verification: `space/` has **zero diff** against both `main` and the initiative branch; the
+  Profiler drag test still records **0 commits**, and a second Profiler test was added for 25 moves
+  *while armed*. 527 tests green, `tsc --noEmit` clean.
+- Still open (unchanged from Partition 2): `FORCE_PRESETS` offsets are a first pass flagged
+  `NEEDS VISUAL TUNING`, and approach.md's `NEEDS MANUAL REVIEW` on force positions and throw feel
+  wants a deployed preview — neither is resolvable in jsdom.
 
 ## Initiative Boundary
 
