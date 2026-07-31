@@ -153,10 +153,18 @@ including the reaction history. Nothing may be read from a closure, a module-lev
 point**:
 
 ```
-lead      = cutterPos(t − react)                    # what the defender has actually seen
+seen      = cutterPos(t − react)                    # what the defender has actually seen
+lead      = seen + cutterVel(t − react) · leadTime  # projected forward by its speed
 leverage  discPos → lead, normalised                # goalside: away from the disc
 target    = lead + cushion · leverage
 ```
+
+> **Amended during Partition 2.** The velocity projection (`leadTime`, a fourth `MotionParams`
+> tunable, default 0.6 s) was not in the original formulation and is load-bearing. Without it, a
+> defender 10 yd deep of a cutter breaking deep finds the cushion point *under* itself and drifts
+> back toward the disc to reclaim its 3 yd instead of turning and carrying the cut — FR-3.4 fails
+> outright. It also settles the PRD's open question on whether cushion magnitude varies with the
+> cutter's speed: **it does not.** The cushion is fixed; the lead is what scales.
 
 and then moves toward `target` under the same kinematic limits as the offense (`kinematics.arrive`).
 The reaction delay is served from a fixed-size ring of past cutter states inside `MotionState`.
@@ -283,6 +291,7 @@ export interface MotionParams {
   accel: number;       // yd/s²
   decel: number;       // yd/s² — braking is separate; players stop faster than they start
   cushion: number;     // yd — defensive goalside gap (ADR-2)
+  lead: number;        // s  — how far ahead a defender plays the cutter's speed (added P2)
 }
 
 export interface Trajectory {

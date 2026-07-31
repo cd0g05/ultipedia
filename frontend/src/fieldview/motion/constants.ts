@@ -17,19 +17,22 @@ import type { MotionParams } from "./types";
 
 // --- The three user-tunable motion parameters (sliders) ---
 
-// | accel   | 6.0 yd/s² | 3–10  | acceleration out of a stance
-// | decel   | 9.0 yd/s² | 4–14  | braking — harder than accelerating, as legs are
-// | cushion | 3.0 yd    | 0–8   | defensive goalside gap (ADR-2)
+// | accel   | 6.0 yd/s² | 3–10   | acceleration out of a stance
+// | decel   | 9.0 yd/s² | 4–14   | braking — harder than accelerating, as legs are
+// | cushion | 3.0 yd    | 0–8    | defensive goalside gap (ADR-2)
+// | lead    | 0.6 s     | 0–1.5  | how far ahead a defender plays the cutter's speed
 export const DEFAULT_MOTION_PARAMS: MotionParams = {
   accel: 6.0,
   decel: 9.0,
   cushion: 3.0,
+  lead: 0.6,
 };
 
 export const MOTION_SLIDER_RANGES = {
   accel: { min: 3, max: 10 },
   decel: { min: 4, max: 14 },
   cushion: { min: 0, max: 8 },
+  lead: { min: 0, max: 1.5 },
 } as const;
 
 // --- Fixed simulation constants ---

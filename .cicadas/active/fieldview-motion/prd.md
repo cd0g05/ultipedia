@@ -368,12 +368,19 @@ Resolved by Builder before drafting (2026-07-30):
 
 Still open for tech-design to settle:
 
-- The precise cushion/leverage formulation for FR-3.2 — what direction the cushion points, and
-  whether its magnitude varies with the cutter's speed or distance from the disc.
-- How the reaction delay of FR-3.3 is implemented (a history buffer of cutter states versus a
-  lagged first-order filter), and what that costs per frame.
-- Whether intermediate waypoints are rounded through at speed or braked into, and whether that is a
-  tunable.
+- ~~The precise cushion/leverage formulation for FR-3.2 — what direction the cushion points, and
+  whether its magnitude varies with the cutter's speed or distance from the disc.~~ **RESOLVED in
+  Partition 2**: the cushion points goalside (along disc→cutter) and its magnitude is **fixed**. What
+  scales with speed is a separate `lead` term projecting the cutter's delayed velocity forward.
+  Without it FR-3.4 fails — see tech-design ADR-2 and tasks.md Partition 2 deviation notes.
+- ~~How the reaction delay of FR-3.3 is implemented (a history buffer of cutter states versus a
+  lagged first-order filter), and what that costs per frame.~~ **RESOLVED in Partition 2**: a
+  fixed-size ring of past positions, one entry per substep, written in place. Delayed velocity is
+  differenced from the two oldest entries rather than stored. Cost is one array write per mover per
+  substep and no allocation.
+- ~~Whether intermediate waypoints are rounded through at speed or braked into, and whether that is
+  a tunable.~~ **RESOLVED in Partition 1**: rounded through at speed, not a tunable. Braking applies
+  to the final leg only; the speed cost of a turn is emergent from vector accel-limiting.
 - The trajectory sampling rate for `simulate()`, and whether Initiative D consumes samples or
   re-steps.
 - Where the driver lives such that both `Whiteboard.tsx` and (later) `Designer.tsx` can own a clock

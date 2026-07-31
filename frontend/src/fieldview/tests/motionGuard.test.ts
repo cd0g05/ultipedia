@@ -91,6 +91,7 @@ describe("no motion constant inlined outside motion/constants.ts (ADR-3)", () =>
     /(?<![\d.])6\.0(?![\d])/, // accel default
     /(?<![\d.])9\.0(?![\d])/, // decel default
     /(?<![\d.])3\.0(?![\d])/, // cushion default
+    /(?<![\d.])0\.6(?![\d])/, // lead default
     /(?<![\d.])0\.05(?![\d])/, // settle speed
     /(?<![\d.])0\.25(?![\d])/, // max frame seconds
     /(?<![\d.])120(?![\d])/, // fixed step denominator
