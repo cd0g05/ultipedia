@@ -135,3 +135,39 @@ export const SHELL_TOKENS = {
   },
   border: "#d4d4d8", // film-border — 1px dividers, zinc-300
 };
+
+// Route markers and the running indicator (fieldview-motion). These use the
+// CANVAS palette, not SHELL_TOKENS: a waypoint is a game entity a coach reads
+// alongside the pieces, not chrome around them (canon ADR-16). Square rather
+// than round, both to match the design system's hard-corner rule and so a
+// marker is never mistaken for a piece at a glance.
+export const ROUTE_TOKENS = {
+  marker: {
+    size: 1.6, // yards, per side
+    fill: "#ffffff",
+    stroke: "#EF4B8A",
+    strokeWidth: 0.28,
+  },
+  // The number inside the marker: which leg this is, counting from 1.
+  markerLabel: {
+    fill: "#EF4B8A",
+    fontSize: 1.15,
+    fontFamily: "'JetBrains Mono', ui-monospace, monospace",
+  },
+  // Legs are dashed so a planned path never reads as a drawn annotation —
+  // Initiative D's arrows will be solid, and the two must stay tellable apart.
+  leg: {
+    stroke: "#EF4B8A",
+    strokeWidth: 0.22,
+    dash: "1.2 0.8",
+    opacity: 0.75,
+  },
+  // Shown on the canvas itself while a run is in progress, because on mobile
+  // the bottom sheet may be collapsed over the panel that would otherwise say
+  // so — and the field is read-only in that state (ux.md UI States).
+  runningIndicator: {
+    fill: "#EF4B8A",
+    textFill: "#ffffff",
+    fontSize: 1.6,
+  },
+} as const;

@@ -249,6 +249,11 @@ each leg, including the speed cost of changing direction at an intermediate wayp
 **FR-2.5:** A route destination outside the field bounds is clamped to the field, consistent with
 existing drag clamping.
 
+**FR-2.5a:** A placed waypoint can be **repositioned by dragging its marker**, so a coach can adjust
+a cut and re-run it without rebuilding the route (Builder decision, 2026-07-31). Re-running with
+small adjustments is the workflow Journey 2 describes; clear-and-re-click costs three clicks per
+iteration.
+
 **FR-2.6:** More than one offensive player may carry a route; all routed players run simultaneously
 when the simulation runs.
 

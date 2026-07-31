@@ -18,6 +18,7 @@ export function AdvancedSettingsPanel(_props: PanelProps) {
       lens={overlay.lens}
       layers={overlay.layers}
       params={overlay.params}
+      motion={overlay.motion}
       expanded={true}
       onExpandedChange={() => {
         // No-op: the shell's own "← Back" affordance (a later partition)
@@ -26,6 +27,7 @@ export function AdvancedSettingsPanel(_props: PanelProps) {
       onLensChange={overlay.setLens}
       onLayerChange={overlay.setLayer}
       onParamChange={overlay.setParam}
+      onMotionParamChange={overlay.setMotionParam}
       onReset={overlay.resetParams}
     />
   );

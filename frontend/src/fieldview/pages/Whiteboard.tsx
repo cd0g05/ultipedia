@@ -6,6 +6,7 @@
 import { useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { createSceneStore } from "../scene/store";
+import { MotionDriverProvider } from "../ui/motion/driverContext";
 import { stashScene } from "../play/modeHandoff";
 import { getPreset } from "../scene/presets";
 import type { Scene } from "../scene/types";
@@ -263,7 +264,14 @@ export function Whiteboard() {
           </div>
         )}
 
+        {/* ONE driver for the page, wrapping both shells. Mounting it inside
+            LeftSidebar and BottomSheet instead would create two — the
+            breakpoint is CSS-only, so both trees are live at once (canon
+            ADR-15), and each would run its own rAF loop over the same store.
+            That is the same class of bug useOverlayState was rewritten to
+            fix. */}
         <div className="w-full lg:h-[720px]">
+          <MotionDriverProvider store={store}>
           <ShellLayout
             store={store}
             presetMenu={
@@ -296,6 +304,7 @@ export function Whiteboard() {
               </div>
             </div>
           </ShellLayout>
+          </MotionDriverProvider>
         </div>
       </div>
     </>

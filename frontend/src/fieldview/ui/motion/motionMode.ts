@@ -147,3 +147,16 @@ function getSnapshot(): MotionModeState {
 export function useMotionMode(): MotionModeState {
   return useSyncExternalStore(subscribe, getSnapshot);
 }
+
+// Repositioning a placed waypoint (Builder decision 2026-07-31). Called from
+// FieldCanvas's pointer-move path, so it must stay cheap: one object rebuild,
+// no scan. Clamping goes through the same addWaypoint path a fresh click
+// takes, so a marker dragged past the sideline lands where a click there
+// would have.
+export function moveWaypoint(id: string, index: number, point: Vec2): void {
+  const route = state.routes[id];
+  if (!route || index < 0 || index >= route.legs.length) return;
+  const legs = route.legs.slice();
+  legs[index] = addWaypoint(emptyRoute(), point).legs[0];
+  setState({ ...state, routes: { ...state.routes, [id]: { legs, leg: route.leg } } });
+}

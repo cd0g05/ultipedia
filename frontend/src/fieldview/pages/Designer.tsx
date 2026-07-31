@@ -369,12 +369,14 @@ export function Designer() {
               lens={overlay.lens}
               layers={overlay.layers}
               params={overlay.params}
+              motion={overlay.motion}
               visible={overlay.visible}
               advancedExpanded={overlay.advancedExpanded}
               onToggle={overlay.setOn}
               onLensChange={overlay.setLens}
               onLayerChange={overlay.setLayer}
               onParamChange={overlay.setParam}
+              onMotionParamChange={overlay.setMotionParam}
               onVisibleChange={overlay.setVisible}
               onAdvancedExpandedChange={overlay.setAdvancedExpanded}
               onResetParams={overlay.resetParams}

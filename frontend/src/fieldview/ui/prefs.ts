@@ -6,6 +6,8 @@
 import { useCallback, useSyncExternalStore } from "react";
 import { ALL_LAYERS, DEFAULT_PARAMS, SLIDER_RANGES, degToRad } from "../space/constants";
 import type { LayerFlags, Lens, SpaceParams } from "../space/types";
+import { DEFAULT_MOTION_PARAMS, MOTION_SLIDER_RANGES } from "../motion/constants";
+import type { MotionParams } from "../motion/types";
 
 const STORAGE_KEY = "fieldview.overlayPrefs";
 
@@ -20,6 +22,11 @@ export interface OverlayPrefs {
   layers: LayerFlags;
   params: SpaceParams;
   advancedExpanded: boolean;
+  // Motion tunables (fieldview-motion). Stored alongside the space params
+  // rather than under their own key: they are one "how the model behaves"
+  // group to a coach, and splitting them would mean two things to validate,
+  // two to reset, and two to keep in step.
+  motion: MotionParams;
   // Which teams are drawn on the diagram. Display-only — a coach showing one
   // side of a formation should not silently be shown a different map.
   visible: TeamVisibility;
@@ -30,6 +37,7 @@ export const DEFAULT_PREFS: OverlayPrefs = {
   lens: "offense",
   layers: { ...ALL_LAYERS },
   params: { ...DEFAULT_PARAMS },
+  motion: { ...DEFAULT_MOTION_PARAMS },
   advancedExpanded: false,
   visible: { offense: true, defense: true },
 };
@@ -58,6 +66,9 @@ export function parsePrefs(raw: unknown): OverlayPrefs {
   const layers = isRecord(raw.layers) ? raw.layers : {};
   const visible = isRecord(raw.visible) ? raw.visible : {};
   const params = isRecord(raw.params) ? raw.params : {};
+  // Absent in every preferences object written before this initiative, which
+  // is the common case rather than an edge one — every existing user has one.
+  const motion = isRecord(raw.motion) ? raw.motion : {};
   const markWRad = degToRad(
     clampToRange(
       typeof params.markW === "number" ? (params.markW * 180) / Math.PI : undefined,
@@ -102,6 +113,32 @@ export function parsePrefs(raw: unknown): OverlayPrefs {
       ),
       markW: markWRad,
     },
+    motion: {
+      accel: clampToRange(
+        motion.accel,
+        MOTION_SLIDER_RANGES.accel.min,
+        MOTION_SLIDER_RANGES.accel.max,
+        DEFAULT_MOTION_PARAMS.accel,
+      ),
+      decel: clampToRange(
+        motion.decel,
+        MOTION_SLIDER_RANGES.decel.min,
+        MOTION_SLIDER_RANGES.decel.max,
+        DEFAULT_MOTION_PARAMS.decel,
+      ),
+      cushion: clampToRange(
+        motion.cushion,
+        MOTION_SLIDER_RANGES.cushion.min,
+        MOTION_SLIDER_RANGES.cushion.max,
+        DEFAULT_MOTION_PARAMS.cushion,
+      ),
+      lead: clampToRange(
+        motion.lead,
+        MOTION_SLIDER_RANGES.lead.min,
+        MOTION_SLIDER_RANGES.lead.max,
+        DEFAULT_MOTION_PARAMS.lead,
+      ),
+    },
   };
 }
 
@@ -128,11 +165,25 @@ export function paramsAreDefault(params: SpaceParams): boolean {
   );
 }
 
+export function motionParamsAreDefault(motion: MotionParams): boolean {
+  return (Object.keys(DEFAULT_MOTION_PARAMS) as (keyof MotionParams)[]).every(
+    (key) => Math.abs(motion[key] - DEFAULT_MOTION_PARAMS[key]) < 1e-9,
+  );
+}
+
+// The non-hook read the motion driver needs: it runs off rAF, outside React,
+// so it cannot call useOverlayState() (canon ADR-2 — and a hook there would
+// not even be legal). Same live value, same store.
+export function readPrefs(): OverlayPrefs {
+  return prefsState;
+}
+
 export interface OverlayState extends OverlayPrefs {
   setOn: (on: boolean) => void;
   setLens: (lens: Lens) => void;
   setLayer: (layer: keyof LayerFlags, enabled: boolean) => void;
   setParam: (param: keyof SpaceParams, value: number) => void;
+  setMotionParam: (param: keyof MotionParams, value: number) => void;
   setAdvancedExpanded: (expanded: boolean) => void;
   setVisible: (team: keyof TeamVisibility, shown: boolean) => void;
   resetParams: () => void;
@@ -211,8 +262,21 @@ export function useOverlayState(): OverlayState {
       setPrefsState((p) => ({ ...p, params: { ...p.params, [param]: value } })),
     [],
   );
+  const setMotionParam = useCallback(
+    (param: keyof MotionParams, value: number) =>
+      setPrefsState((p) => ({ ...p, motion: { ...p.motion, [param]: value } })),
+    [],
+  );
+  // One reset for both groups: the button says "Reset to defaults", and a
+  // coach who has been dragging sliders in one panel does not think of them
+  // as belonging to two different models.
   const resetParams = useCallback(
-    () => setPrefsState((p) => ({ ...p, params: { ...DEFAULT_PARAMS } })),
+    () =>
+      setPrefsState((p) => ({
+        ...p,
+        params: { ...DEFAULT_PARAMS },
+        motion: { ...DEFAULT_MOTION_PARAMS },
+      })),
     [],
   );
 
@@ -222,6 +286,7 @@ export function useOverlayState(): OverlayState {
     setLens,
     setLayer,
     setParam,
+    setMotionParam,
     setAdvancedExpanded,
     setVisible,
     resetParams,

@@ -143,8 +143,11 @@ matchup selector).
    joined to `1`.
 2. Repeat for further legs. Markers are numbered in order.
 3. **Run** executes all legs in sequence for that player.
-4. **Clear** removes the whole route at once; there is no per-waypoint delete in this initiative
-   (Initiative D's action list is where per-item deletion belongs).
+4. Markers can be **dragged** to reposition a waypoint — the leg lines follow, and the next **Run**
+   uses the new shape. This is what makes Journey 2's tighten-and-re-run loop cheap.
+5. **Clear** removes the whole route at once; there is no per-waypoint *delete* in this initiative
+   (Initiative D's action list is where per-item deletion belongs). Dragging is editing, deleting is
+   not — the distinction is deliberate.
 
 ### Flow 3: Cancel destination-picking
 
