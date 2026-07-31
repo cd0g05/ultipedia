@@ -154,6 +154,13 @@
       "summary": "Pure kinematics library: types, constants, vec, accel-limited arrive() with emergent turn cost, waypoint routes, 4-way mutation-tested motionGuard. 49 new tests.",
       "decisions": "",
       "modules": []
+    },
+    {
+      "timestamp": "2026-07-31T05:36:29.172933+00:00",
+      "branch": "feat/fieldview-motion-pursuit",
+      "summary": "Cushion pursuit model on a reaction delay, step() as single physics entry point, headless simulate() with exact live/headless agreement. 36 new tests.",
+      "decisions": "",
+      "modules": []
     }
   ]
 }
