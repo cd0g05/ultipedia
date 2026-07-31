@@ -175,6 +175,13 @@
       "summary": "Route section in the offense panel, destination picking and imperative marker dragging, route layer, running indicator, Movement sliders, MotionParams persisted. 17 new tests.",
       "decisions": "",
       "modules": []
+    },
+    {
+      "timestamp": "2026-07-31T06:03:34.539267+00:00",
+      "branch": "feat/fieldview-motion-disc",
+      "summary": "Animated disc flight timed by the space model's flightTime(); possession changes on arrival, not on click. 18 new tests.",
+      "decisions": "",
+      "modules": []
     }
   ]
 }
