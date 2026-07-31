@@ -11,8 +11,9 @@ The **encyclopedia** (`/`) is a public, no-login site for browsing and searching
 knowledge (Drills/Strategies/Formations/Plays/Skills). No code connects them yet — intake
 writes `submissions`, the encyclopedia reads a separate `entries` schema (currently empty).
 **Field View** (`/fieldview`) is a third, standalone product: a play-design toolset (coaching
-whiteboard, keyframed play designer, live strong/weak space heatmap). It is entirely
-client-side — no backend, no Supabase, no shared state with the other two.
+whiteboard, keyframed play designer, live strong/weak space heatmap). It models a *play* —
+possession, matchups, and force — not just an arrangement of pieces. Entirely client-side — no
+backend, no Supabase, no shared state with the other two.
 
 ## Architecture
 
@@ -35,6 +36,10 @@ client-side — no backend, no Supabase, no shared state with the other two.
   layer. The space model is a pure framework-free library with no UI imports. Do not "clean this
   up" by lifting drag state into React — it is what makes the live repaint possible. Selection
   state follows the same rule (store field + own subscriber set, read via `useSyncExternalStore`).
+- Field View play model: `Scene` stores **possession** and **matchups**; `thrower`/`mark` roles are
+  *derived* by `possession.ts`'s `normalize()`, which is the only writer of `Player.role` (a guard
+  test enforces it). **Force is never stored** — presets move the mark, and the force is read back
+  from geometry, because the space model already derives it from where the mark stands.
 - Field View shell: field renders **vertically** (orientation lives *only* in `render/coords.ts`);
   three-pane desktop grid / mobile bottom sheet switching on CSS at 1024 px, no viewport blocked.
   The sidebar's contextual panel is a **typed registry** (`ui/shell/panelRegistry.ts`) — future
@@ -46,8 +51,9 @@ client-side — no backend, no Supabase, no shared state with the other two.
 - frontend: intake (form/interview flow) + encyclopedia (browse/search) + fieldview under one router.
 - data: schema/migrations 001–006 (`006` stale schema.sql), seed-kb, entity/coverage/persistence.
 - encyclopedia: EncyclopediaService facade, encyclopedia API, browse+search frontend.
-- fieldview: scene model + store (incl. selection), headless space model, render
-  tokens/layers/heatmap, versioned play format, and the `ui/shell/` Light Film Room chrome.
+- fieldview: scene model + store (selection, possession, matchups), headless space model, render
+  tokens/layers/heatmap, versioned play format (v2, backfilled on read), and the `ui/shell/` Light
+  Film Room chrome.
   Client-only. All visuals in `render/tokens.ts` (one edit re-skins it).
 
 ## Conventions
@@ -58,7 +64,7 @@ client-side — no backend, no Supabase, no shared state with the other two.
   camelCase — components never see raw wire payloads.
 - Failures degrade gracefully, never drop a submission; encyclopedia fetches always show
   skeleton/error+retry, search empty state is measured (names the blocking filter), never dead-ends.
-- Tests mock at the service/store boundary (Supabase/LLM/embedder). 92 backend + 434 frontend
+- Tests mock at the service/store boundary (Supabase/LLM/embedder). 92 backend + 634 frontend
   tests (Vitest + RTL + axe-core); WCAG AA verified by an automated contrast test.
 - Timing assertions live in `npm run test:perf` (`--no-file-parallelism`), never the parallel
   suite — the same code measures 2–3× slower under contention.
@@ -73,13 +79,15 @@ interview turns, transcript edit-before-submit. Content-seeding pipeline (intake
 id→title resolution. `/api/tags` endpoint (filter vocabulary is a frontend constant).
 Field View: annotations (arrows/text/cones — key name reserved, `validate.ts` drops unknown keys
 so it stays additive), server-side play storage or URL sharing (`PlayStore` seam exists).
-Phone support **now ships** (bottom sheet; the old <768 px notice is gone). Still stubs in the
-shell: throw-to-player, advanced stats, matchup/mark panels (Initiative B), motion (C), and the
-frame-based designer in the right slot (D) — `Designer.tsx` remains the pre-shell page until D.
+Phone support ships (bottom sheet). Throw-to-player, matchups, and force controls ship too
+(Initiative B, 2026-07-31). Still stubs in the shell: advanced stats, motion/auto-tracking
+(Initiative C), and the frame-based designer in the right slot (D) — `Designer.tsx` remains the
+pre-shell page until D. Disc *flight animation* is deferred to C, where the motion timing lives.
 
 **Deployed**: frontend only, on Vercel (auto-deploys `main`, root dir `frontend/`). The backend
 is NOT deployed — only `/fieldview` works on the live site. Sitemap `SITE_URL` needs the real
 origin. **Field View's client visual review is still outstanding** (visuals, presets, ramp, copy,
 plus the two by-eye §8 checks) — it merged to `main` ahead of that review by explicit decision,
-and the fieldview-shell overhaul merged the same way (2026-07-30). The 1024 px shell breakpoint
-is reasoned, not measured on a real tablet.
+and the fieldview-shell overhaul merged the same way (2026-07-30), as did the play model
+(2026-07-31). The 1024 px shell breakpoint is reasoned, not measured on a real tablet, and the
+force-preset offsets are reasoned from throwing semantics, not checked by a coach's eye.

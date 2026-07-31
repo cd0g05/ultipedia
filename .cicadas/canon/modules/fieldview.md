@@ -11,12 +11,19 @@ The field renders **vertically, offense attacking up the screen**, inside a thre
 "Light Film Room" shell (`ui/shell/`) on desktop and a bottom sheet on phones. **There is no
 minimum viewport** — mobile-at-practice is a primary use case, not a blocked one.
 
+The scene models a *play*, not just a formation: **possession** is explicit state, every defender
+carries a **matchup**, and a throw is one click that moves the disc, the roles, and the mark
+together. **Force is not stored** — it is read back from where the mark stands.
+
 ## Layout
 
-- `scene/` — the shared model. `types.ts` (Team/Role/Vec2/Scene), `field.ts` (geometry,
-  clamping), `scene.ts` (pure ops), `selection.ts` (`SelectionState` union + pure transitions),
-  `store.ts` (mutable subscribe-store, rAF-coalesced, **plus a selection field on its own
-  subscriber set**), `presets.ts` + `presetRegistry.ts` + `presetFormat.ts` (built-ins and user
+- `scene/` — the shared model. `types.ts` (Team/Role/Vec2/Scene — Scene owns `possession` and
+  `matchups`), `field.ts` (geometry, clamping), `scene.ts` (pure ops), `selection.ts`
+  (`SelectionState` union + pure transitions), `possession.ts` (**`normalize()` — the only writer
+  of `Player.role`** — plus `throwTo`, `nearestDefender`), `matchups.ts` (`autoAssign`,
+  `reassign` with the 1-to-1 swap, `guardedBy`), `force.ts` (pure geometry: presets, `markPosFor`,
+  `readForce`), `store.ts` (mutable subscribe-store, rAF-coalesced, **plus a selection field on its
+  own subscriber set**), `presets.ts` + `presetRegistry.ts` + `presetFormat.ts` (built-ins and user
   presets on one path).
 - `space/` — the headless model, framework-free and UI-free. `constants.ts` (tunables,
   `RAMP_STOPS`, `GAMMA`), `math.ts`, `layers.ts` (the five layer functions), `score.ts`
@@ -24,9 +31,11 @@ minimum viewport** — mobile-at-practice is a primary use case, not a blocked o
 - `render/` — `tokens.ts` (**every** piece and field visual, plus `SHELL_TOKENS` for shell
   chrome), `fieldLayer.tsx`, `pieceLayer.tsx`, `heatmap.ts` (canvas painter), `coords.ts` (**the
   only place orientation lives**), `exportImage.ts` (PNG, composites heatmap under SVG).
-- `play/` — `format.ts` (the versioned `PlayFile` contract, owns `PlayEntity`), `validate.ts`
-  (boundary guard), `serialize.ts` (`PlayStore` seam + `FilePlayStore`), `tween.ts` (linear
-  interpolation, pairs entities by stable id), `modeHandoff.ts` (whiteboard→designer scene stash).
+- `play/` — `format.ts` (the versioned `PlayFile` contract, owns `PlayEntity`; **v2** adds optional
+  `possession`/`matchups`), `validate.ts` (boundary guard), `backfill.ts` (**the one place a
+  `Scene` is built from stored data** — recovers possession/matchups, then normalizes),
+  `serialize.ts` (`PlayStore` seam + `FilePlayStore`), `tween.ts` (linear interpolation, pairs
+  entities by stable id), `modeHandoff.ts` (whiteboard→designer scene stash).
 - `ui/` — `FieldCanvas.tsx` (shared stage, owns the frame loop; also writes selection to the
   store), `CellReadout.tsx`, `Timeline.tsx`, `PlayMeta.tsx`, `PresetMenu.tsx`, `prefs.ts`
   (localStorage overlay prefs, **a shared external store** — see Conventions).
@@ -97,12 +106,48 @@ minimum viewport** — mobile-at-practice is a primary use case, not a blocked o
   `FIELD_TOKENS` keep `#EF4B8A`. Chrome and game entities mean different things, and the canvas
   palette is still awaiting its own client review — recolouring it here would have pre-empted that.
 
+### Play-model ADRs (fieldview-play-model, 2026-07-31)
+
+- **ADR-17 — possession is stored; `thrower`/`mark` roles are derived.** This *inverts* the old
+  derived-disc rule rather than retiring it. `Scene.possession` is the single fact;
+  `possession.ts`'s `normalize()` recomputes `thrower` (the possessor) and `mark` (the possessor's
+  assigned defender, else the nearest), and every mutation ends with it. **`normalize()` is the only
+  writer of `Player.role`** — `tests/modelGuard.test.ts` enforces that both behaviourally (random
+  op sequences re-checking the invariant after every step) and statically (grepping source for
+  direct `role` assignment). It also clears stale possession, since an id naming an absent or
+  defence player would otherwise mean "possession with no thrower" — the same disagreement running
+  backwards.
+- **ADR-18 — matchups live on `Scene` as a map, not per `Player`.** The invariant that matters
+  (it stays a *permutation*; no two defenders share a target) is a property of the whole set, so it
+  belongs somewhere it can be validated at once. `reassign()` does a 1-to-1 swap; `null` is explicit
+  free roam and cascades nothing. `Player` stays a pure positional record, which is why `PlayEntity`
+  needed no change.
+- **ADR-19 — force is geometry, never stored.** The space model already answers "what is the
+  force?" (`markKernel` derives `θ_shadow` from mark position — brief §4.3, *the mark's position IS
+  the force*). So `force.ts` only offers presets that **move the mark**, plus `readForce()` which
+  matches the mark's actual offset back to a name or `"custom"`. A stored force would be a second
+  answer that can contradict the drawn scene. `FORCE_TOLERANCE_YD` is capped by geometry — it must
+  stay under half the smallest gap between presets, or one position satisfies two forces at once —
+  and a test asserts that relationship survives any future tuning of the offsets.
+- **ADR-20 — play format v2 backfills on read, never migrates on write.** `possession`/`matchups`
+  are optional; anything missing is derived at load (`play/backfill.ts`) from the stored `thrower`
+  role and `autoAssign()`. Nothing rewrites stored data, so a user who never re-saves keeps a valid
+  v1 file indefinitely. Consistent with ADR-7: forward compatibility is a property of the reader.
+- **ADR-21 — transient interaction state stays out of `Scene`.** Throwing mode lives in
+  `ui/shell/throwMode.ts`, not on the scene, because `Scene` is *what a play is* — putting it there
+  would leak "was the throw tool armed" into the play format, into presets, and into Initiative D's
+  frames, where it is meaningless.
+
 ## Conventions
 
 - Buffers in the paint path are reused across frames, never retained by callers.
 - Repaints are driven by `store.onFrame` (scene mutations only), not a free-running rAF;
   `paint()` early-returns while the overlay is off.
 - Entities are paired by stable `id`, never array index.
+- **Never assign `Player.role` directly** — call the `scene/` ops and let `normalize()` derive it
+  (ADR-17). A static guard test greps for violations, so this fails loudly rather than silently.
+- Anything that builds a `Scene` from stored data goes through `play/backfill.ts`, not a bespoke
+  construction — that is what keeps v1 files, presets, and tween frames on one code path.
 - Responsive is CSS-only — no resize listener, no hydration flash. The shell switches at `lg`
   (1024 px): three-pane grid above, bottom sheet below. **No viewport is blocked.** (`Designer.tsx`
   still carries the old pre-shell rail, which is a horizontal bar until `xl`.)
@@ -119,7 +164,16 @@ minimum viewport** — mobile-at-practice is a primary use case, not a blocked o
 
 ## Testing
 
-327 tests across 29 files (of 434 frontend total). Notable:
+527 tests across 36 files (of 634 frontend total). Notable:
+
+- `modelGuard.test.ts` — the ADR-17 guard, in two halves: random 300-op sequences re-asserting
+  after every step that the thrower set is exactly `[possession]`, and a static grep proving
+  `possession.ts` is still the only writer of a role. Both halves were mutation-tested when written
+  (removing `normalize()` from `throwTo`, or the swap from `reassign`, each produce ~15 failures),
+  so they are known non-vacuous — the usual failure mode of invariant tests.
+- `playFormatV2.test.ts` — a frozen v1 fixture that must keep loading with its thrower actually
+  holding the disc, and must be byte-identical afterwards (the backfill is a reading, not a
+  migration).
 
 - `space-model.test.ts` / `acceptance.test.ts` — brief §8 model properties (1, 2, 3, 4, 6, 7, 8)
   and the FR-3.2 no-receiver-gate regression, as executable checks.
@@ -149,6 +203,23 @@ were always understood to be a first pass, not a calibration. Expect a follow-up
 touching `render/tokens.ts`, `scene/presets.ts`, and possibly `space/constants.ts`.
 **The shell merged to `main` ahead of its own review too** (Builder decision, 2026-07-30) — the
 same debt the roadmap warned recurs.
+
+Carried out of fieldview-play-model (2026-07-31), which also merged ahead of review:
+
+- **`FORCE_PRESETS` offsets are a first pass and want visual tuning.** They are reasoned from
+  standard force semantics, not measured against a coach's eye. They are constants in one file, so
+  correction is a token edit — but note `FORCE_TOLERANCE_YD` is capped at half the smallest gap
+  between presets, and a test enforces it, so retuning offsets may require retuning the tolerance.
+- **Throw *feel* is unvalidated** — the cancel paths, the pointer-down/pointer-up slop, and the
+  receiver emphasis all pass in jsdom but have never been used by a human.
+- **The mark panel ships 6 controls (two labelled rows), not the 9-button grid** that `tasks.md`
+  and `approach.md` described. `ux.md` specified `Force side` / `Force angle` groups throughout,
+  which nine loose buttons cannot carry; the UX spec won. Recorded because two of the five specs
+  say otherwise.
+- **Panels reach the store through a React context** (`ui/shell/sceneStore.tsx`), not `PanelProps`.
+  The `useOverlayState` precedent does not transfer: overlay prefs are a singleton, but each page
+  builds its own `SceneStore`. `panelRegistry`'s type is unchanged and neither shell branches per
+  selection kind, so ADR-13's seam holds.
 
 Carried out of fieldview-shell specifically:
 

@@ -94,7 +94,7 @@ entry, never hits a dead-end empty state.
 | **The Encyclopedia** (public browse) | Home + 5 section pages (Drills/Strategies/Formations/Plays/Skills) + entry detail template (coaching points/common mistakes/variations, self-omitting; similar entries by tag overlap); no login | Shipped |
 | **Search, Filtering & Discovery** | `/search`: full-text query + 7-category faceted filters (AND across, OR within), sort (relevance/difficulty/newest), shareable URL-driven state, never-a-dead-end empty state | Shipped |
 | SEO & content polish | Per-page title/meta, `HowTo` JSON-LD on drills, build-time sitemap, loading/error states, WCAG AA pass | Shipped |
-| **Field View — whiteboard** (`/fieldview`) | Drag players and disc on a **vertical** scale field inside a three-pane "Light Film Room" shell (desktop) or a bottom sheet (phone — no viewport blocked); selection-driven contextual sidebar; thrower carries the mark; four built-in presets plus user presets (save/rename/delete/export/import); PNG export; keyboard nudge | Shipped — visuals **and the 2026-07-30 shell overhaul** pending client review |
+| **Field View — whiteboard** (`/fieldview`) | Drag players and disc on a **vertical** scale field inside a three-pane "Light Film Room" shell (desktop) or a bottom sheet (phone — no viewport blocked); selection-driven contextual sidebar; **throw-to-player in one click**, per-defender **matchups** with 1-to-1 swap and free roam, **force presets** that reposition the mark; thrower carries the mark; four built-in presets plus user presets (save/rename/delete/export/import); PNG export; keyboard nudge | Shipped — visuals, the shell overhaul, and the play model (throws/matchups/force) all pending client review |
 | **Field View — play designer** (`/fieldview/designer`) | Keyframed plays over a versioned `PlayFile`, linear tween, timeline where reorder *is* retime, transport, JSON import/export | Shipped — visuals pending client review |
 | **Field View — space heatmap** | Live strong/weak space overlay repainting during a drag, offense/defense lens, five toggleable model layers, tuning panel, per-cell "why" readout | Shipped — visuals pending client review |
 
@@ -104,9 +104,12 @@ entry, never hits a dead-end empty state.
 - **Curation/normalization agents** — capture-rich now, structure later; free-text tags kept raw with `normalized_tags` left for a later AI pass.
 - **On-site contact capture** — handled with a simple external tool (Google Form/Notes), not built here.
 - **Content seeding / curation pipeline** — the encyclopedia initiative shipped the schema, service, and UI only. The Supabase `entries` table is live but empty; no code path yet turns a curated intake submission into a published entry (manual/future initiative). "Content Checklist" enforcement (what an entry needs before publishing) is documented in `prd.md`/`ux.md` but not code-enforced.
-- **Field View below 768 px** — a phone gets a "needs a bigger screen" notice, not a squeezed
-  field. Deliberate for v1: the field, control rail, and timeline do not fit a phone at a size
-  anyone could coach from.
+- **Disc flight animation** — a throw changes possession instantly; animating the disc between
+  throwers needs an owner-less in-flight state, deferred to the motion initiative where the
+  timing model lives.
+- ~~**Field View below 768 px**~~ — **no longer out of scope.** The shell overhaul (2026-07-30)
+  retired the "needs a bigger screen" notice; `/fieldview` now works at every width via a mobile
+  bottom sheet, and mobile-at-practice is a primary use case.
 - **Field View persistence and sharing** — plays and presets live in localStorage and hand-rolled
   JSON files. Nothing is stored server-side, nothing is shareable by URL, and no designed play
   can be attached to an encyclopedia entry. The `PlayStore` seam (ADR-8) exists so a server-backed

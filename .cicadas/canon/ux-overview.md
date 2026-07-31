@@ -117,10 +117,23 @@ verified by an automated test (`contrast.test.ts`); 44×44px touch targets.
 - **The field is vertical, offense attacking up** — the orientation a coach sketches on a
   whiteboard, and the one that makes a phone screen usable.
 - **The sidebar answers "what did I just click."** With nothing selected it shows offense/defense
-  visibility; selecting a player or the mark swaps the middle section to that piece's panel. Panels
-  for features that haven't shipped yet render a labelled `PENDING` placeholder, and ribbon buttons
-  for them are visibly disabled with a "Ships in a future update." tooltip — never silently inert,
-  never a blank box that reads as broken.
+  visibility; selecting a player or the mark swaps the middle section to that piece's panel —
+  offensive players show possession and who guards them, defenders show an editable matchup, the
+  mark shows force controls. Anything not yet shipped is *visibly* pending rather than silently
+  inert: a labelled placeholder in a panel, or a disabled ribbon button with a "Ships in a future
+  update." tooltip (Advanced Stats is the last one). Never a blank box that reads as broken.
+- **A throw is one click, and the tool says it's armed.** The Throw tool highlights eligible
+  receivers and shows a hint; clicking one moves the disc, the thrower role, and the mark together.
+  Escape, empty grass, a defender, re-clicking Throw, or starting a drag all cancel — a coach can
+  never get stuck in an invisible mode, which is why the armed state is announced in words and not
+  only by a pressed button.
+- **Deliberate states are never dressed as errors.** `No assignment` (free roam) and `Custom`
+  (a hand-dragged mark that matches no named force) are choices a coach made, so they read as
+  normal text. `Custom` exists because the mark's position *is* the force — the tool reports what
+  is actually drawn rather than a label that has stopped being true.
+- **Swaps are announced.** Reassigning a defender silently re-pairs another one; the panel says so
+  in a line, and screen readers hear it, because an unannounced swap is exactly what a coach would
+  miss and later mistake for broken coverage.
 - **Selecting something on mobile never yanks the sheet open** — an indicator dot appears on the
   SELECTION tab instead, so a drag in progress is not interrupted.
 - **The heatmap repaints live under the pointer**, not on release — this is the product, and the
@@ -154,8 +167,11 @@ now runs against the deployed site. Built-in preset coordinates were always a fi
 calibration. One open observation from the agent's own browser check: pieces render at roughly
 1.5 yd diameter — geometrically honest, but possibly too small to read as a coaching diagram.
 
-**The fieldview-shell overhaul (2026-07-30) merged ahead of its review too**, by the same explicit
-decision. Unreviewed by anyone but the tests: the vertical field, the three-pane layout, the bottom
+**The fieldview-shell overhaul (2026-07-30) and the play model (2026-07-31) merged ahead of their
+reviews too**, by the same explicit decision. Unreviewed from the play model: the nine force-preset
+positions (reasoned from throwing semantics, never checked by a coach's eye) and how the throw
+interaction actually *feels* — its cancel paths and pointer slop pass in jsdom but no human has
+used them. Unreviewed by anyone but the tests: the vertical field, the three-pane layout, the bottom
 sheet, and the 1024 px breakpoint — which was reasoned from the pane widths, never measured on a
 real tablet. A portrait tablet currently gets the phone treatment. The overlay legend
 (Closed / Contested / Strong space) was dropped from the whiteboard when it stopped composing

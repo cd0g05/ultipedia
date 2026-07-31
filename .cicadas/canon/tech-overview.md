@@ -26,7 +26,7 @@ Field View touches no backend at all — it is pure client-side state plus local
 | **Auth** | None yet | Open form (honeypot + rate limit); per-contact token is an open question |
 | **Frontend** | React 18 + Vite + TypeScript + Tailwind + Framer Motion + react-router-dom v6 | Entry `frontend/src/main.tsx` → `router.tsx`; dev proxies `/api`→:8000 |
 | **SEO (client-rendered)** | react-helmet-async v3 + build-time `frontend/scripts/generate-sitemap.mjs` | Per-page title/meta + `HowTo` JSON-LD on drills; ADR-3 accepts weaker-than-SSR crawlability as a known MVP trade-off |
-| **Testing** | pytest (backend), Vitest + RTL + axe-core (frontend) | 92 backend + 336 frontend tests. Timing assertions are quarantined in `npm run test:perf` (`--no-file-parallelism`) — under a parallel suite the same code measures 2–3× slower. |
+| **Testing** | pytest (backend), Vitest + RTL + axe-core (frontend) | 92 backend + 634 frontend tests. Timing assertions are quarantined in `npm run test:perf` (`--no-file-parallelism`) — under a parallel suite the same code measures 2–3× slower. |
 | **LLM** | Claude (Anthropic), default `claude-sonnet-4-6` | Behind an `LLM` interface; FakeLLM offline default |
 | **Embeddings** | Deterministic `HashingEmbedder` (offline) | Real provider is a lazy swap (open question) |
 | **Analytics** | Plausible/Umami loader + custom funnel events | No-op unless `VITE_PLAUSIBLE_DOMAIN` set |
@@ -66,10 +66,11 @@ ulti-pedia/
 │   │   ├── types.ts             # domain types + SECTIONS table + entryUrl() helper
 │   │   └── tests/
 │   ├── fieldview/              # play-design toolset (client-only; no API calls)
-│   │   ├── scene/              # shared scene model, geometry, pure ops, rAF store, selection, presets
+│   │   ├── scene/              # scene model + geometry, pure ops, rAF store, selection,
+│   │   │                       #   possession/matchups/force, presets
 │   │   ├── space/              # headless strong/weak space model (framework-free)
 │   │   ├── render/             # tokens.ts (ALL visuals), SVG layers, canvas heatmap, PNG export
-│   │   ├── play/               # versioned PlayFile, validation, tween, PlayStore seam
+│   │   ├── play/               # versioned PlayFile (v2), validation, backfill, tween, PlayStore seam
 │   │   ├── ui/                 # FieldCanvas stage, readout, timeline, presets, overlay prefs store
 │   │   │   └── shell/          # three-pane desktop grid / mobile sheet, panel registry, panels
 │   │   └── pages/              # Whiteboard (shell-composed), Designer (pre-shell until Init. D)
@@ -149,6 +150,12 @@ future work anywhere near it:
   (offense attacking up), but `scene/` stays in yards and orientation-agnostic: `+x = attacking`
   is a model fact, not a screen fact. Anything that needs screen space goes through `coords.ts`;
   nothing else may encode which way is up.
+- **ADR-FV-17 — Possession is stored; the thrower/mark roles are derived from it.** Field View
+  originally derived the disc from the thrower role so the two "could not disagree with itself".
+  Making possession explicit (a throw is a discrete event later initiatives must record) inverts
+  that derivation rather than dropping it: `normalize()` is the single writer of `Player.role`, and
+  a guard test enforces it statically and behaviourally. Force is likewise never stored — the space
+  model derives it from where the mark stands, so force presets simply move the mark.
 - **ADR-FV-13 — The shell's contextual sidebar is a typed panel registry.** Future Field View
   initiatives (play model, motion, designer v2) add UI by calling `registerPanel(kind, Component)`,
   **not** by editing `LeftSidebar`/`BottomSheet`/`ShellLayout`. The registry is keyed by a closed
