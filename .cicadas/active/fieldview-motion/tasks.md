@@ -240,18 +240,45 @@ next_section: "## Partition: feat/fieldview-motion-core"
 
 ## Partition: feat/fieldview-motion-disc
 
-- [ ] Implement `motion/disc.ts` — `beginFlight()` with duration from `space/layers.ts` `flightTime(d, hang)`; `discPos()` interpolation (ADR-3) <!-- id: 53 -->
-- [ ] Wire flight into `step()`'s disc branch and the driver's completion callback <!-- id: 54 -->
-- [ ] Defer `throwTo()` and the announcement to arrival, not click <!-- id: 55 -->
-- [ ] Render the disc from flight state while airborne; nobody shows as holding it <!-- id: 56 -->
-- [ ] Interrupt/cancel paths; assert possession is never neither old nor new (FR-5.4) <!-- id: 57 -->
-- [ ] Reduced motion resolves the throw instantly, as today <!-- id: 58 -->
-- [ ] Update `throwing.test.tsx` only where arrival timing legitimately changed <!-- id: 59 -->
-- [ ] Confirm `space/` zero diff; `spaceGuard.test.ts` passes <!-- id: 60 -->
+- [x] Implement `motion/disc.ts` — `beginFlight()` with duration from `space/layers.ts` `flightTime(d, hang)`; `discPos()` interpolation (ADR-3) <!-- id: 53 -->
+- [x] Wire flight into `step()`'s disc branch and the driver's completion callback <!-- id: 54 -->
+- [x] Defer `throwTo()` and the announcement to arrival, not click <!-- id: 55 -->
+- [x] Render the disc from flight state while airborne; nobody shows as holding it <!-- id: 56 -->
+- [x] Interrupt/cancel paths; assert possession is never neither old nor new (FR-5.4) <!-- id: 57 -->
+- [x] Reduced motion resolves the throw instantly, as today <!-- id: 58 -->
+- [x] Update `throwing.test.tsx` only where arrival timing legitimately changed <!-- id: 59 -->
+- [x] Confirm `space/` zero diff; `spaceGuard.test.ts` passes <!-- id: 60 -->
 
 ### Deviation notes (Partition 5: Disc flight)
 
-_None yet._
+- **The live flight runs on its own loop in the driver, not through `MotionState` and the
+  run-status machinery.** A throw is not a "run": routing it through `setStatus()` would put the
+  route panel into *Running…*/Stop for something the coach never started there, and would freeze the
+  field read-only for a second and a half. `MotionState.disc` stays the model fact a headless
+  trajectory carries for Initiative D, and `step()` still advances it; the driver's flight loop is
+  the live animation. Two loops, one duration formula.
+- **The flight position is published through `throwMode`** (`setFlightPos`/`getFlightPos`) rather
+  than passed as a prop. `pieceLayer` needs a position sixty times a second and has no way to reach
+  the driver's private state; publishing it is the same shape as the SceneStore publishing positions
+  that painters read, and it lands in `pieceLayer`'s existing `onFrame` repaint with no new
+  subscription. `DiscFlight` stays the pure model type — the arrival callback is held beside it in
+  the driver, never on it.
+- **`throwDisc(receiverId, apply)` returns a boolean** and the caller falls back to the instant
+  throw when it declines: reduced motion, no provider at all (a unit test rendering `FieldCanvas`
+  alone), a throw to the current holder, or no holder. That fallback is why every existing
+  cancel-path test still passes untouched.
+- **The disc is not shoulder-offset while airborne.** `PIECE_TOKENS.disc.offsetPx` docks it beside
+  whoever holds it; in flight nobody does, so the offset is dropped and it flies on the true line.
+- **`throwing.test.tsx`: three tests became async** with a `landDisc()` helper, and one gained a new
+  mid-flight assertion that possession stays with the *old* thrower (FR-5.4). The throw semantics
+  they assert are unchanged — they just happen a second later. The helper jumps the clock rather
+  than waiting: note that each frame still advances at most `MAX_FRAME_SECONDS`, which is FR-4.5
+  working exactly as intended, so a ~1.5 s flight needs several ticks rather than one.
+- **Straight-line interpolation, deliberately.** A real disc curves, but the space model's `hang`
+  already encodes how long it stays up, and an arc here would be a second opinion about flight shape
+  with nothing to validate it against. Drawn curves belong to Initiative D's annotations.
+- **`space/` zero diff confirmed** (`git diff --stat` empty); `spaceGuard.test.ts` passes.
+- Suite: **773 tests / 60 files** (was 755 / 59). `tsc --noEmit` clean; `npm run test:perf` green.
 
 ---
 

@@ -17,6 +17,7 @@ import {
   setStatus,
 } from "../ui/motion/motionMode";
 import { useMotionRun } from "../ui/motion/useMotionRun";
+import { getFlightPos, resetThrowMode } from "../ui/shell/throwMode";
 
 const getParams = () => ({ mp: DEFAULT_MOTION_PARAMS, sp: DEFAULT_PARAMS });
 
@@ -65,6 +66,7 @@ function aCutter(store: ReturnType<typeof createSceneStore>) {
 
 beforeEach(() => {
   resetMotionMode();
+  resetThrowMode();
 });
 
 describe("run / stop / reset", () => {
@@ -241,6 +243,77 @@ describe("reduced motion (ADR-6)", () => {
     expect(getMotionMode().status).toBe("settled");
     // The end state, not a halfway position.
     expect(h.posOf(cutter.id)).toEqual({ x: 70, y: 22 });
+  });
+});
+
+describe("disc flight", () => {
+  function withDisc() {
+    const h = harness();
+    const scene = h.store.getScene();
+    const receiver = scene.players.find(
+      (p) => p.team === "offense" && p.id !== scene.possession,
+    )!;
+    return { ...h, receiver, thrower: scene.possession! };
+  }
+
+  it("animates the disc and applies the throw only on arrival", () => {
+    const h = withDisc();
+    let applied = false;
+    expect(h.driver.throwDisc(h.receiver.id, () => (applied = true))).toBe(true);
+
+    // Airborne: the caller's throw has NOT been applied yet, so possession is
+    // still the old thrower's — never nobody's (PRD FR-5.4).
+    h.tick(16);
+    expect(applied).toBe(false);
+    expect(getFlightPos()).not.toBeNull();
+    expect(h.store.getScene().possession).toBe(h.thrower);
+
+    for (let i = 0; i < 400 && getFlightPos() !== null; i++) h.tick(16);
+    expect(applied).toBe(true);
+    // Cleared before the throw is applied, so there is no instant where both
+    // a flight and the new possession are live.
+    expect(getFlightPos()).toBeNull();
+  });
+
+  it("travels — the published position moves between frames", () => {
+    const h = withDisc();
+    h.driver.throwDisc(h.receiver.id, () => {});
+    h.tick(16);
+    const first = getFlightPos();
+    h.tick(100);
+    const later = getFlightPos();
+    expect(first).not.toBeNull();
+    expect(later).not.toEqual(first);
+  });
+
+  it("declines to animate under reduced motion, so the caller throws instantly", () => {
+    const h = harness(true);
+    const scene = h.store.getScene();
+    const receiver = scene.players.find(
+      (p) => p.team === "offense" && p.id !== scene.possession,
+    )!;
+    expect(h.driver.throwDisc(receiver.id, () => {})).toBe(false);
+    expect(getFlightPos()).toBeNull();
+  });
+
+  it("declines a throw to the current holder and a throw with no holder", () => {
+    const h = harness();
+    const holder = h.store.getScene().possession!;
+    expect(h.driver.throwDisc(holder, () => {})).toBe(false);
+    expect(h.driver.throwDisc("nobody", () => {})).toBe(false);
+  });
+
+  it("dispose mid-flight leaves no orphaned disc", () => {
+    const h = withDisc();
+    let applied = false;
+    h.driver.throwDisc(h.receiver.id, () => (applied = true));
+    h.tick(16);
+    h.driver.dispose();
+    expect(getFlightPos()).toBeNull();
+    // The throw never landed, so possession stayed with the thrower — the
+    // disc is accounted for either way (FR-5.4).
+    expect(applied).toBe(false);
+    expect(h.store.getScene().possession).toBe(h.thrower);
   });
 });
 

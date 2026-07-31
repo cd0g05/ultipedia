@@ -21,6 +21,7 @@
 // stores that must be kept in step by hand.
 
 import { useSyncExternalStore } from "react";
+import type { Vec2 } from "../../scene/types";
 
 // ux.md Copy & Tone, verbatim.
 export const THROW_ARMED_HINT = "Click a receiver.";
@@ -77,6 +78,7 @@ export function announceThrow(message: string): void {
 // file, so a leftover armed flag would bleed into the next case.
 export function resetThrowMode(): void {
   state = IDLE;
+  flightPos = null;
   for (const cb of listeners) cb();
 }
 
@@ -93,4 +95,39 @@ function getSnapshot(): ThrowModeState {
 
 export function useThrowMode(): ThrowModeState {
   return useSyncExternalStore(subscribe, getSnapshot);
+}
+
+// Where the disc is drawn while it is in the air (fieldview-motion).
+//
+// This is the PUBLISHED VIEW of a flight, not the model of one — `DiscFlight`
+// in motion/types.ts is the model, and it is what a headless trajectory
+// carries for Initiative D. What pieceLayer needs sixty times a second is a
+// position, and it has no way to reach into the driver's private state for it.
+// So the driver publishes here and the renderer reads here, which is the same
+// shape as the SceneStore publishing positions that painters read.
+//
+// null means "docked to whoever has possession", i.e. the ordinary case.
+// Possession itself never becomes null mid-flight (PRD FR-5.4): the old
+// thrower keeps it until the disc lands, so there is never a moment where the
+// disc belongs to nobody.
+let flightPos: Vec2 | null = null;
+const flightListeners = new Set<() => void>();
+
+export function getFlightPos(): Vec2 | null {
+  return flightPos;
+}
+
+// Called from the driver's frame loop, so this must not go through React.
+// pieceLayer reads it inside its own store.onFrame repaint, which is already
+// running for every scene mutation — no extra subscription, no extra frame.
+export function setFlightPos(pos: Vec2 | null): void {
+  flightPos = pos;
+  for (const cb of flightListeners) cb();
+}
+
+export function subscribeFlight(cb: () => void): () => void {
+  flightListeners.add(cb);
+  return () => {
+    flightListeners.delete(cb);
+  };
 }

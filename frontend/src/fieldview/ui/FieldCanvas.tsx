@@ -15,6 +15,7 @@ import { throwTo } from "../scene/possession";
 import { clearSelection, selectMarquee, selectPlayer } from "../scene/selection";
 import { announceThrow, isThrowArmed, setThrowArmed, useThrowMode } from "./shell/throwMode";
 import { useSelection } from "./shell/useSelection";
+import { useMotionDriver } from "./motion/driverContext";
 import {
   addDestination,
   getMotionMode,
@@ -180,6 +181,7 @@ export function FieldCanvas({
   // live state rather than the one captured at bind time (same reasoning as
   // throwMode above).
   const motionMode = useMotionMode();
+  const motionDriver = useMotionDriver();
   const selectionState = useSelection(store);
   const selectedOffenseId = selectionState.kind === "offense" ? selectionState.id : null;
 
@@ -288,8 +290,24 @@ export function FieldCanvas({
     if (!receiver || receiver.team !== "offense") return;
     if (scene.possession === id) return;
 
-    store.mutate((draft) => throwTo(draft, id));
-    announceThrow(`${receiver.label ? `#${receiver.label}` : receiver.id} has the disc.`);
+    // Everything the throw does, deferred behind the flight. Possession, the
+    // roles, the mark and the announcement all move together at the moment
+    // the disc lands (PRD FR-5.3) — so what the coach hears matches what is
+    // on screen, and there is never a state where the disc belongs to nobody
+    // (FR-5.4): the old thrower keeps possession for the whole flight.
+    const land = () => {
+      store.mutate((draft) => throwTo(draft, id));
+      announceThrow(`${receiver.label ? `#${receiver.label}` : receiver.id} has the disc.`);
+      landSelection(receiver);
+    };
+
+    // Falls back to the instant throw whenever the driver declines — reduced
+    // motion, or no provider at all (a unit test rendering FieldCanvas alone).
+    if (motionDriver?.throwDisc(id, land)) return;
+    land();
+  }
+
+  function landSelection(receiver: Player) {
 
     // The new thrower becomes the selection, so the sidebar shows the new
     // situation without the coach having to click the piece they just threw

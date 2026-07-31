@@ -27,9 +27,16 @@ import { DT, MAX_FRAME_SECONDS } from "../../motion/constants";
 import { createMotionState, isSettled, step } from "../../motion/step";
 import { simulate } from "../../motion/simulate";
 import { getRoutes, rewindRoutes, setStatus } from "./motionMode";
+import { beginFlight, discPos, hasArrived } from "../../motion/disc";
+import type { DiscFlight } from "../../motion/types";
+import { setFlightPos } from "../shell/throwMode";
 
 export interface MotionDriver {
   run(): void;
+  // Animates the disc to a receiver and applies the throw ON ARRIVAL.
+  // Returns false when it declined to animate (reduced motion, or a throw
+  // that makes no sense), so the caller can fall back to the instant path.
+  throwDisc(receiverId: string, apply: () => void): boolean;
   stop(): void;
   reset(): void;
   isRunning(): boolean;
@@ -78,6 +85,18 @@ export function createMotionDriver(
   // Captured at run start so Reset restores the field exactly, however the run
   // ended (PRD FR-4.3). Keyed by id rather than index, per module convention.
   let preRun: Map<string, Vec2> | null = null;
+  // The disc's flight runs on its own loop rather than through MotionState and
+  // the run-status machinery. A throw is not a "run": routing it through
+  // setStatus() would put the route panel into Running…/Stop for something the
+  // coach did not start there, and would freeze the field read-only for a
+  // second. MotionState.disc stays the model fact a headless trajectory
+  // carries for Initiative D; this is the live animation.
+  let flight: DiscFlight | null = null;
+  let flightHandle: number | null = null;
+  let flightLast = 0;
+  // Held beside the flight rather than on it: DiscFlight is the pure model
+  // type a trajectory carries, and a callback has no business in it.
+  let flightApply: (() => void) | null = null;
 
   function buildState(): MotionState {
     const scene = store.getScene();
@@ -146,7 +165,57 @@ export function createMotionDriver(
     handle = schedule(frame);
   }
 
+  function cancelFlight(): void {
+    if (flightHandle !== null) {
+      cancel(flightHandle);
+      flightHandle = null;
+    }
+    flight = null;
+    flightApply = null;
+    setFlightPos(null);
+  }
+
+  function flightFrame(): void {
+    if (flight === null) return;
+    const t = now();
+    flight = { ...flight, elapsed: flight.elapsed + Math.min((t - flightLast) / 1000, MAX_FRAME_SECONDS) };
+    flightLast = t;
+
+    if (hasArrived(flight)) {
+      const land = flightApply;
+      cancelFlight();
+      // Possession moves exactly here, at the moment the disc lands — never
+      // when the receiver was clicked (PRD FR-5.3). Applied AFTER clearing the
+      // flight so there is no instant where both a flight and the new
+      // possession are live.
+      land?.();
+      return;
+    }
+
+    setFlightPos(discPos(flight));
+    flightHandle = schedule(flightFrame);
+  }
+
   return {
+    throwDisc(receiverId, apply) {
+      const scene = store.getScene();
+      const thrower = scene.players.find((p) => p.id === scene.possession);
+      const receiver = scene.players.find((p) => p.id === receiverId);
+      // Nothing sensible to animate: no holder, no receiver, or a throw to
+      // self. The caller applies instantly instead.
+      if (!thrower || !receiver || thrower.id === receiver.id) return false;
+      if (reducedMotion()) return false;
+
+      cancelFlight();
+      const { sp } = opts.getParams();
+      flight = beginFlight(thrower.pos, receiver.pos, receiverId, sp.hang);
+      flightApply = apply;
+      flightLast = now();
+      setFlightPos(discPos(flight));
+      flightHandle = schedule(flightFrame);
+      return true;
+    },
+
     run() {
       if (handle !== null) return;
 
@@ -203,6 +272,7 @@ export function createMotionDriver(
 
     dispose() {
       cancelFrame();
+      cancelFlight();
       state = null;
       preRun = null;
     },
