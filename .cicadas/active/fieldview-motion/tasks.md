@@ -284,10 +284,10 @@ next_section: "## Partition: feat/fieldview-motion-core"
 
 ## Initiative Boundary
 
-- [ ] Merge `feat/fieldview-motion-core` → `initiative/fieldview-motion` <!-- id: 61 -->
-- [ ] Merge `feat/fieldview-motion-pursuit` → `initiative/fieldview-motion` <!-- id: 62 -->
-- [ ] Merge `feat/fieldview-motion-driver` → `initiative/fieldview-motion` <!-- id: 63 -->
-- [ ] Merge `feat/fieldview-motion-ui` → `initiative/fieldview-motion` <!-- id: 64 -->
-- [ ] Merge `feat/fieldview-motion-disc` → `initiative/fieldview-motion` (expect a hand-resolved `FieldCanvas.tsx` conflict with partition 4; signal on first merge) <!-- id: 65 -->
-- [ ] Full suite green on the initiative branch, including `npm run test:perf` <!-- id: 66 -->
+- [x] Merge `feat/fieldview-motion-core` → `initiative/fieldview-motion` <!-- id: 61 -->
+- [x] Merge `feat/fieldview-motion-pursuit` → `initiative/fieldview-motion` <!-- id: 62 -->
+- [x] Merge `feat/fieldview-motion-driver` → `initiative/fieldview-motion` <!-- id: 63 -->
+- [x] Merge `feat/fieldview-motion-ui` → `initiative/fieldview-motion` <!-- id: 64 -->
+- [x] Merge `feat/fieldview-motion-disc` → `initiative/fieldview-motion` (no conflict in the end — P5 branched from the initiative branch after P4 had merged, so the shared `FieldCanvas.tsx` regions were already reconciled) <!-- id: 65 -->
+- [x] Full suite green on the initiative branch, including `npm run test:perf` <!-- id: 66 -->
 - [ ] Builder-approved merge to `main`, then canon synthesis and archive <!-- id: 67 -->
