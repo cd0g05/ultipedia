@@ -1,0 +1,161 @@
+---
+summary: "60 tasks across 5 partitions (Kinematics 13, Pursuit & runner 17, Driver 12, Route UI & tuning 10, Disc flight 8) plus 7 initiative-boundary tasks. No PR boundaries — direct merges. Strictly sequential 1→2→3, then 4 and 5 in parallel off 3."
+phase: "tasks"
+when_to_load:
+  - "When selecting the next implementation task or reviewing partition completion state."
+depends_on:
+  - "prd.md"
+  - "ux.md"
+  - "tech-design.md"
+  - "approach.md"
+modules:
+  - "frontend/src/fieldview"
+index:
+  partition_core: "## Partition: feat/fieldview-motion-core"
+  partition_pursuit: "## Partition: feat/fieldview-motion-pursuit"
+  partition_driver: "## Partition: feat/fieldview-motion-driver"
+  partition_ui: "## Partition: feat/fieldview-motion-ui"
+  partition_disc: "## Partition: feat/fieldview-motion-disc"
+  initiative_boundary: "## Initiative Boundary"
+next_section: "## Partition: feat/fieldview-motion-core"
+---
+
+# Tasks: fieldview-motion
+
+## Partition: feat/fieldview-motion-core
+
+- [x] Create `motion/types.ts` — `Mover`, `Route`, `DiscFlight`, `MotionState`, `MotionParams`, `Trajectory` <!-- id: 1 -->
+- [x] Create `motion/constants.ts` — `accel`/`decel`/`cushion` defaults + slider ranges, the single source (ADR-3) <!-- id: 2 -->
+- [x] Create `motion/vec.ts` — add, sub, scale, len, norm, clampLen; unit tests <!-- id: 3 -->
+- [x] Implement `arrive()` — accel-limited vector steering, speed clamped to `vmax` <!-- id: 4 -->
+- [x] Add braking inside `v²/(2·decel)`, final leg only <!-- id: 5 -->
+- [x] Implement `route.ts` leg advance + arrival test; intermediate waypoints rounded through at speed <!-- id: 6 -->
+- [x] Clamp destinations to field bounds consistently with existing drag clamping <!-- id: 7 -->
+- [x] Unit tests: accel ramp reaches `vmax` in ≈`vmax/accel`s; arrival without overshoot or oscillation <!-- id: 8 -->
+- [x] Unit test: braking begins within one step of the threshold <!-- id: 9 -->
+- [x] Property test: a two-leg route is strictly slower than the straight run to the same endpoint (turn cost is emergent) <!-- id: 10 -->
+- [x] Write `motionGuard.test.ts` — purity scan (no React/DOM/canvas/`ui/`/`render/` imports) and no-duplicate-constants scan for `vmax`/`react`/flight time <!-- id: 11 -->
+- [x] Mutation-test `motionGuard`: introduce a violation of each half, confirm failure, restore <!-- id: 12 -->
+- [x] Run full fieldview suite; confirm no existing test changed <!-- id: 13 -->
+
+### Deviation notes (Partition 1: Kinematics)
+
+- **`coast()` added to `kinematics.ts`, not in the task list.** Stopping a run mid-flight (ux.md
+  Flow 5, "freeze it right there") leaves movers carrying velocity with no target to steer at.
+  Without a way to shed it they glide forever. It is four lines and uses the same `decel` tunable.
+- **`motionGuard` grew two scans beyond the two specified.** Tasks called for purity and
+  no-duplicate-`vmax`/`react`/flight-time. Added: a **determinism** scan (no `Math.random`,
+  `Date.now`, `performance.now`, `new Date` in `motion/`) because ADR-5 makes the driver the only
+  wall-clock reader and PRD Determinism is what Initiative D's replay rests on; and an
+  **inlined-constant** scan mirroring `spaceGuard`'s, because a tunable copied into a second file is
+  how a slider silently stops controlling half the model. All four halves mutation-tested.
+- **The `vmax`/`react` scan matches assignment, not the identifier.** `motion/` must be free to read
+  `sp.vmax` and to annotate `vmax: number` parameters — using the space model's number is the point
+  of ADR-3. Only `vmax: 7.0` / `const react = 0.4` style value statements fail.
+- **Constants landed for later partitions.** `DT`, `MAX_FRAME_SECONDS`, `SETTLE_SPEED`, and
+  `MAX_SIM_SECONDS` are consumed in Partitions 2–3, but live in `constants.ts` now: ADR-3 says one
+  file states every value, and staging them by partition would mean two sources during the gap.
+- **Task 10 shipped as three tests, not one.** Speed loss through a 90° turn, a two-leg route slower
+  than the straight run, and a **distance-matched** out-and-back — the last so the extra time is
+  attributable to the turn rather than to the longer path. Plus a straight-line control asserting
+  the model does *not* bleed speed everywhere, without which "turning is slower" could pass
+  vacuously.
+- **Final-leg completion is by exact arrival, not proximity.** `advance()` only completes the last
+  leg when `dist === 0`, which `arrive()`'s snap guarantees. Proximity would report a route finished
+  a yard early while the piece was still visibly moving.
+- Suite: **683 tests / 54 files** (was 634 / 50). `tsc --noEmit` clean.
+
+---
+
+## Partition: feat/fieldview-motion-pursuit
+
+- [ ] Implement the reaction ring in `MotionState` — fixed size `react/DT`, preallocated, no per-tick allocation <!-- id: 14 -->
+- [ ] Implement `delayedPos(state, id, react, dt)` reading the ring <!-- id: 15 -->
+- [ ] Implement `cushionPoint(lead, disc, cushion)` — leverage along disc→cutter (ADR-2) <!-- id: 16 -->
+- [ ] Handle `possession === null` → `cushion = 0` fallback without throwing <!-- id: 17 -->
+- [ ] Implement the defender target: `arrive()` toward the cushion point under the same kinematic limits <!-- id: 18 -->
+- [ ] Free-roam (`matchups[d] === null`) defenders do not move <!-- id: 19 -->
+- [ ] Implement `step(state, dt, motionParams, spaceParams)` — routed movers, then defenders, then disc; one pass, no allocation <!-- id: 20 -->
+- [ ] Implement `isSettled()` and `simulate()` with fixed step, settle test, and hard time ceiling <!-- id: 21 -->
+- [ ] Implement `sampleAt(trajectory, seconds)` <!-- id: 22 -->
+- [ ] Behaviour test: defender 10 yd deep does not close on an approaching cutter (FR-3.2) <!-- id: 23 -->
+- [ ] Behaviour test: on a deep turn the defender's downfield speed rises before the cutter arrives (FR-3.4) <!-- id: 24 -->
+- [ ] Behaviour test: lateral movement matched within cushion tolerance (FR-3.5) <!-- id: 25 -->
+- [ ] Headline test: a two-leg cut yields strictly more separation at arrival than a one-leg cut to the same endpoint <!-- id: 26 -->
+- [ ] Invariant test: defender never exceeds `vmax`, never reverses instantly (FR-3.6) <!-- id: 27 -->
+- [ ] Property test: `simulate()` terminates for randomised tunables across the full slider ranges <!-- id: 28 -->
+- [ ] Agreement test: `n` × `step(DT)` equals `simulate()` sampled at `n·DT`, exactly — mutation-tested <!-- id: 29 -->
+- [ ] Static check: no `Math.random`, no wall-clock read anywhere in `motion/` <!-- id: 30 -->
+
+### Deviation notes (Partition 2: Pursuit & runner)
+
+_None yet._
+
+---
+
+## Partition: feat/fieldview-motion-driver
+
+- [ ] Create `ui/motion/motionMode.ts` — routes, run status, saved pre-run positions, on the `throwMode.ts` external-store pattern (ADR-4) <!-- id: 31 -->
+- [ ] Implement `createMotionDriver(store)` — fixed-timestep accumulator, `DT = 1/120` (ADR-5) <!-- id: 32 -->
+- [ ] Clamp the accumulated total so a long frame gap cannot integrate a huge step (FR-4.5) <!-- id: 33 -->
+- [ ] Write exactly one `store.mutate()` per rendered frame regardless of substep count <!-- id: 34 -->
+- [ ] Implement `run` / `stop` (freeze in place) / `reset` (restore pre-run positions) / `isRunning` / `dispose` <!-- id: 35 -->
+- [ ] End the run on settle and transition status; expose it via `useMotionRun` (status only, never positions) <!-- id: 36 -->
+- [ ] Reduced-motion branch: `simulate()` + apply end state in one mutation, no rAF loop (ADR-6) <!-- id: 37 -->
+- [ ] Test: 5-second frame gap produces bounded displacement <!-- id: 38 -->
+- [ ] Test: two drivers on two stores do not interfere <!-- id: 39 -->
+- [ ] Test: `dispose()` cancels the rAF; no leak across mount/unmount <!-- id: 40 -->
+- [ ] Extend the Profiler test — 0 React commits across a full run; confirm the drag test still records 0 <!-- id: 41 -->
+- [ ] Add the frame-budget assertion to the quarantined `test:perf` suite (< 16 ms, 14 movers + heatmap) <!-- id: 42 -->
+
+### Deviation notes (Partition 3: Driver)
+
+_None yet._
+
+---
+
+## Partition: feat/fieldview-motion-ui
+
+- [ ] Add the Route section to `OffensePlayerPanel` with all six ux.md states and copy <!-- id: 43 -->
+- [ ] Wire Set Destination / Add Waypoint / Clear / Run / Stop / Reset, with disabled reasons (`Set a destination first.`) <!-- id: 44 -->
+- [ ] Destination picking in `FieldCanvas` + throwMode's cancel grammar (Escape, re-click, other selection, clicking a piece) <!-- id: 45 -->
+- [ ] Suppress dragging while a run is in progress (FR-4.4) <!-- id: 46 -->
+- [ ] Create `render/routeLayer.tsx` — numbered square markers and legs for the selected player only; add tokens (canon ADR-10) <!-- id: 47 -->
+- [ ] Add the canvas running indicator (visible with the mobile sheet collapsed) <!-- id: 48 -->
+- [ ] Add the Movement slider group to `AdvancedPanel`, alongside the space sliders <!-- id: 49 -->
+- [ ] Persist `MotionParams` in `prefs.ts` — validated and clamped on read; absent key falls back to defaults <!-- id: 50 -->
+- [ ] Accessibility pass: `aria-pressed`, keyboard order, live-region announcements for run start / `Cut complete.` / `Stopped.` <!-- id: 51 -->
+- [ ] Verify parity in the desktop sidebar and the mobile sheet (canon ADR-14); run the full suite <!-- id: 52 -->
+
+### Deviation notes (Partition 4: Route UI & tuning)
+
+_None yet._
+
+---
+
+## Partition: feat/fieldview-motion-disc
+
+- [ ] Implement `motion/disc.ts` — `beginFlight()` with duration from `space/layers.ts` `flightTime(d, hang)`; `discPos()` interpolation (ADR-3) <!-- id: 53 -->
+- [ ] Wire flight into `step()`'s disc branch and the driver's completion callback <!-- id: 54 -->
+- [ ] Defer `throwTo()` and the announcement to arrival, not click <!-- id: 55 -->
+- [ ] Render the disc from flight state while airborne; nobody shows as holding it <!-- id: 56 -->
+- [ ] Interrupt/cancel paths; assert possession is never neither old nor new (FR-5.4) <!-- id: 57 -->
+- [ ] Reduced motion resolves the throw instantly, as today <!-- id: 58 -->
+- [ ] Update `throwing.test.tsx` only where arrival timing legitimately changed <!-- id: 59 -->
+- [ ] Confirm `space/` zero diff; `spaceGuard.test.ts` passes <!-- id: 60 -->
+
+### Deviation notes (Partition 5: Disc flight)
+
+_None yet._
+
+---
+
+## Initiative Boundary
+
+- [ ] Merge `feat/fieldview-motion-core` → `initiative/fieldview-motion` <!-- id: 61 -->
+- [ ] Merge `feat/fieldview-motion-pursuit` → `initiative/fieldview-motion` <!-- id: 62 -->
+- [ ] Merge `feat/fieldview-motion-driver` → `initiative/fieldview-motion` <!-- id: 63 -->
+- [ ] Merge `feat/fieldview-motion-ui` → `initiative/fieldview-motion` <!-- id: 64 -->
+- [ ] Merge `feat/fieldview-motion-disc` → `initiative/fieldview-motion` (expect a hand-resolved `FieldCanvas.tsx` conflict with partition 4; signal on first merge) <!-- id: 65 -->
+- [ ] Full suite green on the initiative branch, including `npm run test:perf` <!-- id: 66 -->
+- [ ] Builder-approved merge to `main`, then canon synthesis and archive <!-- id: 67 -->
