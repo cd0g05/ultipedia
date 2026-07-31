@@ -12,18 +12,21 @@ import { RAMP_STOPS } from "../space/constants";
 import type { LayerFlags, Lens, SpaceParams } from "../space/types";
 import type { TeamVisibility } from "./prefs";
 import { AdvancedPanel } from "./AdvancedPanel";
+import type { MotionParams } from "../motion/types";
 
 interface OverlayRailProps {
   on: boolean;
   lens: Lens;
   layers: LayerFlags;
   params: SpaceParams;
+  motion: MotionParams;
   visible: TeamVisibility;
   advancedExpanded: boolean;
   onToggle: (on: boolean) => void;
   onLensChange: (lens: Lens) => void;
   onLayerChange: (layer: keyof LayerFlags, enabled: boolean) => void;
   onParamChange: (param: keyof SpaceParams, value: number) => void;
+  onMotionParamChange: (param: keyof MotionParams, value: number) => void;
   onVisibleChange: (team: keyof TeamVisibility, shown: boolean) => void;
   onAdvancedExpandedChange: (expanded: boolean) => void;
   onResetParams: () => void;
@@ -49,12 +52,14 @@ export function OverlayRail({
   lens,
   layers,
   params,
+  motion,
   visible,
   advancedExpanded,
   onToggle,
   onLensChange,
   onLayerChange,
   onParamChange,
+  onMotionParamChange,
   onVisibleChange,
   onAdvancedExpandedChange,
   onResetParams,
@@ -121,11 +126,13 @@ export function OverlayRail({
             lens={lens}
             layers={layers}
             params={params}
+            motion={motion}
             expanded={advancedExpanded}
             onExpandedChange={onAdvancedExpandedChange}
             onLensChange={onLensChange}
             onLayerChange={onLayerChange}
             onParamChange={onParamChange}
+            onMotionParamChange={onMotionParamChange}
             onReset={onResetParams}
           />
         </>

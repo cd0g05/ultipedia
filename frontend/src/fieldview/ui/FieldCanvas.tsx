@@ -9,14 +9,25 @@ import { useEffect, useLayoutEffect, useRef } from "react";
 import type { CSSProperties, MutableRefObject, RefObject } from "react";
 import type { SceneStore } from "../scene/store";
 import type { Player, Vec2 } from "../scene/types";
-import { FIELD } from "../scene/field";
+import { FIELD, clampToField } from "../scene/field";
 import { movePlayer, moveThrower } from "../scene/scene";
 import { throwTo } from "../scene/possession";
 import { clearSelection, selectMarquee, selectPlayer } from "../scene/selection";
 import { announceThrow, isThrowArmed, setThrowArmed, useThrowMode } from "./shell/throwMode";
+import { useSelection } from "./shell/useSelection";
+import { useMotionDriver } from "./motion/driverContext";
+import {
+  addDestination,
+  getMotionMode,
+  moveWaypoint,
+  setPicking,
+  useMotionMode,
+} from "./motion/motionMode";
+import { ROUTE_TOKENS } from "../render/tokens";
 import { usePlayModel } from "./playModel";
 import { FIELD_PX_HEIGHT, FIELD_PX_WIDTH, FieldLayer } from "../render/fieldLayer";
 import { PieceLayer } from "../render/pieceLayer";
+import { RouteLayer } from "../render/routeLayer";
 import type { PieceIdentity } from "../render/pieceLayer";
 import { pickNearest } from "../render/pick";
 import { FIELD_TOKENS } from "../render/tokens";
@@ -55,7 +66,17 @@ type DragState =
   // carried by a selected thrower. Applying one delta to that snapshot is what
   // keeps a group rigid; moving each piece toward the cursor would not.
   | { kind: "group"; origin: Vec2; start: Map<string, Vec2> }
+  // Dragging a placed waypoint to reshape a cut (Builder decision 2026-07-31).
+  // Deliberately a DragState kind rather than its own pointer path: it needs
+  // the same capture, the same clamping, and the same ADR-2 ref discipline as
+  // a piece drag, and a parallel implementation would drift from all three.
+  | { kind: "waypoint"; playerId: string; index: number; pos: Vec2 }
   | { kind: "marquee"; origin: Vec2; current: Vec2 };
+
+// A press within this of a marker's centre grabs the marker rather than what
+// is behind it. Half the marker's own size plus a little, so the whole glyph
+// is grabbable without stealing presses from a piece standing beside it.
+const WAYPOINT_GRAB_YD = ROUTE_TOKENS.marker.size * 0.75;
 
 // A press-and-release shorter than this never became a marquee — it was a
 // click on empty grass, which clears the selection.
@@ -153,6 +174,16 @@ export function FieldCanvas({
   // this value; they call `isThrowArmed()` directly, because they are bound
   // once and must see the live flag, not the one captured at bind time.
   const throwMode = useThrowMode();
+
+  // Routes and run status, for RENDERING only — the pending route and the
+  // running indicator. The pointer handlers never read these values; they call
+  // getMotionMode() directly, because they are bound once and must see the
+  // live state rather than the one captured at bind time (same reasoning as
+  // throwMode above).
+  const motionMode = useMotionMode();
+  const motionDriver = useMotionDriver();
+  const selectionState = useSelection(store);
+  const selectedOffenseId = selectionState.kind === "offense" ? selectionState.id : null;
 
   // Roles are derived from possession (ADR-1), so a throw changes them — but
   // `players` is an identity list owned by the page and only rebuilt on a
@@ -259,8 +290,24 @@ export function FieldCanvas({
     if (!receiver || receiver.team !== "offense") return;
     if (scene.possession === id) return;
 
-    store.mutate((draft) => throwTo(draft, id));
-    announceThrow(`${receiver.label ? `#${receiver.label}` : receiver.id} has the disc.`);
+    // Everything the throw does, deferred behind the flight. Possession, the
+    // roles, the mark and the announcement all move together at the moment
+    // the disc lands (PRD FR-5.3) — so what the coach hears matches what is
+    // on screen, and there is never a state where the disc belongs to nobody
+    // (FR-5.4): the old thrower keeps possession for the whole flight.
+    const land = () => {
+      store.mutate((draft) => throwTo(draft, id));
+      announceThrow(`${receiver.label ? `#${receiver.label}` : receiver.id} has the disc.`);
+      landSelection(receiver);
+    };
+
+    // Falls back to the instant throw whenever the driver declines — reduced
+    // motion, or no provider at all (a unit test rendering FieldCanvas alone).
+    if (motionDriver?.throwDisc(id, land)) return;
+    land();
+  }
+
+  function landSelection(receiver: Player) {
 
     // The new thrower becomes the selection, so the sidebar shows the new
     // situation without the coach having to click the piece they just threw
@@ -285,6 +332,27 @@ export function FieldCanvas({
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
   }, [throwMode.armed]);
+
+  // Destination picking cancels the same way, from anywhere, for the same
+  // reason — the coach armed it from a sidebar button and focus is still
+  // there (ux.md Flow 3). Deliberately a second effect rather than a shared
+  // one: the two modes are never armed at once, and merging them would bind
+  // a listener for whichever was idle.
+  useEffect(() => {
+    if (!motionMode.picking) return;
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key !== "Escape") return;
+      setPicking(null);
+    }
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [motionMode.picking]);
+
+  // Selecting somebody else abandons a pending pick rather than silently
+  // retargeting it at the new player (ux.md Flow 3).
+  useEffect(() => {
+    if (motionMode.picking && motionMode.picking !== selectedOffenseId) setPicking(null);
+  }, [motionMode.picking, selectedOffenseId]);
 
   // Only what is drawn can be grabbed or swept up by the marquee.
   function grabbablePlayers(): Player[] {
@@ -356,6 +424,47 @@ export function FieldCanvas({
       if (disabledRef.current) return;
       const pos = yardFor(event);
       if (!pos) return;
+
+      // The field is read-only while a run is in progress (PRD FR-4.4): the
+      // simulation and a drag are competing writers of position, and letting
+      // both through would have the coach fighting the physics.
+      const motion = getMotionMode();
+      if (motion.status === "running") return;
+
+      // Destination picking. Checked before the piece pick because the target
+      // here is the GRASS, not a piece — the inverse of throwing mode, which
+      // is exactly why ux.md de-emphasises pieces in this mode rather than
+      // highlighting them.
+      if (motion.picking) {
+        // Clamped, not rejected (PRD FR-2.5): a press past the sideline lands
+        // on the sideline, exactly as dragging a piece off the field already
+        // does. addWaypoint does the clamping, on the same path a fresh click
+        // takes, so there is one answer to "where can a waypoint be".
+        addDestination(motion.picking, pos);
+        event.preventDefault();
+        return;
+      }
+
+      // A press on one of the selected player's route markers reshapes the
+      // cut instead of grabbing whatever is behind it. Markers are drawn
+      // pointer-events:none, so this distance test is what makes them
+      // grabbable at all.
+      const selected = store.getSelection();
+      if (selected.kind === "offense") {
+        const route = motion.routes[selected.id];
+        if (route) {
+          const index = route.legs.findIndex(
+            (leg) => Math.hypot(leg.x - pos.x, leg.y - pos.y) <= WAYPOINT_GRAB_YD,
+          );
+          if (index !== -1) {
+            dragRef.current = { kind: "waypoint", playerId: selected.id, index, pos: route.legs[index] };
+            svg!.setPointerCapture?.(event.pointerId);
+            svg!.style.cursor = "grabbing";
+            event.preventDefault();
+            return;
+          }
+        }
+      }
 
       // Nearest-within-radius, not a hit test (render/pick.ts). Overlapping
       // targets used to hand the pointer to whichever piece was rendered
@@ -435,6 +544,11 @@ export function FieldCanvas({
       const drag = dragRef.current;
       if (!drag) return;
 
+      if (drag.kind === "waypoint") {
+        // The one React update for the whole drag.
+        moveWaypoint(drag.playerId, drag.index, drag.pos);
+      }
+
       if (drag.kind === "marquee") {
         const dx = Math.abs(drag.current.x - drag.origin.x);
         const dy = Math.abs(drag.current.y - drag.origin.y);
@@ -460,6 +574,17 @@ export function FieldCanvas({
       if (drag) {
         const pos = yardFor(event);
         if (!pos) return;
+
+        if (drag.kind === "waypoint") {
+          // ADR-2 applies to THIS drag too. Committing to the motion store per
+          // pointer move would re-render RouteLayer sixty times a second and
+          // put React straight back in the pointer path — the exact thing the
+          // piece drag was built to avoid. So the marker is moved in the DOM
+          // here and committed once, on release, like the marquee.
+          drag.pos = clampToField(pos);
+          drawWaypointDrag(drag.index, drag.pos);
+          return;
+        }
         // Two ref reads and, at most once per press, an abandoned throw. No
         // React, no store read, nothing that scales with the scene — this is
         // the ADR-2 path.
@@ -473,6 +598,10 @@ export function FieldCanvas({
         // The readout stands still while the scene is being rearranged.
         if (drag.kind === "piece") {
           moveTo(drag.id, { x: pos.x + drag.grabOffset.x, y: pos.y + drag.grabOffset.y });
+          // The first leg starts at the player, so dragging a player who is
+          // carrying a route has to bring that leg with it — imperatively,
+          // for the same ADR-2 reason the marker drag is imperative.
+          drawRouteOrigin(drag.id);
         } else if (drag.kind === "group") {
           moveGroup(drag, pos);
         } else {
@@ -613,6 +742,43 @@ export function FieldCanvas({
     marqueeRef.current?.setAttribute("opacity", "0");
   }
 
+  // Re-anchor leg 0 to wherever its player currently is.
+  function drawRouteOrigin(playerId: string) {
+    const svg = svgRef.current;
+    if (!svg || playerId !== selectedOffenseId) return;
+    const player = store.getScene().players.find((p) => p.id === playerId);
+    if (!player) return;
+    const px = yardToPixel(player.pos);
+    const first = svg.querySelector<SVGLineElement>('[data-leg="0"]');
+    first?.setAttribute("x1", String(px.x));
+    first?.setAttribute("y1", String(px.y));
+  }
+
+  // The route-marker equivalent of drawMarquee: move the glyph and the two
+  // legs that touch it, straight in the DOM. Marker `index` is drawn at
+  // points[index + 1], so it terminates leg `index` and originates leg
+  // `index + 1` — the last marker has no outgoing leg, hence the null checks.
+  function drawWaypointDrag(index: number, yard: Vec2) {
+    const svg = svgRef.current;
+    if (!svg) return;
+    const px = yardToPixel(yard);
+    const half = ROUTE_TOKENS.marker.size / 2;
+
+    const group = svg.querySelector<SVGGElement>(`[data-waypoint="${index}"]`);
+    group?.querySelector("rect")?.setAttribute("x", String(px.x - half));
+    group?.querySelector("rect")?.setAttribute("y", String(px.y - half));
+    const label = group?.querySelector("text");
+    label?.setAttribute("x", String(px.x));
+    label?.setAttribute("y", String(px.y));
+
+    const incoming = svg.querySelector<SVGLineElement>(`[data-leg="${index}"]`);
+    incoming?.setAttribute("x2", String(px.x));
+    incoming?.setAttribute("y2", String(px.y));
+    const outgoing = svg.querySelector<SVGLineElement>(`[data-leg="${index + 1}"]`);
+    outgoing?.setAttribute("x1", String(px.x));
+    outgoing?.setAttribute("y1", String(px.y));
+  }
+
   return (
     <div
       ref={stageRef}
@@ -687,6 +853,41 @@ export function FieldCanvas({
               completeThrow(id);
             }}
           />
+          {/* The selected player's pending route. Drawn above the pieces so a
+              marker standing on a piece is still grabbable, and hidden during
+              a run — the markers describe a plan, and while it is executing
+              they say nothing the moving pieces do not. */}
+          <RouteLayer
+            route={motionMode.routes[selectedOffenseId ?? ""]}
+            origin={store.getScene().players.find((p) => p.id === selectedOffenseId)?.pos}
+            hidden={motionMode.status === "running"}
+          />
+          {/* Visible even when the mobile sheet is collapsed over the panel
+              that would otherwise say so — and the field is read-only in this
+              state, which the coach has no other way to discover (ux.md UI
+              States). */}
+          {motionMode.status === "running" && (
+            <g data-testid="running-indicator" pointerEvents="none">
+              <rect
+                x={-STAGE_MARGIN.left + 4}
+                y={-STAGE_MARGIN.top + 4}
+                width={14}
+                height={3.2}
+                fill={ROUTE_TOKENS.runningIndicator.fill}
+              />
+              <text
+                x={-STAGE_MARGIN.left + 11}
+                y={-STAGE_MARGIN.top + 5.6}
+                textAnchor="middle"
+                dominantBaseline="central"
+                fill={ROUTE_TOKENS.runningIndicator.textFill}
+                fontSize={ROUTE_TOKENS.runningIndicator.fontSize}
+                fontFamily="'JetBrains Mono', ui-monospace, monospace"
+              >
+                RUNNING
+              </text>
+            </g>
+          )}
           {/* Drawn above the pieces so the box is never hidden behind them.
               Sized imperatively during the drag — no render per pointer move. */}
           <rect

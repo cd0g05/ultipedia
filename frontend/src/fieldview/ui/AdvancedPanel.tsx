@@ -8,17 +8,21 @@
 
 import { SLIDER_RANGES, degToRad } from "../space/constants";
 import type { LayerFlags, Lens, SpaceParams } from "../space/types";
-import { paramsAreDefault } from "./prefs";
+import { MOTION_SLIDER_RANGES } from "../motion/constants";
+import type { MotionParams } from "../motion/types";
+import { motionParamsAreDefault, paramsAreDefault } from "./prefs";
 
 interface AdvancedPanelProps {
   lens: Lens;
   layers: LayerFlags;
   params: SpaceParams;
+  motion: MotionParams;
   expanded: boolean;
   onExpandedChange: (expanded: boolean) => void;
   onLensChange: (lens: Lens) => void;
   onLayerChange: (layer: keyof LayerFlags, enabled: boolean) => void;
   onParamChange: (param: keyof SpaceParams, value: number) => void;
+  onMotionParamChange: (param: keyof MotionParams, value: number) => void;
   onReset: () => void;
 }
 
@@ -63,18 +67,42 @@ const SLIDERS: SliderSpec[] = [
   },
 ];
 
+// The motion tunables (fieldview-motion). Grouped separately from the space
+// sliders because they answer a different question — "how do people move"
+// rather than "how is space scored" — but deliberately in the SAME panel:
+// vmax and react are shared between the two models (tech-design ADR-3), so a
+// coach tuning "how fast do people run" must not have to know which model
+// owns which number. Those two stay in the space group above, where they
+// already live.
+const MOTION_SLIDERS: {
+  param: keyof MotionParams;
+  label: string;
+  min: number;
+  max: number;
+  step: number;
+  unit: string;
+  decimals: number;
+}[] = [
+  { param: "accel", label: "Acceleration", ...MOTION_SLIDER_RANGES.accel, step: 0.5, unit: "yd/s²", decimals: 1 },
+  { param: "decel", label: "Deceleration", ...MOTION_SLIDER_RANGES.decel, step: 0.5, unit: "yd/s²", decimals: 1 },
+  { param: "cushion", label: "Cushion", ...MOTION_SLIDER_RANGES.cushion, step: 0.5, unit: "yd", decimals: 1 },
+  { param: "lead", label: "Lead", ...MOTION_SLIDER_RANGES.lead, step: 0.1, unit: "s", decimals: 1 },
+];
+
 export function AdvancedPanel({
   lens,
   layers,
   params,
+  motion,
   expanded,
   onExpandedChange,
   onLensChange,
   onLayerChange,
   onParamChange,
+  onMotionParamChange,
   onReset,
 }: AdvancedPanelProps) {
-  const modified = !paramsAreDefault(params);
+  const modified = !paramsAreDefault(params) || !motionParamsAreDefault(motion);
 
   return (
     <div className="w-full border-t border-zinc-200 pt-3">
@@ -162,6 +190,31 @@ export function AdvancedPanel({
                 </label>
               );
             })}
+
+            <fieldset className="flex flex-col gap-2 border-t border-zinc-200 pt-2">
+              <legend className="font-mono text-xs uppercase tracking-wider text-zinc-500">
+                Movement
+              </legend>
+              {MOTION_SLIDERS.map((spec) => (
+                <label key={spec.param} className="flex items-center gap-2 font-mono text-xs">
+                  <span className="w-24 shrink-0 text-zinc-600">{spec.label}</span>
+                  <input
+                    type="range"
+                    min={spec.min}
+                    max={spec.max}
+                    step={spec.step}
+                    value={motion[spec.param]}
+                    aria-label={spec.label}
+                    onChange={(e) => onMotionParamChange(spec.param, Number(e.target.value))}
+                    className="min-w-0 flex-1"
+                  />
+                  <span className="w-14 shrink-0 text-right tabular-nums text-zinc-800">
+                    {motion[spec.param].toFixed(spec.decimals)}
+                    {spec.unit}
+                  </span>
+                </label>
+              ))}
+            </fieldset>
 
             <button
               type="button"

@@ -11,7 +11,7 @@
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Profiler } from "react";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { Whiteboard } from "../pages/Whiteboard";
 import { getStageViewBox } from "../render/coords";
@@ -25,6 +25,28 @@ beforeEach(() => {
   sessionStorage.clear();
   resetThrowMode();
 });
+
+// Since fieldview-motion the disc TRAVELS, and possession moves when it lands
+// rather than when the receiver is clicked (PRD FR-5.3). The throw semantics
+// asserted throughout this file are unchanged — they just happen a second
+// later. This pumps frames with the clock jumped forward, so a 1.5 s flight
+// resolves in a handful of ticks instead of real time. Each frame advances at
+// most MAX_FRAME_SECONDS (0.25 s) however far the clock jumped — that clamp is
+// the whole point of FR-4.5 — so a ~1.5 s flight needs several.
+async function landDisc() {
+  const base = performance.now();
+  let jump = 0;
+  const clock = vi.spyOn(performance, "now").mockImplementation(() => base + (jump += 1000));
+  try {
+    await act(async () => {
+      for (let i = 0; i < 20; i++) {
+        await new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
+      }
+    });
+  } finally {
+    clock.mockRestore();
+  }
+}
 
 function stubStageRect() {
   return vi.spyOn(SVGSVGElement.prototype, "getBoundingClientRect").mockReturnValue({
@@ -104,7 +126,7 @@ describe("arming the throw tool", () => {
 });
 
 describe("completing a throw (Flow 1)", () => {
-  it("moves the disc, the roles and the mark, then exits the mode", () => {
+  it("moves the disc, the roles and the mark, then exits the mode", async () => {
     const rect = stubStageRect();
     try {
       renderWhiteboard();
@@ -112,6 +134,11 @@ describe("completing a throw (Flow 1)", () => {
 
       arm();
       clickPiece(screen.getByRole("button", { name: "offense cutter 3" }));
+
+      // Mid-flight the old thrower still holds it — there is never a moment
+      // where the disc belongs to nobody (FR-5.4).
+      expect(discOwner()).toBe("o1");
+      await landDisc();
 
       // The receiver now holds it, and the old thrower is an ordinary cutter.
       expect(discOwner()).toBe("o4");
@@ -127,12 +154,13 @@ describe("completing a throw (Flow 1)", () => {
     }
   });
 
-  it("selects the new thrower so the sidebar shows the new situation", () => {
+  it("selects the new thrower so the sidebar shows the new situation", async () => {
     const rect = stubStageRect();
     try {
       renderWhiteboard();
       arm();
       clickPiece(screen.getByRole("button", { name: "offense cutter 3" }));
+      await landDisc();
 
       // The offense panel for the new holder, straight from the registry.
       expect(screen.getByText(/Has the disc/)).toBeInTheDocument();
@@ -141,13 +169,14 @@ describe("completing a throw (Flow 1)", () => {
     }
   });
 
-  it("completes on Enter for a keyboard user on the focused receiver", () => {
+  it("completes on Enter for a keyboard user on the focused receiver", async () => {
     renderWhiteboard();
     arm();
 
     const receiver = screen.getByRole("button", { name: "offense cutter 2" });
     receiver.focus();
     fireEvent.keyDown(receiver, { key: "Enter" });
+    await landDisc();
 
     expect(discOwner()).toBe("o3");
     expect(throwButton()).not.toHaveAttribute("aria-pressed", "true");

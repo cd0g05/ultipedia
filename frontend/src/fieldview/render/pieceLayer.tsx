@@ -17,6 +17,7 @@ import type { SceneStore } from "../scene/store";
 import { movePlayer, moveThrower } from "../scene/scene";
 import { yardToPixel } from "./coords";
 import { NUDGE, PIECE_TOKENS } from "./tokens";
+import { getFlightPos } from "../ui/shell/throwMode";
 
 export interface PieceIdentity {
   id: string;
@@ -69,8 +70,14 @@ export function PieceLayer({
     }
 
     if (discRef.current && thrower) {
-      const { x, y } = yardToPixel(thrower.pos);
-      const { dx, dy } = PIECE_TOKENS.disc.offsetPx;
+      // In flight, the disc is wherever the driver last published it — and it
+      // is deliberately NOT offset to a holder's shoulder, because nobody is
+      // holding it. Docked otherwise, exactly as before. Read here rather than
+      // subscribed in React because this repaint already runs on every scene
+      // mutation, which is what the driver is producing during the flight.
+      const airborne = getFlightPos();
+      const { x, y } = yardToPixel(airborne ?? thrower.pos);
+      const { dx, dy } = airborne ? { dx: 0, dy: 0 } : PIECE_TOKENS.disc.offsetPx;
       discRef.current.setAttribute("transform", `translate(${x + dx}, ${y + dy})`);
     }
 
