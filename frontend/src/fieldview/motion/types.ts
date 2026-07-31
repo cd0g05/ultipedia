@@ -60,6 +60,13 @@ export interface MotionParams {
   accel: number; // yd/s²
   decel: number; // yd/s² — braking is its own number; players stop faster than they start
   cushion: number; // yd — the defender's goalside gap (ADR-2)
+  // Seconds of the cutter's velocity a defender projects forward when
+  // choosing where to be. This is what resolves the PRD's open question of
+  // whether cushion varies with speed: it does not — the cushion is fixed and
+  // the LEAD scales with speed. Without it a defender deep on a cutter
+  // breaking deep would drift under to reclaim its cushion instead of turning
+  // and carrying the cut (ADR-2, FR-3.4).
+  lead: number;
 }
 
 // The headless artifact (ADR-1). Initiative D replays a frame by asking for

@@ -69,27 +69,63 @@ next_section: "## Partition: feat/fieldview-motion-core"
 
 ## Partition: feat/fieldview-motion-pursuit
 
-- [ ] Implement the reaction ring in `MotionState` — fixed size `react/DT`, preallocated, no per-tick allocation <!-- id: 14 -->
-- [ ] Implement `delayedPos(state, id, react, dt)` reading the ring <!-- id: 15 -->
-- [ ] Implement `cushionPoint(lead, disc, cushion)` — leverage along disc→cutter (ADR-2) <!-- id: 16 -->
-- [ ] Handle `possession === null` → `cushion = 0` fallback without throwing <!-- id: 17 -->
-- [ ] Implement the defender target: `arrive()` toward the cushion point under the same kinematic limits <!-- id: 18 -->
-- [ ] Free-roam (`matchups[d] === null`) defenders do not move <!-- id: 19 -->
-- [ ] Implement `step(state, dt, motionParams, spaceParams)` — routed movers, then defenders, then disc; one pass, no allocation <!-- id: 20 -->
-- [ ] Implement `isSettled()` and `simulate()` with fixed step, settle test, and hard time ceiling <!-- id: 21 -->
-- [ ] Implement `sampleAt(trajectory, seconds)` <!-- id: 22 -->
-- [ ] Behaviour test: defender 10 yd deep does not close on an approaching cutter (FR-3.2) <!-- id: 23 -->
-- [ ] Behaviour test: on a deep turn the defender's downfield speed rises before the cutter arrives (FR-3.4) <!-- id: 24 -->
-- [ ] Behaviour test: lateral movement matched within cushion tolerance (FR-3.5) <!-- id: 25 -->
-- [ ] Headline test: a two-leg cut yields strictly more separation at arrival than a one-leg cut to the same endpoint <!-- id: 26 -->
-- [ ] Invariant test: defender never exceeds `vmax`, never reverses instantly (FR-3.6) <!-- id: 27 -->
-- [ ] Property test: `simulate()` terminates for randomised tunables across the full slider ranges <!-- id: 28 -->
-- [ ] Agreement test: `n` × `step(DT)` equals `simulate()` sampled at `n·DT`, exactly — mutation-tested <!-- id: 29 -->
-- [ ] Static check: no `Math.random`, no wall-clock read anywhere in `motion/` <!-- id: 30 -->
+- [x] Implement the reaction ring in `MotionState` — fixed size `react/DT`, preallocated, no per-tick allocation <!-- id: 14 -->
+- [x] Implement `delayedPos(state, id, react, dt)` reading the ring <!-- id: 15 -->
+- [x] Implement `cushionPoint(lead, disc, cushion)` — leverage along disc→cutter (ADR-2) <!-- id: 16 -->
+- [x] Handle `possession === null` → `cushion = 0` fallback without throwing <!-- id: 17 -->
+- [x] Implement the defender target: `arrive()` toward the cushion point under the same kinematic limits <!-- id: 18 -->
+- [x] Free-roam (`matchups[d] === null`) defenders do not move <!-- id: 19 -->
+- [x] Implement `step(state, dt, motionParams, spaceParams)` — routed movers, then defenders, then disc; one pass, no allocation <!-- id: 20 -->
+- [x] Implement `isSettled()` and `simulate()` with fixed step, settle test, and hard time ceiling <!-- id: 21 -->
+- [x] Implement `sampleAt(trajectory, seconds)` <!-- id: 22 -->
+- [x] Behaviour test: defender 10 yd deep does not close on an approaching cutter (FR-3.2) <!-- id: 23 -->
+- [x] Behaviour test: on a deep turn the defender's downfield speed rises before the cutter arrives (FR-3.4) <!-- id: 24 -->
+- [x] Behaviour test: lateral movement matched within cushion tolerance (FR-3.5) <!-- id: 25 -->
+- [x] Headline test: a two-leg cut yields strictly more separation **gained on the final leg** than a one-leg cut to the same endpoint <!-- id: 26 -->
+- [x] Invariant test: defender never exceeds `vmax`, never reverses instantly (FR-3.6) <!-- id: 27 -->
+- [x] Property test: `simulate()` terminates for randomised tunables across the full slider ranges <!-- id: 28 -->
+- [x] Agreement test: `n` × `step(DT)` equals `simulate()` sampled at `n·DT`, exactly — mutation-tested <!-- id: 29 -->
+- [x] Static check: no `Math.random`, no wall-clock read anywhere in `motion/` <!-- id: 30 -->
 
 ### Deviation notes (Partition 2: Pursuit & runner)
 
-_None yet._
+- **`MotionParams` gained a 4th tunable, `lead` (0.6 s, range 0–1.5).** Signalled. The three-param
+  cushion model in ADR-2 is not sufficient on its own: a defender 10 yd deep of a cutter who breaks
+  deep finds the cushion point *under* itself and drifts toward the disc to reclaim its 3 yd, rather
+  than turning and carrying the cut — a direct FR-3.4 failure. Projecting the cutter's delayed
+  velocity forward by `lead` swings the target past the defender as the cutter builds speed, which
+  is what makes the carry emerge. This also **resolves the PRD open question** on whether cushion
+  varies with speed: it does not — cushion is fixed, and the lead is what scales. Touches P1 files
+  (`types.ts`, `constants.ts`) from the P2 branch; P4's slider group and `prefs.ts` clamping cover
+  four motion params, not three.
+- **`step()` consumes its input state.** The reaction ring is written in place rather than copied.
+  Copying every mover's ring each substep is O(movers × react/dt) of garbage at 120 Hz, against the
+  module's standing "buffers in the hot path are reused" convention. Determinism is unaffected —
+  the same state stepped the same way always gives the same result — and `simulate()` clones on
+  entry, so callers holding a state (the driver's reduced-motion path) are safe. A test asserts the
+  clone actually protects the input.
+- **Ring-discipline bug found and fixed during the partition.** Reads must happen at the head
+  *after* the write, not before: reading at the pre-write head hands the defender the cutter's
+  current position and, worse, a `delayedVel` differenced backwards, sending defenders chasing a
+  point behind the cutter. Six tests caught it. Worth keeping in mind for anyone touching the ring.
+- **Task 26's metric changed, three times, and the reasons matter.** Separation at rest converges on
+  the cushion whatever the path. Separation at arrival is dominated by the final leg's length — over
+  twenty yards an equal-speed defender always recovers, which is correct physics, not a bug. Raw
+  peak separation flatters the *straight* cut, because both start from rest and the straight one
+  still has its one-time reaction-delay burst to spend while the setup has already spent it. The
+  landed metric is **separation gained on the final leg**, which compares like with like: 4.4 yd for
+  the setup versus 2.5 yd for the straight cut.
+- **The FR-3.6 "no instant reversal" assertion carries one exemption**: arrival. A mover within a
+  single substep's travel (< 0.08 yd) of its target snaps onto it and stops, which is what stops a
+  defender chattering around a cushion point it has effectively reached. Removing the snap instead
+  produces a genuine oscillation that never settles, since desired speed `sqrt(2·decel·d)` stays
+  above `SETTLE_SPEED` arbitrarily close in.
+- **Observation for the by-eye review**: at default tunables a defender starting with a 3 yd cushion
+  ends *level* with a cutter who sprints deep from a standstill — it loses the cushion during its
+  reaction and, at equal top speed, can never win it back. That is physically right and may still
+  read as too generous to the offense. It is a `cushion`/`react` calibration question, not a code
+  one.
+- Suite: **719 tests / 56 files** (was 683 / 54). `tsc --noEmit` clean.
 
 ---
 

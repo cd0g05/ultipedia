@@ -4,7 +4,13 @@
     "fieldview-motion": {
       "intent": "Pure motion library: accel-limited kinematics, multi-waypoint cuts, non-naive defender pursuit, animated disc flight. Transient state; no Scene or format change.",
       "owner": "unknown",
-      "signals": [],
+      "signals": [
+        {
+          "timestamp": "2026-07-31T05:34:49.822817+00:00",
+          "message": "MotionParams gained a 4th tunable: lead (seconds, default 0.6, range 0-1.5). Partition 2 found the 3-param cushion model insufficient \u2014 without a velocity-projected lead, a defender deep on a cutter breaking deep drifts UNDER to reclaim its cushion instead of turning and carrying the cut, failing PRD FR-3.4. Touches P1 files (motion/types.ts, motion/constants.ts) from the P2 branch. Impact: Partition 4's Movement slider group covers accel, decel, cushion, lead; prefs.ts validation/clamping must include lead. Also resolves the PRD open question 'whether cushion magnitude varies with the cutter's speed' \u2014 it does not; cushion is fixed and lead scales with speed.",
+          "from_branch": "feat/fieldview-motion-pursuit"
+        }
+      ],
       "created_at": "2026-07-31T05:08:00.071882+00:00"
     }
   },
@@ -21,6 +27,17 @@
       "owner": "unknown",
       "created_at": "2026-07-31T05:09:04.828309+00:00",
       "worktree_path": "/Users/cartercripe/dev/code/projects/ulti-pedia-feat-fieldview-motion-core",
+      "initiative": "fieldview-motion"
+    },
+    "feat/fieldview-motion-pursuit": {
+      "intent": "Cushion pursuit model on a reaction delay, step() as the single physics entry point, headless simulate() producing a Trajectory",
+      "modules": [
+        "motion/step.ts",
+        "motion/simulate.ts",
+        "motion/pursuit.ts"
+      ],
+      "owner": "unknown",
+      "created_at": "2026-07-31T05:25:44.643091+00:00",
       "initiative": "fieldview-motion"
     }
   }
