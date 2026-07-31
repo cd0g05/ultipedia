@@ -131,22 +131,51 @@ next_section: "## Partition: feat/fieldview-motion-core"
 
 ## Partition: feat/fieldview-motion-driver
 
-- [ ] Create `ui/motion/motionMode.ts` — routes, run status, saved pre-run positions, on the `throwMode.ts` external-store pattern (ADR-4) <!-- id: 31 -->
-- [ ] Implement `createMotionDriver(store)` — fixed-timestep accumulator, `DT = 1/120` (ADR-5) <!-- id: 32 -->
-- [ ] Clamp the accumulated total so a long frame gap cannot integrate a huge step (FR-4.5) <!-- id: 33 -->
-- [ ] Write exactly one `store.mutate()` per rendered frame regardless of substep count <!-- id: 34 -->
-- [ ] Implement `run` / `stop` (freeze in place) / `reset` (restore pre-run positions) / `isRunning` / `dispose` <!-- id: 35 -->
-- [ ] End the run on settle and transition status; expose it via `useMotionRun` (status only, never positions) <!-- id: 36 -->
-- [ ] Reduced-motion branch: `simulate()` + apply end state in one mutation, no rAF loop (ADR-6) <!-- id: 37 -->
-- [ ] Test: 5-second frame gap produces bounded displacement <!-- id: 38 -->
-- [ ] Test: two drivers on two stores do not interfere <!-- id: 39 -->
-- [ ] Test: `dispose()` cancels the rAF; no leak across mount/unmount <!-- id: 40 -->
-- [ ] Extend the Profiler test — 0 React commits across a full run; confirm the drag test still records 0 <!-- id: 41 -->
-- [ ] Add the frame-budget assertion to the quarantined `test:perf` suite (< 16 ms, 14 movers + heatmap) <!-- id: 42 -->
+- [x] Create `ui/motion/motionMode.ts` — routes, run status, saved pre-run positions, on the `throwMode.ts` external-store pattern (ADR-4) <!-- id: 31 -->
+- [x] Implement `createMotionDriver(store)` — fixed-timestep accumulator, `DT = 1/120` (ADR-5) <!-- id: 32 -->
+- [x] Clamp the accumulated total so a long frame gap cannot integrate a huge step (FR-4.5) <!-- id: 33 -->
+- [x] Write exactly one `store.mutate()` per rendered frame regardless of substep count <!-- id: 34 -->
+- [x] Implement `run` / `stop` (freeze in place) / `reset` (restore pre-run positions) / `isRunning` / `dispose` <!-- id: 35 -->
+- [x] End the run on settle and transition status; expose it via `useMotionRun` (status only, never positions) <!-- id: 36 -->
+- [x] Reduced-motion branch: `simulate()` + apply end state in one mutation, no rAF loop (ADR-6) <!-- id: 37 -->
+- [x] Test: 5-second frame gap produces bounded displacement <!-- id: 38 -->
+- [x] Test: two drivers on two stores do not interfere <!-- id: 39 -->
+- [x] Test: `dispose()` cancels the rAF; no leak across mount/unmount <!-- id: 40 -->
+- [x] Extend the Profiler test — 0 React commits across a full run; confirm the drag test still records 0 <!-- id: 41 -->
+- [x] Add the frame-budget assertion to the quarantined `test:perf` suite (< 16 ms, 14 movers + heatmap) <!-- id: 42 -->
 
 ### Deviation notes (Partition 3: Driver)
 
-_None yet._
+- **The driver takes an injected clock and scheduler** (`now`, `schedule`, `cancel`,
+  `prefersReducedMotion`), defaulting to `performance.now` / `requestAnimationFrame` / `matchMedia`.
+  Not in the task list, and load-bearing for the tests: without the seam every timing assertion
+  would depend on jsdom's rAF pacing, which is precisely the host-dependent non-determinism the
+  fixed timestep exists to remove. Tests pump frames by hand.
+- **Tunables arrive through a `getParams()` callback, not by importing `prefs.ts`.** The driver has
+  no opinion about where tunables live and needs no React tree to be tested. Partition 4 wires it to
+  the overlay prefs store.
+- **The clamp is per-frame, not on the accumulator's running total.** `min(elapsed,
+  MAX_FRAME_SECONDS)` means a stall *costs* the run the time it was away rather than replaying it in
+  fast-forward. Fast-forwarding would satisfy FR-4.5's letter and look wrong.
+- **`reset()` rewinds routes rather than clearing them**, so the same cut re-runs after a tuning
+  change without the coach re-clicking it (ux.md Flow 1 step 6). `rewindRoutes()` sets every
+  route's `leg` back to 0 while keeping its waypoints.
+- **The ADR-2 Profiler assertion is at driver level, not page level.** The driver is not mounted in
+  `Whiteboard.tsx` until Partition 4, so a page-level assertion is not yet possible. What is
+  asserted here is stronger in one respect and weaker in another: 0 commits across 60 driven frames
+  while positions demonstrably change, plus a companion test proving the Profiler *does* fire on a
+  status change — so the zero is not vacuous. **Task 68 added to Partition 4** for the page-level
+  version.
+- **`motionMode` is a module singleton while drivers are per-store.** Routes, picking, and status
+  are shared; positions are not. Only one fieldview page mounts at a time, so this is safe today,
+  and the "two drivers do not interfere" test covers the part that matters (positions). If
+  Initiative D ever mounts two scenes at once, status must move into the driver.
+- **`package.json` edited** to add `motionBench.test.ts` to the quarantined `test:perf` list — a
+  file outside this partition's declared modules, unavoidable for task 42.
+- **Measured**: stepper ×4 substeps with 14 movers, best **0.0117 ms**; a whole simulated frame
+  including the heatmap grid recompute, best **9.57 ms** against the 16 ms budget. The grid still
+  dominates, exactly as predicted — motion's share is a rounding error.
+- Suite: **738 tests / 58 files** (was 719 / 56). `tsc --noEmit` clean; `npm run test:perf` green.
 
 ---
 
@@ -162,6 +191,7 @@ _None yet._
 - [ ] Persist `MotionParams` in `prefs.ts` — validated and clamped on read; absent key falls back to defaults <!-- id: 50 -->
 - [ ] Accessibility pass: `aria-pressed`, keyboard order, live-region announcements for run start / `Cut complete.` / `Stopped.` <!-- id: 51 -->
 - [ ] Verify parity in the desktop sidebar and the mobile sheet (canon ADR-14); run the full suite <!-- id: 52 -->
+- [ ] Page-level ADR-2 assertion: 0 React commits across a run driven through a mounted `Whiteboard`, now that the driver is wired to the page (deferred from Partition 3, where the driver was not yet mounted) <!-- id: 68 -->
 
 ### Deviation notes (Partition 4: Route UI & tuning)
 
