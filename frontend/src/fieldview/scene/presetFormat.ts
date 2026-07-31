@@ -52,7 +52,12 @@ export function presetToScene(preset: PresetFile): Scene {
     label: e.label,
     pos: preset.positions[e.id] ?? { x: 0, y: 0 },
   }));
-  return { players };
+  // Same story as tween.ts sceneFrom: the preset file has no possession or
+  // matchups field yet, so possession is recovered from the stored thrower
+  // role and matchups are left unassigned for normalize() to derive from
+  // proximity. The format partition replaces this with the shared backfill.
+  const thrower = players.find((p) => p.role === "thrower");
+  return { players, possession: thrower ? thrower.id : null, matchups: {} };
 }
 
 const VALID_TEAMS: Team[] = ["offense", "defense"];

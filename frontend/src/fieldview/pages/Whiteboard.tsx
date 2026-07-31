@@ -29,7 +29,11 @@ function identityOf(scene: Scene) {
 }
 
 function cloneScene(scene: Scene): Scene {
-  return { players: scene.players.map((p) => ({ ...p, pos: { ...p.pos } })) };
+  return {
+    ...scene,
+    players: scene.players.map((p) => ({ ...p, pos: { ...p.pos } })),
+    matchups: { ...scene.matchups },
+  };
 }
 
 function scenesEqual(a: Scene, b: Scene): boolean {
@@ -96,7 +100,7 @@ export function Whiteboard() {
     const scene = store.getScene();
     registry.save(name, scene);
     refreshPresets();
-    setLastLoadedSnapshot({ players: scene.players.map((p) => ({ ...p, pos: { ...p.pos } })) });
+    setLastLoadedSnapshot(cloneScene(scene));
   }
 
   function renamePreset(id: string, name: string) {

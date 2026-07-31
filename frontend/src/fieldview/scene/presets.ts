@@ -24,14 +24,22 @@ function buildScene(params: {
     player("o1", "offense", "thrower", throwerX, throwerY, "T"),
     player("d1", "defense", "mark", throwerX + markOffset.x, throwerY + markOffset.y, "M"),
   ];
+  // Matchups mirror the index pairing the positions already encode: d1 marks
+  // the thrower, d(n) guards o(n). Stating them as data rather than letting
+  // autoAssign() guess keeps the built-ins stable even when a preset's
+  // geometry puts a sagging help defender closer to somebody else's cutter.
+  const matchups: Record<string, string | null> = { d1: "o1" };
   cutters.forEach((c, i) => {
     players.push(player(`o${i + 2}`, "offense", "cutter", c.x, c.y, String(i + 1)));
     const off = defenderOffsets[i];
     players.push(
       player(`d${i + 2}`, "defense", "defender", c.x + off.x, c.y + off.y, String(i + 1)),
     );
+    matchups[`d${i + 2}`] = `o${i + 2}`;
   });
-  return { players };
+  // o1 is the thrower in every built-in; the stored `thrower`/`mark` roles
+  // above are what normalize() would derive from this possession anyway.
+  return { players, possession: "o1", matchups };
 }
 
 // Vertical stack, force side: cutters lined up single-file downfield of the
@@ -160,7 +168,11 @@ export const PRESET_LABELS: Record<PresetName, string> = {
 
 export function getPreset(name: PresetName): Scene {
   const preset = PRESETS[name];
-  return { players: preset.players.map((p) => ({ ...p, pos: { ...p.pos } })) };
+  return {
+    players: preset.players.map((p) => ({ ...p, pos: { ...p.pos } })),
+    possession: preset.possession,
+    matchups: { ...preset.matchups },
+  };
 }
 
 export function listPresetNames(): PresetName[] {

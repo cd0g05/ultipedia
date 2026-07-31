@@ -60,7 +60,14 @@ export function sceneFrom(entities: PlayEntity[], positions: Record<string, Vec2
     label: e.label,
     pos: positions[e.id] ? { ...positions[e.id] } : { x: 0, y: 0 },
   }));
-  return { players };
+  // The play format does not carry possession or matchups yet — the format
+  // partition adds them with a proper load-time backfill (ADR-4). Until then
+  // possession is read back off the stored thrower role, which is where it
+  // came from in the first place, and matchups are left empty: an unassigned
+  // possessor makes normalize() derive the mark from proximity, which
+  // reproduces the mark these entities already carry.
+  const thrower = players.find((p) => p.role === "thrower");
+  return { players, possession: thrower ? thrower.id : null, matchups: {} };
 }
 
 export function sampleAt(play: Pick<PlayFile, "entities" | "keyframes">, t: number): Scene {

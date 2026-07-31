@@ -31,7 +31,11 @@ const UNDO_WINDOW_MS = 5000;
 const T_EPSILON = 1e-6;
 
 function cloneScene(scene: Scene): Scene {
-  return { players: scene.players.map((p) => ({ ...p, pos: { ...p.pos } })) };
+  return {
+    ...scene,
+    players: scene.players.map((p) => ({ ...p, pos: { ...p.pos } })),
+    matchups: { ...scene.matchups },
+  };
 }
 
 export function Designer() {
