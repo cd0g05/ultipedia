@@ -140,6 +140,13 @@
       "summary": "fieldview-shell: vertical field orientation, store-based selection model, typed panel registry, three-pane Light Film Room desktop shell, mobile bottom sheet (SmallScreenNotice retired). 6 partitions, 327 fieldview tests green.",
       "decisions": "",
       "modules": []
+    },
+    {
+      "timestamp": "2026-07-31T01:05:43.590822+00:00",
+      "branch": "initiative/fieldview-play-model",
+      "summary": "fieldview-play-model: possession as stored truth with derived thrower/mark roles, matchups with 1-to-1 swap and free roam, force presets that move the mark (force never stored), play format v2 backfilled on read. 4 partitions, 527 fieldview tests green.",
+      "decisions": "",
+      "modules": []
     }
   ]
 }

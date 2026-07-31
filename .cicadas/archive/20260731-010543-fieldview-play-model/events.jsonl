@@ -55,3 +55,4 @@
 {"timestamp":"2026-07-31T00:59:15.399145+00:00","type":"task.complete","initiative":"fieldview-play-model","branch":"main","data":{"task_id":"53"}}
 {"timestamp":"2026-07-31T00:59:15.472541+00:00","type":"task.complete","initiative":"fieldview-play-model","branch":"main","data":{"task_id":"54"}}
 {"timestamp":"2026-07-31T00:59:15.543980+00:00","type":"partition.complete","initiative":"fieldview-play-model","branch":"main","data":{"partition":"feat/fieldview-play-model-ui"}}
+{"timestamp":"2026-07-31T01:05:43.353262+00:00","type":"specs.archived","initiative":"fieldview-play-model","branch":"main","data":{"archive_name":"20260731-010543-fieldview-play-model","type":"initiative"}}
