@@ -147,6 +147,13 @@
       "summary": "fieldview-play-model: possession as stored truth with derived thrower/mark roles, matchups with 1-to-1 swap and free roam, force presets that move the mark (force never stored), play format v2 backfilled on read. 4 partitions, 527 fieldview tests green.",
       "decisions": "",
       "modules": []
+    },
+    {
+      "timestamp": "2026-07-31T05:25:31.713413+00:00",
+      "branch": "feat/fieldview-motion-core",
+      "summary": "Pure kinematics library: types, constants, vec, accel-limited arrive() with emergent turn cost, waypoint routes, 4-way mutation-tested motionGuard. 49 new tests.",
+      "decisions": "",
+      "modules": []
     }
   ]
 }
