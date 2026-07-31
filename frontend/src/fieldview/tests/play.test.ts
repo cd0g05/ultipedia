@@ -14,6 +14,7 @@ function samplePlay(): PlayFile {
   const scene = getPreset("vertStackForceSide");
   const entities = entitiesOf(scene);
   const shifted = {
+    ...scene,
     players: scene.players.map((p) => ({ ...p, pos: { x: p.pos.x + 5, y: p.pos.y } })),
   };
   return toPlayFile({

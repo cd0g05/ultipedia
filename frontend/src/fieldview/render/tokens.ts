@@ -82,6 +82,23 @@ export const PIECE_TOKENS = {
     // stays readable while focused.
     gap: 3,
   },
+  // Throwing mode (fieldview-play-model): eligible receivers are emphasised
+  // and everything else recedes, so an armed tool is never invisible.
+  //
+  // #EF4B8A is the CANVAS accent, deliberately not SHELL_TOKENS.accent
+  // (#be185d) — canon ADR-16 keeps chrome and game entities on separate
+  // accents because they mean different things, and this ring is drawn on a
+  // game entity. The de-emphasis is opacity rather than a second grey, so it
+  // composes over whatever the heatmap is painting underneath.
+  throwTarget: {
+    stroke: "#EF4B8A",
+    strokeWidth: 2,
+    strokeDasharray: "3 2",
+    // Outside the focus ring, so a focused receiver shows both rather than
+    // one covering the other.
+    gap: 6,
+    dimOpacity: 0.35,
+  },
 };
 
 export const NUDGE = {

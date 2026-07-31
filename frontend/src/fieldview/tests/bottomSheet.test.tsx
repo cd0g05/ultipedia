@@ -15,9 +15,12 @@ import { MemoryRouter } from "react-router-dom";
 import { BottomSheet } from "../ui/shell/BottomSheet";
 import { createSceneStore } from "../scene/store";
 import { getPreset } from "../scene/presets";
+import { resetThrowMode } from "../ui/shell/throwMode";
 
 beforeEach(() => {
   localStorage.clear();
+  // Module-level UI state (ADR-5) outlives RTL's cleanup.
+  resetThrowMode();
 });
 
 function renderSheet() {
@@ -86,7 +89,10 @@ describe("SELECTION tab content", () => {
     fireEvent.click(screen.getByRole("tab", { name: "Selection" }));
 
     expect(screen.queryByText("Select a player on the field to see options here.")).not.toBeInTheDocument();
-    expect(screen.getByText("Matchup and mark controls ship in a future update.")).toBeInTheDocument();
+    // fieldview-play-model: the registry's offense panel is the real one now.
+    // It is the SAME component the desktop sidebar renders (canon ADR-14) —
+    // shellDesktop.test.tsx asserts this identical string on that surface.
+    expect(screen.getByText("Guarded by")).toBeInTheDocument();
   });
 
   it("still uses the registry's DefaultVisibilityPanel (not the empty-state copy) for a multi selection", () => {
@@ -195,16 +201,25 @@ describe("disabled ribbon buttons (TOOLS tab)", () => {
     renderSheet();
     fireEvent.click(screen.getByRole("button", { name: "Expand field view tools" }));
 
-    const throwButton = screen.getByRole("button", { name: "Throw to Player" });
+    // fieldview-play-model made Throw to Player live, so Advanced Stats View
+    // is the only roadmap-disabled button left. Throw is asserted below
+    // instead: the sheet's store has a possessor, so it is enabled here.
     const statsButton = screen.getByRole("button", { name: "Advanced Stats View" });
+    expect(statsButton).toHaveAttribute("aria-disabled", "true");
+    expect(statsButton).not.toBeDisabled();
+    statsButton.focus();
+    expect(statsButton).toHaveFocus();
+    expect(screen.getAllByRole("tooltip", { name: "Ships in a future update." })).toHaveLength(1);
+  });
 
-    for (const btn of [throwButton, statsButton]) {
-      expect(btn).toHaveAttribute("aria-disabled", "true");
-      expect(btn).not.toBeDisabled();
-      btn.focus();
-      expect(btn).toHaveFocus();
-    }
-    expect(screen.getAllByRole("tooltip", { name: "Ships in a future update." })).toHaveLength(2);
+  it("arms Throw to Player from the mobile ribbon, exactly as the desktop ribbon does", () => {
+    renderSheet();
+    fireEvent.click(screen.getByRole("button", { name: "Expand field view tools" }));
+
+    const throwButton = screen.getByRole("button", { name: "Throw to Player" });
+    expect(throwButton).not.toHaveAttribute("aria-disabled");
+    fireEvent.click(throwButton);
+    expect(throwButton).toHaveAttribute("aria-pressed", "true");
   });
 
   it("Space View toggles the shared overlay prefs, same as desktop's Space button", () => {

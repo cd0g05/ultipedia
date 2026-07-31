@@ -52,6 +52,10 @@ function scene(extra: Player[] = [], markPos = { x: 39, y: 20 }): Scene {
       { ...player("m", "defense", "mark", markPos.x, markPos.y) },
       ...extra,
     ],
+    // Possession is stated so the thrower role is the one normalize() would
+    // derive; these space tests never mutate, they only read geometry.
+    possession: "t",
+    matchups: {},
   };
 }
 

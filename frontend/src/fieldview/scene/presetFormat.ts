@@ -7,6 +7,7 @@
 import type { Player, Role, Scene, Team, Vec2 } from "./types";
 import { FIELD, clampToField } from "./field";
 import type { PlayEntity } from "../play/format";
+import { backfillScene } from "../play/backfill";
 
 export const PRESET_FORMAT_VERSION = 1;
 
@@ -52,7 +53,13 @@ export function presetToScene(preset: PresetFile): Scene {
     label: e.label,
     pos: preset.positions[e.id] ?? { x: 0, y: 0 },
   }));
-  return { players };
+  // The preset format stays at v1 and stores neither field: a preset is a
+  // formation, and its matchups are exactly what the geometry implies. So it
+  // takes the same load-time backfill as a v1 play (ADR-4) — possession
+  // recovered from the stored thrower role, matchups auto-assigned from the
+  // positions, normalize() to settle the roles. Nothing preset-specific here
+  // is the point: one backfill, four call sites.
+  return backfillScene(players);
 }
 
 const VALID_TEAMS: Team[] = ["offense", "defense"];

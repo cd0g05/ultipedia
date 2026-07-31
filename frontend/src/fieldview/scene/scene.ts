@@ -4,11 +4,21 @@
 
 import type { Scene, Vec2 } from "./types";
 import { clampToField } from "./field";
+import { normalize } from "./possession";
+
+// Every mutation below ends with normalize() (tech-design ADR-1). Moving a
+// piece looks like it cannot affect roles, but the mark of an UNASSIGNED
+// possessor is derived from proximity, so a drag can legitimately change who
+// the mark is. Ending unconditionally with normalize() also means the rule is
+// "all mutations normalize", with no per-function judgement call about
+// whether this one needs to — which is the only version of the rule that
+// survives contact with future mutations.
 
 export function movePlayer(scene: Scene, id: string, pos: Vec2): void {
   const player = scene.players.find((p) => p.id === id);
   if (!player) return;
   player.pos = clampToField(pos);
+  normalize(scene);
 }
 
 // Translates the thrower to `pos` and carries the mark by the same delta,
@@ -26,4 +36,6 @@ export function moveThrower(scene: Scene, pos: Vec2): void {
   if (mark) {
     mark.pos = clampToField({ x: mark.pos.x + delta.x, y: mark.pos.y + delta.y });
   }
+
+  normalize(scene);
 }

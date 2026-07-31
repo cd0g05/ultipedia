@@ -34,6 +34,7 @@ import { panelRegistry } from "./panelRegistry";
 import { AdvancedSettingsPanel } from "./panels/AdvancedSettingsPanel";
 import { useOverlayState } from "../prefs";
 import { ToolRibbon } from "./ToolRibbon";
+import { SceneStoreProvider } from "./sceneStore";
 
 type SidebarView = "selection" | "advancedSettings";
 
@@ -56,6 +57,10 @@ export function LeftSidebar({ store, designerOpen, onToggleDesigner, presetMenu 
   const Panel = panelRegistry[selection.kind];
 
   return (
+    // The registered panels (and the ribbon's Throw button) read the scene
+    // through this provider rather than through PanelProps — see
+    // sceneStore.tsx for why that keeps ADR-13's registry seam intact.
+    <SceneStoreProvider store={store}>
     <aside
       aria-label="Field view sidebar"
       className="flex w-[280px] shrink-0 flex-col border-r border-film-border bg-white"
@@ -103,5 +108,6 @@ export function LeftSidebar({ store, designerOpen, onToggleDesigner, presetMenu 
         </>
       )}
     </aside>
+    </SceneStoreProvider>
   );
 }

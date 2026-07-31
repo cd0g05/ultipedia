@@ -60,7 +60,7 @@ const vert = () => getPreset("vertStackForceSide");
 describe("FR-3.2 regression — openness never requires a receiver", () => {
   it("with all six cutters removed, far open-side space still scores open", () => {
     const s = vert();
-    const noCutters: Scene = { players: s.players.filter((p) => p.role !== "cutter") };
+    const noCutters: Scene = { ...s, players: s.players.filter((p) => p.role !== "cutter") };
     const cell = { x: 50, y: 10 }; // ~11 yd out, open side, no defender near
     const score = scoreCell(cell, noCutters, P, ALL_LAYERS, "offense");
     expect(score).toBeGreaterThan(0.5);
@@ -184,6 +184,8 @@ describe("§8.6 — a cutter beside their matched defender yields contested, not
       player("c", "offense", "cutter", 60, 20),
       player("d", "defense", "defender", 61, 20),
     ],
+    possession: "t",
+    matchups: { m: "t", d: "c" },
   };
   // Ring cells around the pair, off the thrower→pair axis so the lane layer
   // stays out of the picture.
@@ -197,8 +199,8 @@ describe("§8.6 — a cutter beside their matched defender yields contested, not
   it("cells around the pair read contested mid-range — below strong, above dead", () => {
     for (const cell of ring) {
       const contested = scoreCell(cell, pair, P, ALL_LAYERS, "offense");
-      const open = scoreCell(cell, { players: pair.players.filter((p) => p.id !== "d") }, P, ALL_LAYERS, "offense");
-      const shutDown = scoreCell(cell, { players: pair.players.filter((p) => p.id !== "c") }, P, ALL_LAYERS, "offense");
+      const open = scoreCell(cell, { ...pair, players: pair.players.filter((p) => p.id !== "d") }, P, ALL_LAYERS, "offense");
+      const shutDown = scoreCell(cell, { ...pair, players: pair.players.filter((p) => p.id !== "c") }, P, ALL_LAYERS, "offense");
       // Separation emerges from the race margin — no special-casing:
       expect(contested).toBeLessThan(open);
       expect(contested).toBeGreaterThan(shutDown);
@@ -214,8 +216,11 @@ describe("§8.7 — a defender parked in a throwing lane shades the space behind
       player("m", "defense", "mark", 39, 20),
       player("d", "defense", "defender", 55, 20),
     ],
+    possession: "t",
+    matchups: { m: "t", d: null },
   };
   const noDefender: Scene = {
+    ...laneScene,
     players: laneScene.players.filter((p) => p.id !== "d"),
   };
   const behind = { x: 75, y: 20 }; // 20 yd behind the poach, 35 yd out

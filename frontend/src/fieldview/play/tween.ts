@@ -5,6 +5,8 @@
 
 import type { Player, Scene, Vec2 } from "../scene/types";
 import type { PlayEntity, PlayFile, PlayKeyframe } from "./format";
+import { backfillScene } from "./backfill";
+import type { StoredPlayModel } from "./backfill";
 
 export function playDuration(play: Pick<PlayFile, "keyframes">): number {
   if (play.keyframes.length === 0) return 0;
@@ -52,7 +54,14 @@ export function samplePositions(
   return out;
 }
 
-export function sceneFrom(entities: PlayEntity[], positions: Record<string, Vec2>): Scene {
+// Positions plus whatever the file said about the play model; the shared
+// backfill (ADR-4) fills in the rest and normalizes, so a v1 play sampled here
+// is indistinguishable from a v2 one that stated the same facts.
+export function sceneFrom(
+  entities: PlayEntity[],
+  positions: Record<string, Vec2>,
+  stored?: StoredPlayModel,
+): Scene {
   const players: Player[] = entities.map((e) => ({
     id: e.id,
     team: e.team,
@@ -60,9 +69,17 @@ export function sceneFrom(entities: PlayEntity[], positions: Record<string, Vec2
     label: e.label,
     pos: positions[e.id] ? { ...positions[e.id] } : { x: 0, y: 0 },
   }));
-  return { players };
+  return backfillScene(players, stored);
 }
 
-export function sampleAt(play: Pick<PlayFile, "entities" | "keyframes">, t: number): Scene {
-  return sceneFrom(play.entities, samplePositions(play.keyframes, t));
+// The v2 fields are play-level, not keyframe-level, so every sample of a play
+// carries the same possession and matchups — only the pose moves.
+export function sampleAt(
+  play: Pick<PlayFile, "entities" | "keyframes"> & StoredPlayModel,
+  t: number,
+): Scene {
+  return sceneFrom(play.entities, samplePositions(play.keyframes, t), {
+    possession: play.possession,
+    matchups: play.matchups,
+  });
 }

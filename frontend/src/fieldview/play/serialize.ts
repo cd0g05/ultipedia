@@ -7,11 +7,19 @@ import { PLAY_FORMAT_VERSION, currentPlayField } from "./format";
 import type { PlayEntity, PlayFile, PlayKeyframe } from "./format";
 import { PlayValidationError, validatePlayFile } from "./validate";
 
+// The load-time backfill lives in backfill.ts (see the note there) but is
+// part of this module's contract, so it is re-exported here: a caller reading
+// or writing a play file should not need to know it is two files.
+export { backfillScene, playModelOf } from "./backfill";
+export type { StoredPlayModel } from "./backfill";
+
 export interface PlayDraft {
   name: string;
   description?: string;
   entities: PlayEntity[];
   keyframes: PlayKeyframe[];
+  possession?: string | null;
+  matchups?: Record<string, string | null>;
 }
 
 export function entitiesOf(scene: Scene): PlayEntity[] {
@@ -25,7 +33,7 @@ export function keyframeOf(scene: Scene, t: number): PlayKeyframe {
 }
 
 export function toPlayFile(draft: PlayDraft): PlayFile {
-  return {
+  const file: PlayFile = {
     formatVersion: PLAY_FORMAT_VERSION,
     name: draft.name,
     description: draft.description,
@@ -36,15 +44,24 @@ export function toPlayFile(draft: PlayDraft): PlayFile {
       .map((kf) => ({ t: kf.t, positions: { ...kf.positions } })),
     interpolation: "linear",
   };
+  // Written only when the draft stated them, so a caller that knows nothing
+  // about the play model still produces a file the backfill handles, rather
+  // than one asserting a loose disc it never meant.
+  if (draft.possession !== undefined) file.possession = draft.possession;
+  if (draft.matchups !== undefined) file.matchups = { ...draft.matchups };
+  return file;
 }
 
 export function fromPlayFile(file: PlayFile): PlayDraft {
-  return {
+  const draft: PlayDraft = {
     name: file.name,
     description: file.description,
     entities: file.entities.map((e) => ({ ...e })),
     keyframes: file.keyframes.map((kf) => ({ t: kf.t, positions: { ...kf.positions } })),
   };
+  if (file.possession !== undefined) draft.possession = file.possession;
+  if (file.matchups !== undefined) draft.matchups = { ...file.matchups };
+  return draft;
 }
 
 export interface PlayStore {

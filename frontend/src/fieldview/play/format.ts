@@ -10,7 +10,12 @@
 import type { Role, Team, Vec2 } from "../scene/types";
 import { FIELD } from "../scene/field";
 
-export const PLAY_FORMAT_VERSION = 1;
+// v2 adds `possession` and `matchups` ADDITIVELY (tech-design ADR-4): both
+// are optional, a v1 file is still valid input, and anything missing is
+// backfilled at load time rather than migrated on disk. The version number is
+// documentation — forward compatibility is guaranteed by validate.ts dropping
+// unknown keys (ADR-7), not by this integer.
+export const PLAY_FORMAT_VERSION = 2;
 
 export interface PlayEntity {
   id: string; // stable across keyframes — tweening pairs by id, never array index
@@ -42,6 +47,22 @@ export interface PlayFile {
   // Enumerated with one member today: adding "ease-in-out" later is additive
   // rather than a format version bump.
   interpolation: "linear";
+
+  // v2 (ADR-4). Both optional: absent means "this file predates the play
+  // model", and the reader backfills rather than the writer migrating.
+  //
+  // Who holds the disc — an id from `entities`, or null for a loose disc.
+  // Stated once for the whole play, not per keyframe: a keyframe is a POSE,
+  // and a throw is a change of play, not a change of pose. (Recording
+  // possession over time is Initiative D's job and will be a keyframe-level
+  // addition, which this leaves room for.) Absent → backfilled from whichever
+  // entity carries the stored `thrower` role, which is where the fact lived
+  // in v1.
+  possession?: string | null;
+  // defenderId -> offensiveId, or null for explicit free roam. A permutation
+  // (ADR-2): no two defenders share a target. Absent → backfilled by
+  // autoAssign() from the first keyframe's geometry.
+  matchups?: Record<string, string | null>;
 
   // RESERVED — `annotations` (arrows, text, cone markers) is a confirmed
   // future need whose *shape* is deliberately not designed yet. The key name

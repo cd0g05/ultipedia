@@ -11,7 +11,10 @@ import type { SceneStore } from "../scene/store";
 import type { Player, Vec2 } from "../scene/types";
 import { FIELD } from "../scene/field";
 import { movePlayer, moveThrower } from "../scene/scene";
+import { throwTo } from "../scene/possession";
 import { clearSelection, selectMarquee, selectPlayer } from "../scene/selection";
+import { announceThrow, isThrowArmed, setThrowArmed, useThrowMode } from "./shell/throwMode";
+import { usePlayModel } from "./playModel";
 import { FIELD_PX_HEIGHT, FIELD_PX_WIDTH, FieldLayer } from "../render/fieldLayer";
 import { PieceLayer } from "../render/pieceLayer";
 import type { PieceIdentity } from "../render/pieceLayer";
@@ -57,6 +60,13 @@ type DragState =
 // A press-and-release shorter than this never became a marquee — it was a
 // click on empty grass, which clears the selection.
 const MARQUEE_MIN_YD = 1;
+
+// How far the pointer may wander between pressing a receiver and releasing
+// and still count as a click rather than a drag (ux.md Flow 1 Alternate C:
+// starting a drag while armed cancels the throw and drags normally, so the
+// coach can never get stuck in a mode). Generous enough to survive the hand
+// tremor of a real click on a touchscreen.
+const THROW_CLICK_SLOP_YD = 0.75;
 
 interface FieldCanvasProps {
   store: SceneStore;
@@ -138,6 +148,30 @@ export function FieldCanvas({
   const visibleRef = useRef(visible);
   visibleRef.current = visible;
 
+  // Throwing mode (tech-design ADR-5). Subscribed for RENDERING only — the
+  // hint banner and the receiver emphasis. The pointer handlers never read
+  // this value; they call `isThrowArmed()` directly, because they are bound
+  // once and must see the live flag, not the one captured at bind time.
+  const throwMode = useThrowMode();
+
+  // Roles are derived from possession (ADR-1), so a throw changes them — but
+  // `players` is an identity list owned by the page and only rebuilt on a
+  // preset load. Without this the ring, the T/M glyphs and the aria-labels
+  // would keep describing the situation before the throw. The snapshot's key
+  // deliberately excludes positions (see ui/playModel.ts), so this
+  // subscription costs zero commits during a drag.
+  const model = usePlayModel(store);
+  const livePlayers = players.map((p) => {
+    const live = model.players.find((q) => q.id === p.id);
+    return live && live.role !== p.role ? { ...p, role: live.role } : p;
+  });
+
+  // A press that might still turn out to be a throw: set on pointerdown over
+  // a receiver while armed, dropped as soon as the pointer travels far enough
+  // to be a drag, consumed on pointerup. A ref, not state — it is read and
+  // written inside pointer handlers (ADR-2).
+  const pendingThrowRef = useRef<{ id: string; origin: Vec2 } | null>(null);
+
   useLayoutEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -211,6 +245,46 @@ export function FieldCanvas({
       else movePlayer(draft, id, pos);
     });
   }
+
+  // Complete a throw to `id` (ux.md Flow 1 steps 4-5). Everything that makes
+  // a throw a throw — possession moving, the old thrower becoming a cutter,
+  // the mark moving to whoever guards the new thrower — happens inside
+  // scene/possession.ts; this only decides *who*, and reports it.
+  //
+  // Throwing to the current holder is a no-op that still exits the mode
+  // (Alternate B): nothing is mutated, so nothing is announced either.
+  function completeThrow(id: string) {
+    const scene = store.getScene();
+    const receiver = scene.players.find((p) => p.id === id);
+    if (!receiver || receiver.team !== "offense") return;
+    if (scene.possession === id) return;
+
+    store.mutate((draft) => throwTo(draft, id));
+    announceThrow(`${receiver.label ? `#${receiver.label}` : receiver.id} has the disc.`);
+
+    // The new thrower becomes the selection, so the sidebar shows the new
+    // situation without the coach having to click the piece they just threw
+    // to. Built from a cleared selection rather than the current one, because
+    // selectPlayer's toggle-off case would otherwise clear the selection
+    // whenever the receiver happened to already be selected.
+    setSelection([]);
+    store.setSelection(selectPlayer(clearSelection(), receiver));
+  }
+
+  // Escape cancels (ux.md Flow 1 Alternate A). Bound on the document rather
+  // than the stage: the coach may have focus anywhere — the ribbon button
+  // they just pressed, a piece, the sidebar — and Escape has to work from all
+  // of them. Only bound while armed, so there is no idle listener.
+  useEffect(() => {
+    if (!throwMode.armed) return;
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key !== "Escape") return;
+      pendingThrowRef.current = null;
+      setThrowArmed(false);
+    }
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [throwMode.armed]);
 
   // Only what is drawn can be grabbed or swept up by the marquee.
   function grabbablePlayers(): Player[] {
@@ -288,6 +362,23 @@ export function FieldCanvas({
       // last; distance settles it correctly however they are ordered.
       const piece = pickNearest(pos, grabbablePlayers());
 
+      // Throwing mode exits on ANY press — a receiver, a defender, empty
+      // grass, all of them (ux.md Flow 1 Alternate A). Disarming here rather
+      // than on release is what keeps the mode-exit commit out of the moves
+      // that follow: by the time the pointer starts travelling, React has
+      // already settled.
+      if (isThrowArmed()) {
+        setThrowArmed(false);
+        // A press on a receiver is only *provisionally* a throw. If the
+        // pointer travels it becomes an ordinary drag (Alternate C) and the
+        // pending throw is dropped in onPointerMove.
+        if (piece && piece.team === "offense") {
+          pendingThrowRef.current = { id: piece.id, origin: pos };
+        }
+        // Deliberately falls through to the normal press handling below, so
+        // the drag this might turn into is already set up.
+      }
+
       if (!piece) {
         // Empty grass: start drawing a box. The selection is not cleared yet —
         // that happens on release, and only if no box was actually drawn.
@@ -335,6 +426,12 @@ export function FieldCanvas({
     }
 
     function onPointerUp(event: PointerEvent) {
+      // A press that never travelled far enough to be a drag: this is the
+      // click that completes the throw.
+      const pending = pendingThrowRef.current;
+      pendingThrowRef.current = null;
+      if (pending) completeThrow(pending.id);
+
       const drag = dragRef.current;
       if (!drag) return;
 
@@ -363,6 +460,16 @@ export function FieldCanvas({
       if (drag) {
         const pos = yardFor(event);
         if (!pos) return;
+        // Two ref reads and, at most once per press, an abandoned throw. No
+        // React, no store read, nothing that scales with the scene — this is
+        // the ADR-2 path.
+        const pending = pendingThrowRef.current;
+        if (
+          pending &&
+          Math.hypot(pos.x - pending.origin.x, pos.y - pending.origin.y) > THROW_CLICK_SLOP_YD
+        ) {
+          pendingThrowRef.current = null;
+        }
         // The readout stands still while the scene is being rearranged.
         if (drag.kind === "piece") {
           moveTo(drag.id, { x: pos.x + drag.grabOffset.x, y: pos.y + drag.grabOffset.y });
@@ -395,6 +502,8 @@ export function FieldCanvas({
     // must not leave the board stuck in the grabbing state. An interrupted
     // marquee is discarded rather than applied — the coach never released it.
     function onPointerCancel(event: PointerEvent) {
+      // An interrupted press is not a throw the coach completed.
+      pendingThrowRef.current = null;
       if (!dragRef.current) return;
       hideMarquee();
       dragRef.current = null;
@@ -513,6 +622,21 @@ export function FieldCanvas({
       style={{ "--fv-stage-aspect": viewBox.width / viewBox.height } as CSSProperties}
     >
       <div className="fv-stage-inner relative w-full">
+        {/* An armed tool must never be invisible (ux.md UX Consistency
+            Patterns): the ribbon shows a pressed button and the field says
+            what it is waiting for. The same region carries the "…has the
+            disc" line afterwards, so a screen-reader user learns both that
+            the tool armed and that possession changed. Absolutely positioned
+            and pointer-transparent so it never shifts the stage or steals a
+            press meant for a piece. */}
+        <p
+          data-testid="throw-hint"
+          role="status"
+          aria-live="polite"
+          className="pointer-events-none absolute left-1/2 top-2 z-10 -translate-x-1/2 bg-white/90 px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-film-accentPink empty:hidden"
+        >
+          {throwMode.announcement}
+        </p>
         <canvas
           ref={(el) => {
             canvasRef.current = el;
@@ -550,7 +674,19 @@ export function FieldCanvas({
             opacity={0}
             pointerEvents="none"
           />
-          <PieceLayer players={players} store={store} disabled={disabled} />
+          <PieceLayer
+            players={livePlayers}
+            store={store}
+            disabled={disabled}
+            throwArmed={throwMode.armed}
+            onThrowTo={(id) => {
+              // Keyboard completion (Enter/Space on a focused receiver): the
+              // mode exits either way, exactly as a click would.
+              pendingThrowRef.current = null;
+              setThrowArmed(false);
+              completeThrow(id);
+            }}
+          />
           {/* Drawn above the pieces so the box is never hidden behind them.
               Sized imperatively during the drag — no render per pointer move. */}
           <rect
