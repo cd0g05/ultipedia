@@ -4,16 +4,26 @@
 // (`desktop-shell.html`) was corrected from a grid to a row after Builder
 // review, so this shape is a closed decision, not a style preference.
 //
-// Marquee Selection and Space View are real, wired features; Throw to Player
-// and Advanced Stats View are visibly disabled with a tooltip (ux.md Copy &
-// Tone: "Ships in a future update.") rather than hidden — a coach should see
-// what's coming, not wonder if the ribbon is broken.
+// Marquee Selection, Space View, and (as of fieldview-play-model) Throw to
+// Player are real, wired features; Advanced Stats View is still visibly
+// disabled with a tooltip (ux.md Copy & Tone: "Ships in a future update.")
+// rather than hidden — a coach should see what's coming, not wonder if the
+// ribbon is broken.
+//
+// Throw has a second, *conditional* disabled state: with nobody holding the
+// disc there is no throw to make, so it reads "Nobody has the disc." That is
+// a statement about the scene, not about the roadmap, which is why it is a
+// different string from DISABLED_TOOLTIP.
 //
 // Disabled buttons use `aria-disabled`, not the native `disabled` attribute:
 // a natively-disabled button is pulled out of the tab order entirely, which
 // would make the tooltip unreachable by keyboard (ux.md Responsive &
 // Accessibility: "remain focusable enough to expose the tooltip via keyboard
 // focus, not just hover").
+
+import { useSceneStore } from "./sceneStore";
+import { usePlayModel } from "../playModel";
+import { THROW_UNAVAILABLE_TOOLTIP, toggleThrowArmed, useThrowMode } from "./throwMode";
 
 const DISABLED_TOOLTIP = "Ships in a future update.";
 
@@ -85,10 +95,24 @@ export interface ToolRibbonProps {
 }
 
 export function ToolRibbon({ spaceOn, onToggleSpace }: ToolRibbonProps) {
+  // Both shells render this inside a SceneStoreProvider; a ribbon rendered
+  // standalone sees no store, which reads as "no disc" — the same disabled
+  // state, for the same honest reason.
+  const model = usePlayModel(useSceneStore());
+  const throwMode = useThrowMode();
+  const canThrow = model.possession !== null;
+
   return (
     <div role="toolbar" aria-label="Field view tools" className="flex border-b border-film-border">
-      <RibbonButton label="Marquee Selection" icon="▭" active />
-      <RibbonButton label="Throw to Player" icon="➤" disabled tooltip={DISABLED_TOOLTIP} />
+      <RibbonButton label="Marquee Selection" icon="▭" active={!throwMode.armed} />
+      <RibbonButton
+        label="Throw to Player"
+        icon="➤"
+        active={throwMode.armed}
+        disabled={!canThrow}
+        tooltip={canThrow ? undefined : THROW_UNAVAILABLE_TOOLTIP}
+        onClick={toggleThrowArmed}
+      />
       <RibbonButton label="Advanced Stats View" icon="≡" disabled tooltip={DISABLED_TOOLTIP} />
       <RibbonButton
         label="Space View"

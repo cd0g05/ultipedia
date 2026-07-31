@@ -32,16 +32,33 @@ interface PieceLayerProps {
   // between keyframes — the pieces still render and still repaint every
   // frame, they just stop accepting input.
   disabled?: boolean;
+  // Throwing mode, passed down rather than read from ui/shell/throwMode here
+  // (render/ stays prop-driven and knows nothing about the shell). Arming is
+  // a discrete click, so the re-render it costs is not in the drag path.
+  throwArmed?: boolean;
+  // Completes a throw on the focused receiver: ux.md requires Enter/Space to
+  // do what a click does, since these pieces are already focusable buttons.
+  onThrowTo?: (id: string) => void;
 }
 
-export function PieceLayer({ players, store, disabled = false }: PieceLayerProps) {
+export function PieceLayer({
+  players,
+  store,
+  disabled = false,
+  throwArmed = false,
+  onThrowTo,
+}: PieceLayerProps) {
   const pieceRefs = useRef(new Map<string, SVGGElement>());
   const discRef = useRef<SVGGElement | null>(null);
   const markDirRef = useRef<SVGLineElement | null>(null);
 
   function repaint() {
     const scene = store.getScene();
-    const thrower = scene.players.find((p) => p.role === "thrower");
+    // The disc is docked to whoever HOLDS it (tech-design ADR-1): possession
+    // is the stored fact now, and `role: "thrower"` is derived from it by
+    // normalize(). Reading possession directly means the disc cannot lag a
+    // role that has not been re-derived yet.
+    const thrower = scene.players.find((p) => p.id === scene.possession);
     const mark = scene.players.find((p) => p.role === "mark");
 
     for (const p of scene.players) {
@@ -80,6 +97,16 @@ export function PieceLayer({ players, store, disabled = false }: PieceLayerProps
 
   function handleKeyDown(id: string, e: ReactKeyboardEvent<SVGGElement>) {
     if (disabled) return;
+
+    // Keyboard parity with clicking a receiver (ux.md Accessibility). Checked
+    // before the nudge keys so an armed tool cannot be escaped by a stray
+    // Enter that silently moves a piece instead.
+    if (throwArmed && (e.key === "Enter" || e.key === " ")) {
+      e.preventDefault();
+      onThrowTo?.(id);
+      return;
+    }
+
     const step = e.shiftKey ? NUDGE.shiftYards : NUDGE.yards;
     let dx = 0;
     let dy = 0;
@@ -112,6 +139,10 @@ export function PieceLayer({ players, store, disabled = false }: PieceLayerProps
         const isSpecial = p.role === "thrower" || p.role === "mark";
         const style = p.team === "offense" ? PIECE_TOKENS.offense : PIECE_TOKENS.defense;
         const radius = isSpecial ? PIECE_TOKENS.special.radius : style.radius;
+        // Eligible receivers are every offensive player except the one
+        // already holding it — throwing to yourself is a no-op exit, not a
+        // target (ux.md Flow 1 Alternate B).
+        const eligible = throwArmed && p.team === "offense" && p.role !== "thrower";
         return (
           <g
             key={p.id}
@@ -119,6 +150,7 @@ export function PieceLayer({ players, store, disabled = false }: PieceLayerProps
             // How the drag controller hands keyboard focus to the piece it
             // just grabbed, so click-then-arrow-key nudging still works.
             data-piece-id={p.id}
+            data-throw-target={eligible || undefined}
             ref={(el) => {
               if (el) pieceRefs.current.set(p.id, el);
               else pieceRefs.current.delete(p.id);
@@ -131,6 +163,9 @@ export function PieceLayer({ players, store, disabled = false }: PieceLayerProps
             style={{
               cursor: disabled ? "default" : "grab",
               outline: "none",
+              // While armed, everything that is not a receiver recedes so the
+              // targets read as the only live thing on the field.
+              opacity: throwArmed && !eligible ? PIECE_TOKENS.throwTarget.dimOpacity : undefined,
               // The container owns the drag; a piece must never swallow the
               // pointerdown that the picker needs to see.
               pointerEvents: "none",
@@ -147,6 +182,19 @@ export function PieceLayer({ players, store, disabled = false }: PieceLayerProps
               strokeWidth={PIECE_TOKENS.focusRing.strokeWidth}
               opacity={0}
             />
+            {/* Receiver emphasis: a dashed ring outside the piece, in the
+                CANVAS accent (PIECE_TOKENS), never the shell accent — canon
+                ADR-16 keeps the two palettes apart. */}
+            {eligible && (
+              <circle
+                className="fv-throw-target"
+                r={radius + PIECE_TOKENS.throwTarget.gap}
+                fill="none"
+                stroke={PIECE_TOKENS.throwTarget.stroke}
+                strokeWidth={PIECE_TOKENS.throwTarget.strokeWidth}
+                strokeDasharray={PIECE_TOKENS.throwTarget.strokeDasharray}
+              />
+            )}
             <circle
               r={radius}
               fill={style.fill}

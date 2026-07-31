@@ -39,6 +39,7 @@ import { panelRegistry } from "./panelRegistry";
 import { AdvancedSettingsPanel } from "./panels/AdvancedSettingsPanel";
 import { useOverlayState } from "../prefs";
 import { ToolRibbon } from "./ToolRibbon";
+import { SceneStoreProvider } from "./sceneStore";
 
 type SheetTab = "tools" | "selection" | "settings";
 
@@ -84,6 +85,10 @@ export function BottomSheet({ store, presetMenu }: BottomSheetProps) {
   }
 
   return (
+    // Same provider the desktop sidebar installs (ADR-14): the panels below
+    // are the identical components reading the identical seam, so a matchup
+    // selector or force grid cannot render differently on mobile.
+    <SceneStoreProvider store={store}>
     <div className="lg:hidden" data-testid="bottom-sheet-root">
       <div
         role="region"
@@ -206,6 +211,7 @@ export function BottomSheet({ store, presetMenu }: BottomSheetProps) {
         </div>
       )}
     </div>
+    </SceneStoreProvider>
   );
 }
 

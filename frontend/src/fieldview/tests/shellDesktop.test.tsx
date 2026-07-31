@@ -13,6 +13,8 @@ import { ShellLayout } from "../ui/shell/ShellLayout";
 import { LeftSidebar } from "../ui/shell/LeftSidebar";
 import { RightSidebarSlot } from "../ui/shell/RightSidebarSlot";
 import { ToolRibbon } from "../ui/shell/ToolRibbon";
+import { SceneStoreProvider } from "../ui/shell/sceneStore";
+import { resetThrowMode } from "../ui/shell/throwMode";
 import type { SceneStore } from "../scene/store";
 
 function makeStore(): SceneStore {
@@ -25,6 +27,9 @@ function renderWithRouter(ui: React.ReactElement) {
 
 beforeEach(() => {
   localStorage.clear();
+  // Throwing mode is module-level UI state (ADR-5), so it outlives RTL's
+  // cleanup the same way overlay prefs do.
+  resetThrowMode();
 });
 
 describe("ToolRibbon", () => {
@@ -38,19 +43,51 @@ describe("ToolRibbon", () => {
     expect(toolbar.querySelectorAll(":scope > *").length).toBe(4);
   });
 
-  it("marks Throw to Player and Advanced Stats View as aria-disabled with a tooltip, not natively disabled", () => {
+  // fieldview-play-model: Throw to Player is a live tool now, so only
+  // Advanced Stats View still carries the roadmap tooltip. Throw keeps the
+  // same aria-disabled (never native `disabled`) treatment, but for a reason
+  // about the *scene* rather than the roadmap — a ribbon rendered with no
+  // SceneStore has nobody holding the disc.
+  it("marks Advanced Stats View as aria-disabled with a tooltip, not natively disabled", () => {
     render(<ToolRibbon spaceOn={false} onToggleSpace={() => {}} />);
-    const throwBtn = screen.getByRole("button", { name: "Throw to Player" });
     const statsBtn = screen.getByRole("button", { name: "Advanced Stats View" });
 
-    for (const btn of [throwBtn, statsBtn]) {
-      expect(btn).toHaveAttribute("aria-disabled", "true");
-      expect(btn).not.toBeDisabled();
-      // Still focusable, so the tooltip is reachable by keyboard, not just hover.
-      btn.focus();
-      expect(btn).toHaveFocus();
-    }
-    expect(screen.getAllByRole("tooltip", { name: "Ships in a future update." })).toHaveLength(2);
+    expect(statsBtn).toHaveAttribute("aria-disabled", "true");
+    expect(statsBtn).not.toBeDisabled();
+    // Still focusable, so the tooltip is reachable by keyboard, not just hover.
+    statsBtn.focus();
+    expect(statsBtn).toHaveFocus();
+    expect(screen.getAllByRole("tooltip", { name: "Ships in a future update." })).toHaveLength(1);
+  });
+
+  it("disables Throw to Player with the no-disc tooltip when nobody has the disc", () => {
+    render(<ToolRibbon spaceOn={false} onToggleSpace={() => {}} />);
+    const throwBtn = screen.getByRole("button", { name: "Throw to Player" });
+
+    expect(throwBtn).toHaveAttribute("aria-disabled", "true");
+    expect(throwBtn).not.toBeDisabled();
+    throwBtn.focus();
+    expect(throwBtn).toHaveFocus();
+    expect(screen.getByRole("tooltip", { name: "Nobody has the disc." })).toBeInTheDocument();
+  });
+
+  it("arms and disarms Throw to Player via aria-pressed when somebody has the disc", () => {
+    const store = makeStore();
+    render(
+      <SceneStoreProvider store={store}>
+        <ToolRibbon spaceOn={false} onToggleSpace={() => {}} />
+      </SceneStoreProvider>,
+    );
+    const throwBtn = screen.getByRole("button", { name: "Throw to Player" });
+    expect(throwBtn).not.toHaveAttribute("aria-disabled");
+    expect(throwBtn).not.toHaveAttribute("aria-pressed", "true");
+
+    fireEvent.click(throwBtn);
+    expect(throwBtn).toHaveAttribute("aria-pressed", "true");
+
+    // Re-clicking Throw is one of ux.md Flow 1's cancel paths.
+    fireEvent.click(throwBtn);
+    expect(throwBtn).not.toHaveAttribute("aria-pressed", "true");
   });
 
   it("wires Space View to the caller's on/setOn state", () => {
@@ -94,7 +131,9 @@ describe("LeftSidebar", () => {
     });
 
     expect(screen.queryByRole("checkbox", { name: "Offense" })).not.toBeInTheDocument();
-    expect(screen.getByText("Matchup and mark controls ship in a future update.")).toBeVisible();
+    // fieldview-play-model replaced the placeholder with the real offense
+    // panel; the registry seam being exercised here is unchanged.
+    expect(screen.getByText("Guarded by")).toBeVisible();
   });
 
   it("the middle section is aria-live=polite so a panel swap is announced", () => {
