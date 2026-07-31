@@ -7,6 +7,7 @@
 import type { Player, Role, Scene, Team, Vec2 } from "./types";
 import { FIELD, clampToField } from "./field";
 import type { PlayEntity } from "../play/format";
+import { backfillScene } from "../play/backfill";
 
 export const PRESET_FORMAT_VERSION = 1;
 
@@ -52,12 +53,13 @@ export function presetToScene(preset: PresetFile): Scene {
     label: e.label,
     pos: preset.positions[e.id] ?? { x: 0, y: 0 },
   }));
-  // Same story as tween.ts sceneFrom: the preset file has no possession or
-  // matchups field yet, so possession is recovered from the stored thrower
-  // role and matchups are left unassigned for normalize() to derive from
-  // proximity. The format partition replaces this with the shared backfill.
-  const thrower = players.find((p) => p.role === "thrower");
-  return { players, possession: thrower ? thrower.id : null, matchups: {} };
+  // The preset format stays at v1 and stores neither field: a preset is a
+  // formation, and its matchups are exactly what the geometry implies. So it
+  // takes the same load-time backfill as a v1 play (ADR-4) — possession
+  // recovered from the stored thrower role, matchups auto-assigned from the
+  // positions, normalize() to settle the roles. Nothing preset-specific here
+  // is the point: one backfill, four call sites.
+  return backfillScene(players);
 }
 
 const VALID_TEAMS: Team[] = ["offense", "defense"];

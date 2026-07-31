@@ -4,6 +4,7 @@
 // (ADR-9) without changing the shape defined here.
 
 import type { Player, Role, Scene, Team } from "./types";
+import { backfillScene } from "../play/backfill";
 
 function player(id: string, team: Team, role: Role, x: number, y: number, label?: string): Player {
   return { id, team, role, pos: { x, y }, label };
@@ -39,7 +40,15 @@ function buildScene(params: {
   });
   // o1 is the thrower in every built-in; the stored `thrower`/`mark` roles
   // above are what normalize() would derive from this possession anyway.
-  return { players, possession: "o1", matchups };
+  //
+  // Built through the same load-time backfill every stored play uses (ADR-4)
+  // rather than hand-assembling the Scene, so the built-ins cannot drift into
+  // a state a loaded file could never reach. The explicit possession and
+  // matchups are passed as the "stored" model precisely so the backfill does
+  // NOT auto-assign here: the index pairing above is data, and on the vert
+  // preset a sagging help defender sits closer to somebody else's cutter, so
+  // auto-assignment would quietly re-pair the built-in.
+  return backfillScene(players, { possession: "o1", matchups });
 }
 
 // Vertical stack, force side: cutters lined up single-file downfield of the

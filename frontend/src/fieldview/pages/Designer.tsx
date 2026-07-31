@@ -12,7 +12,14 @@ import { createSceneStore } from "../scene/store";
 import { getPreset } from "../scene/presets";
 import type { Scene } from "../scene/types";
 import type { PlayEntity, PlayKeyframe } from "../play/format";
-import { FilePlayStore, entitiesOf, fromPlayFile, keyframeOf, toPlayFile } from "../play/serialize";
+import {
+  FilePlayStore,
+  entitiesOf,
+  fromPlayFile,
+  keyframeOf,
+  playModelOf,
+  toPlayFile,
+} from "../play/serialize";
 import { PlayValidationError } from "../play/validate";
 import { samplePositions, sceneFrom } from "../play/tween";
 import { takeScene } from "../play/modeHandoff";
@@ -251,6 +258,10 @@ export function Designer() {
       description: description.trim() || undefined,
       entities,
       keyframes: keyframesRef.current,
+      // Exported explicitly rather than left to the reader's backfill: the
+      // thrower role in `entities` would recover possession, but matchups are
+      // a choice the coach made and geometry cannot re-derive them.
+      ...playModelOf(store.getScene()),
     });
     void new FilePlayStore().save(play);
   }
@@ -269,9 +280,18 @@ export function Designer() {
       setDescription(draft.description ?? "");
       syncStructure();
 
-      const scene = sceneFrom(draft.entities, draft.keyframes[0].positions);
+      // sceneFrom() runs the ADR-4 backfill, so a v1 file arrives with the
+      // disc in the same hands it was saved with and matchups derived from the
+      // first keyframe's geometry. The whole model is copied onto the store —
+      // an import replaces the play, so nothing of the old one may survive.
+      const scene = sceneFrom(draft.entities, draft.keyframes[0].positions, {
+        possession: draft.possession,
+        matchups: draft.matchups,
+      });
       store.mutate((s) => {
         s.players = scene.players;
+        s.possession = scene.possession;
+        s.matchups = scene.matchups;
       });
       setSelectedIndex(0);
       setPlayhead(draft.keyframes[0].t);

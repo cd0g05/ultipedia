@@ -75,6 +75,11 @@ export function Whiteboard() {
   function applyScene(scene: Scene, snapshot: Scene) {
     store.mutate((draft) => {
       draft.players = scene.players.map((p) => ({ ...p, pos: { ...p.pos } }));
+      // Loading a preset replaces the whole play, so the play model comes with
+      // it. Copying only `players` would leave the previous scene's possession
+      // and matchups pointing into a roster that no longer exists.
+      draft.possession = scene.possession;
+      draft.matchups = { ...scene.matchups };
     });
     setIdentity(identityOf(scene));
     setLastLoadedSnapshot(snapshot);
