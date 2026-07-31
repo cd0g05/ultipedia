@@ -181,21 +181,60 @@ next_section: "## Partition: feat/fieldview-motion-core"
 
 ## Partition: feat/fieldview-motion-ui
 
-- [ ] Add the Route section to `OffensePlayerPanel` with all six ux.md states and copy <!-- id: 43 -->
-- [ ] Wire Set Destination / Add Waypoint / Clear / Run / Stop / Reset, with disabled reasons (`Set a destination first.`) <!-- id: 44 -->
-- [ ] Destination picking in `FieldCanvas` + throwMode's cancel grammar (Escape, re-click, other selection, clicking a piece) <!-- id: 45 -->
-- [ ] Suppress dragging while a run is in progress (FR-4.4) <!-- id: 46 -->
-- [ ] Create `render/routeLayer.tsx` — numbered square markers and legs for the selected player only; add tokens (canon ADR-10) <!-- id: 47 -->
-- [ ] Add the canvas running indicator (visible with the mobile sheet collapsed) <!-- id: 48 -->
-- [ ] Add the Movement slider group to `AdvancedPanel`, alongside the space sliders <!-- id: 49 -->
-- [ ] Persist `MotionParams` in `prefs.ts` — validated and clamped on read; absent key falls back to defaults <!-- id: 50 -->
-- [ ] Accessibility pass: `aria-pressed`, keyboard order, live-region announcements for run start / `Cut complete.` / `Stopped.` <!-- id: 51 -->
-- [ ] Verify parity in the desktop sidebar and the mobile sheet (canon ADR-14); run the full suite <!-- id: 52 -->
-- [ ] Page-level ADR-2 assertion: 0 React commits across a run driven through a mounted `Whiteboard`, now that the driver is wired to the page (deferred from Partition 3, where the driver was not yet mounted) <!-- id: 68 -->
+- [x] Add the Route section to `OffensePlayerPanel` with all six ux.md states and copy <!-- id: 43 -->
+- [x] Wire Set Destination / Add Waypoint / Clear / Run / Stop / Reset, with disabled reasons (`Set a destination first.`) <!-- id: 44 -->
+- [x] Destination picking in `FieldCanvas` + throwMode's cancel grammar (Escape, re-click, other selection, clicking a piece) <!-- id: 45 -->
+- [x] Suppress dragging while a run is in progress (FR-4.4) <!-- id: 46 -->
+- [x] Create `render/routeLayer.tsx` — numbered square markers and legs for the selected player only; add tokens (canon ADR-10) <!-- id: 47 -->
+- [x] Make route markers draggable to reposition a waypoint, reusing FieldCanvas's existing pointer path (Builder decision 2026-07-31; ux.md Journey 2 depends on it) <!-- id: 69 -->
+- [x] Add the canvas running indicator (visible with the mobile sheet collapsed) <!-- id: 48 -->
+- [x] Add the Movement slider group to `AdvancedPanel`, alongside the space sliders <!-- id: 49 -->
+- [x] Persist `MotionParams` in `prefs.ts` — validated and clamped on read; absent key falls back to defaults <!-- id: 50 -->
+- [x] Accessibility pass: `aria-pressed`, keyboard order, live-region announcements for run start / `Cut complete.` / `Stopped.` <!-- id: 51 -->
+- [x] Verify parity in the desktop sidebar and the mobile sheet (canon ADR-14); run the full suite <!-- id: 52 -->
+- [x] Page-level ADR-2 assertion: 0 React commits across a run driven through a mounted `Whiteboard`, now that the driver is wired to the page (deferred from Partition 3, where the driver was not yet mounted) <!-- id: 68 -->
 
 ### Deviation notes (Partition 4: Route UI & tuning)
 
-_None yet._
+- **Marker dragging is imperative, not React.** ux.md Journey 2's tighten-and-re-run loop needs
+  draggable waypoints, but committing to the motion store per pointer move would re-render
+  `RouteLayer` sixty times a second and put React straight back in the pointer path — the exact
+  thing canon ADR-2 exists to prevent. So the marker and its two adjacent legs are moved in the DOM
+  during the drag (`drawWaypointDrag`, modelled on the existing `drawMarquee`) and committed once,
+  on release. A Profiler test asserts 0 commits across 20 pointer moves.
+- **`drawRouteOrigin` was needed as a consequence.** Leg 0 starts at the player, so dragging a
+  player who is carrying a route has to bring that leg with it — imperatively, for the same reason.
+  Without it the leg pointed at where the player used to be until the next render.
+- **Two files outside the declared module scope.** `ui/motion/driverContext.tsx` (new) and
+  `pages/Whiteboard.tsx` (modified). The driver is created per page, not as a module singleton
+  (ADR-5), so panels reach it exactly the way they reach the scene store — the `sceneStore.tsx`
+  context precedent, copied deliberately rather than invented.
+- **The provider is mounted ONCE per page, wrapping both shells.** Putting it inside `LeftSidebar`
+  and `BottomSheet` would create two drivers over one store: the breakpoint is CSS-only so both
+  trees are live at once (canon ADR-15), and each would run its own rAF loop. That is the same class
+  of bug `useOverlayState` was rewritten to fix, and it is called out in a comment at the mount site.
+- **`readPrefs()` added to `prefs.ts`** — a non-hook read of the existing store. The driver reads
+  tunables inside a rAF callback, outside React, where a hook is neither legal nor correct. Reading
+  live per frame is also what makes a slider take effect on the next run with no reload (FR-6.2).
+- **Out-of-bounds destinations clamp rather than cancel.** First implemented as cancel-on-outside,
+  which read better to me but contradicts FR-2.5. The spec is the contract, and clamping is also
+  what dragging a piece off the field already does, so there is one answer to "where can a waypoint
+  be". Changed to clamp and the test rewritten.
+- **Shell parity is asserted by the existing `panelParity.test.tsx`, not by a new test.** It already
+  compares the offense panel's whole control-and-copy contract between the two shells field for
+  field, and it passed unchanged when the Route section landed — a stronger proof than counting
+  buttons. A duplicate was written, found redundant, and removed.
+- **Reset is one button for both slider groups.** `resetParams()` now restores space *and* motion
+  defaults: the control says "Reset to defaults", and a coach dragging sliders in one panel does not
+  think of them as two models. `motionParamsAreDefault()` feeds the same modified indicator.
+- **`Top speed` and `Reaction time` stay in the space group**, not the Movement group, even though
+  motion reads them — they are `SpaceParams` and duplicating the sliders would be a second control
+  for one value (ADR-3).
+- **`OverlayRail.tsx` and `pages/Designer.tsx` touched** only to thread the two new
+  `AdvancedPanel` props through. Designer remains pre-shell and otherwise untouched, as in the
+  previous two initiatives.
+- Suite: **755 tests / 59 files** (was 738 / 58). `tsc --noEmit` clean; `npm run test:perf` green.
+  (There is no `lint` script in this project.)
 
 ---
 
