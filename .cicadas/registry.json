@@ -31,6 +31,18 @@
       "created_at": "2026-07-31T00:10:01.383716+00:00",
       "worktree_path": "/Users/cartercripe/dev/code/projects/ulti-pedia-feat-fieldview-play-model-force",
       "initiative": "fieldview-play-model"
+    },
+    "feat/fieldview-play-model-format": {
+      "intent": "Play format v2: optional possession/matchups, validation, load-time backfill for v1 files and presets",
+      "modules": [
+        "frontend/src/fieldview/scene/presets.ts",
+        "frontend/src/fieldview/play/format.ts",
+        "frontend/src/fieldview/play/serialize.ts",
+        "frontend/src/fieldview/play/validate.ts"
+      ],
+      "owner": "unknown",
+      "created_at": "2026-07-31T00:21:21.888065+00:00",
+      "initiative": "fieldview-play-model"
     }
   }
 }
