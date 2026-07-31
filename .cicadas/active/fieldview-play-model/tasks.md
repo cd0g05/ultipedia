@@ -23,27 +23,49 @@ next_section: "## Partition: feat/fieldview-play-model-core"
 
 ## Partition: feat/fieldview-play-model-core
 
-- [ ] Add `possession: string | null` and `matchups: Record<string, string | null>` to `Scene`; update every construction site <!-- id: 1 -->
-- [ ] Implement `normalize(scene)` deriving `thrower`/`mark` roles from possession + matchups (ADR-1) <!-- id: 2 -->
-- [ ] Implement `nearestDefender(scene, targetId)` for the unassigned-receiver case <!-- id: 3 -->
-- [ ] Implement `throwTo(scene, receiverId)` — move possession, then normalize <!-- id: 4 -->
-- [ ] Implement `autoAssign(scene)` nearest-available pairing <!-- id: 5 -->
-- [ ] Implement `reassign(scene, defenderId, offensiveId | null)` with 1-to-1 swap; `null` clears without cascading <!-- id: 6 -->
-- [ ] Implement `guardedBy(scene, offensiveId)` <!-- id: 7 -->
-- [ ] Call `normalize()` at the end of the existing `scene.ts` mutations <!-- id: 8 -->
-- [ ] Unit tests: role derivation, `possession: null` (no thrower/mark, no throw), throw role handoff <!-- id: 9 -->
-- [ ] Property tests: matchups stay a permutation across arbitrary reassignment sequences <!-- id: 10 -->
-- [ ] Guard test: no public op can leave a `thrower` who is not the possessor <!-- id: 11 -->
-- [ ] Run full fieldview suite; confirm existing `scene/` tests pass unmodified <!-- id: 12 -->
+- [x] Add `possession: string | null` and `matchups: Record<string, string | null>` to `Scene`; update every construction site <!-- id: 1 -->
+- [x] Implement `normalize(scene)` deriving `thrower`/`mark` roles from possession + matchups (ADR-1) <!-- id: 2 -->
+- [x] Implement `nearestDefender(scene, targetId)` for the unassigned-receiver case <!-- id: 3 -->
+- [x] Implement `throwTo(scene, receiverId)` — move possession, then normalize <!-- id: 4 -->
+- [x] Implement `autoAssign(scene)` nearest-available pairing <!-- id: 5 -->
+- [x] Implement `reassign(scene, defenderId, offensiveId | null)` with 1-to-1 swap; `null` clears without cascading <!-- id: 6 -->
+- [x] Implement `guardedBy(scene, offensiveId)` <!-- id: 7 -->
+- [x] Call `normalize()` at the end of the existing `scene.ts` mutations <!-- id: 8 -->
+- [x] Unit tests: role derivation, `possession: null` (no thrower/mark, no throw), throw role handoff <!-- id: 9 -->
+- [x] Property tests: matchups stay a permutation across arbitrary reassignment sequences <!-- id: 10 -->
+- [x] Guard test: no public op can leave a `thrower` who is not the possessor <!-- id: 11 -->
+- [x] Run full fieldview suite; confirm existing `scene/` tests pass unmodified <!-- id: 12 -->
+
+### Deviation notes (Partition 1: Model)
+
+- `normalize()` also **clears stale possession** — an id naming a player who is not on the field,
+  or naming a defence player, is reset to `null`. Not in the plan, but without it a scene could
+  hold a non-null `possession` with no thrower, which is the same disagreement ADR-1 exists to
+  prevent, just in the other direction.
+- `scene/presets.ts` states matchups as **explicit index-pairing data** (d1→o1, dN→oN) rather than
+  calling `autoAssign()`. On the vert preset the sagging help defenders sit closer to other cutters,
+  so auto-assignment would silently re-pair the built-ins.
+- `play/tween.ts` `sceneFrom` and `scene/presetFormat.ts` `presetToScene` construct a `Scene`, so
+  task 1 forced a decision there. They recover `possession` from the stored `thrower` role and leave
+  `matchups` empty (unassigned → normalize derives the mark by proximity, reproducing the stored
+  mark). The real load-time backfill is Partition 3's task 32 (ADR-4); this is the minimum to
+  compile without pre-empting it.
+- The guard (task 11) has a **static half** as well as the behavioural one: it greps every non-test
+  source file for direct `Player.role` assignment, so a future mutation that sets a role by hand
+  fails even if no behavioural test happens to exercise it. Both halves were mutation-tested —
+  removing `normalize()` from `throwTo` and removing the swap from `reassign` produces 15 failures.
+- Scene literals in `acceptance.test.ts`, `space-model.test.ts` and `play.test.ts` gained the two
+  new fields (task 1: "update every construction site"). No assertion or behaviour was changed;
+  all 329 pre-existing tests pass unmodified.
 
 ## Partition: feat/fieldview-play-model-force
 
-- [ ] Define `FORCE_PRESETS` (3 sides × 3 angles → field-relative yard offsets) and `FORCE_TOLERANCE_YD` <!-- id: 20 -->
-- [ ] Implement `markPosFor(side, angle, throwerPos)` <!-- id: 21 -->
-- [ ] Implement `readForce(scene)` returning a named force or `"custom"` <!-- id: 22 -->
-- [ ] Unit test all 9 combinations produce distinct positions, and the snap→read round-trip <!-- id: 23 -->
-- [ ] Unit test the custom threshold at and beyond `FORCE_TOLERANCE_YD` <!-- id: 24 -->
-- [ ] Confirm `space/` has zero diff and `spaceGuard.test.ts` passes (ADR-3) <!-- id: 25 -->
+- [x] Define `FORCE_PRESETS` (3 sides × 3 angles → field-relative yard offsets) and `FORCE_TOLERANCE_YD` <!-- id: 20 -->
+- [x] Implement `markPosFor(side, angle, throwerPos)` <!-- id: 21 -->
+- [x] Implement `readForce(scene)` returning a named force or `"custom"` <!-- id: 22 -->
+- [x] Unit test all 9 combinations produce distinct positions, and the snap→read round-trip <!-- id: 23 -->
+- [x] Unit test the custom threshold at and beyond `FORCE_TOLERANCE_YD` <!-- id: 24 -->
+- [x] Confirm `space/` has zero diff and `spaceGuard.test.ts` passes (ADR-3) <!-- id: 25 -->
 
 ## Partition: feat/fieldview-play-model-format
 

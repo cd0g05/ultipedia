@@ -3,3 +3,23 @@
 {"timestamp":"2026-07-31T00:09:51.791009+00:00","type":"branch.created","initiative":"fieldview-play-model","branch":"main","data":{"branch":"feat/fieldview-play-model-core","intent":"Scene possession + matchups, normalize() role derivation, throwTo, 1-to-1 swap","modules":["frontend/src/fieldview/scene/possession.ts","frontend/src/fieldview/scene/matchups.ts","frontend/src/fieldview/scene/scene.ts","frontend/src/fieldview/scene/types.ts"]}}
 {"timestamp":"2026-07-31T00:10:01.370832+00:00","type":"worktree.created","initiative":"fieldview-play-model","branch":"main","data":{"branch":"feat/fieldview-play-model-force","worktree_path":"/Users/cartercripe/dev/code/projects/ulti-pedia-feat-fieldview-play-model-force"}}
 {"timestamp":"2026-07-31T00:10:01.383938+00:00","type":"branch.created","initiative":"fieldview-play-model","branch":"main","data":{"branch":"feat/fieldview-play-model-force","intent":"Pure force geometry: presets, markPosFor, readForce with custom tolerance","modules":["frontend/src/fieldview/scene/force.ts"]}}
+{"timestamp":"2026-07-31T00:19:13.001874+00:00","type":"task.complete","initiative":"fieldview-play-model","branch":"main","data":{"task_id":"1"}}
+{"timestamp":"2026-07-31T00:19:13.078379+00:00","type":"task.complete","initiative":"fieldview-play-model","branch":"main","data":{"task_id":"2"}}
+{"timestamp":"2026-07-31T00:19:13.152501+00:00","type":"task.complete","initiative":"fieldview-play-model","branch":"main","data":{"task_id":"3"}}
+{"timestamp":"2026-07-31T00:19:13.250474+00:00","type":"task.complete","initiative":"fieldview-play-model","branch":"main","data":{"task_id":"4"}}
+{"timestamp":"2026-07-31T00:19:13.331170+00:00","type":"task.complete","initiative":"fieldview-play-model","branch":"main","data":{"task_id":"5"}}
+{"timestamp":"2026-07-31T00:19:13.409547+00:00","type":"task.complete","initiative":"fieldview-play-model","branch":"main","data":{"task_id":"6"}}
+{"timestamp":"2026-07-31T00:19:13.483639+00:00","type":"task.complete","initiative":"fieldview-play-model","branch":"main","data":{"task_id":"7"}}
+{"timestamp":"2026-07-31T00:19:14.103690+00:00","type":"task.complete","initiative":"fieldview-play-model","branch":"main","data":{"task_id":"8"}}
+{"timestamp":"2026-07-31T00:19:14.188844+00:00","type":"task.complete","initiative":"fieldview-play-model","branch":"main","data":{"task_id":"9"}}
+{"timestamp":"2026-07-31T00:19:14.290164+00:00","type":"task.complete","initiative":"fieldview-play-model","branch":"main","data":{"task_id":"10"}}
+{"timestamp":"2026-07-31T00:19:14.388428+00:00","type":"task.complete","initiative":"fieldview-play-model","branch":"main","data":{"task_id":"11"}}
+{"timestamp":"2026-07-31T00:19:14.484231+00:00","type":"task.complete","initiative":"fieldview-play-model","branch":"main","data":{"task_id":"12"}}
+{"timestamp":"2026-07-31T00:19:14.556743+00:00","type":"partition.complete","initiative":"fieldview-play-model","branch":"main","data":{"partition":"feat/fieldview-play-model-core"}}
+{"timestamp":"2026-07-31T00:19:30.923714+00:00","type":"task.complete","initiative":"fieldview-play-model","branch":"main","data":{"task_id":"20"}}
+{"timestamp":"2026-07-31T00:19:31.012316+00:00","type":"task.complete","initiative":"fieldview-play-model","branch":"main","data":{"task_id":"21"}}
+{"timestamp":"2026-07-31T00:19:31.142158+00:00","type":"task.complete","initiative":"fieldview-play-model","branch":"main","data":{"task_id":"22"}}
+{"timestamp":"2026-07-31T00:19:31.228976+00:00","type":"task.complete","initiative":"fieldview-play-model","branch":"main","data":{"task_id":"23"}}
+{"timestamp":"2026-07-31T00:19:31.313273+00:00","type":"task.complete","initiative":"fieldview-play-model","branch":"main","data":{"task_id":"24"}}
+{"timestamp":"2026-07-31T00:19:31.401350+00:00","type":"task.complete","initiative":"fieldview-play-model","branch":"main","data":{"task_id":"25"}}
+{"timestamp":"2026-07-31T00:19:31.488807+00:00","type":"partition.complete","initiative":"fieldview-play-model","branch":"main","data":{"partition":"feat/fieldview-play-model-force"}}
