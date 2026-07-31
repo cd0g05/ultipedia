@@ -69,13 +69,49 @@ next_section: "## Partition: feat/fieldview-play-model-core"
 
 ## Partition: feat/fieldview-play-model-format
 
-- [ ] Bump `PLAY_FORMAT_VERSION` to 2; add optional `possession`/`matchups` to `PlayFile` <!-- id: 30 -->
-- [ ] Validate the new fields in `validate.ts`, preserving the drop-unknown-keys rule <!-- id: 31 -->
-- [ ] Backfill missing possession/matchups on load in `serialize.ts` (thrower-role → possession, `autoAssign` → matchups) <!-- id: 32 -->
-- [ ] Route `scene/presets.ts` through the same backfill so built-ins need no data edits <!-- id: 33 -->
-- [ ] Add a v1 fixture regression test: loads, backfills, behaves identically <!-- id: 34 -->
-- [ ] Test v2 round-trip of possession and matchups, and that malformed new fields are ignored not rejected <!-- id: 35 -->
-- [ ] Run full fieldview suite; confirm existing `play/` tests pass unmodified <!-- id: 36 -->
+- [x] Bump `PLAY_FORMAT_VERSION` to 2; add optional `possession`/`matchups` to `PlayFile` <!-- id: 30 -->
+- [x] Validate the new fields in `validate.ts`, preserving the drop-unknown-keys rule <!-- id: 31 -->
+- [x] Backfill missing possession/matchups on load in `serialize.ts` (thrower-role → possession, `autoAssign` → matchups) <!-- id: 32 -->
+- [x] Route `scene/presets.ts` through the same backfill so built-ins need no data edits <!-- id: 33 -->
+- [x] Add a v1 fixture regression test: loads, backfills, behaves identically <!-- id: 34 -->
+- [x] Test v2 round-trip of possession and matchups, and that malformed new fields are ignored not rejected <!-- id: 35 -->
+- [x] Run full fieldview suite; confirm existing `play/` tests pass unmodified <!-- id: 36 -->
+
+### Deviation notes (Partition 3: Persistence)
+
+- The backfill lives in a new `play/backfill.ts` (`backfillScene`, `playModelOf`, `StoredPlayModel`)
+  and is re-exported from `serialize.ts` rather than living there. `scene/presets.ts` and
+  `scene/presetFormat.ts` both need it, and `serialize.ts` also owns `FilePlayStore`, which touches
+  `document`/`FileReader` — importing it from `scene/` would have pulled DOM code into modules that
+  are pure by rule (`tests/imports.test.ts`). Same contract, one import edge fewer.
+- **Ordering, since ADR-4 does not state it:** possession is resolved first (stored value wins, else
+  recovered from the `thrower` role), then matchups (stored map taken as given, else `autoAssign()`),
+  then `normalize()` last. Last is what matters — `normalize()` clears stale possession, so running
+  it after the backfill turns a hand-edited file naming a departed player into a loose disc, while
+  leaving a genuine v1 thrower holding the disc. Asserted directly in the v1 fixture test and in
+  three `backfillScene` ordering tests.
+- **A dangling `possession` id is treated as absent, not as null.** ADR-4 says malformed fields are
+  ignored; an id matching no entity is ignored *back to the v1 recovery path*, so the thrower role
+  still finds the right player instead of the stale string silently emptying the disc. An explicit
+  `null` is honoured as a real statement (loose disc).
+- **`matchups` is sanitised rather than accepted-or-dropped whole:** entries survive only when the
+  key is a declared defender and the value is null or a declared offensive player, and a target
+  already claimed by an earlier defender is dropped to null — so ADR-2's permutation invariant holds
+  on arrival rather than being repaired afterwards. A `matchups` value that is not an object at all
+  is dropped entirely and backfilled.
+- `presets.ts` built-ins now go through `backfillScene()` too, passing their explicit index pairing
+  as the *stored* model — so the built-ins share the one code path (task 33) while keeping the
+  hand-stated matchups Partition 1 deliberately chose over `autoAssign()`. A test asserts every
+  built-in's `d(n) → o(n)` pairing survives, which is what would catch a future "simplification".
+- **Two load sites outside the stated module list were fixed:** `pages/Whiteboard.tsx` `applyScene`
+  and `pages/Designer.tsx` `importPlay` copied only `players` onto the store, leaving the *previous*
+  scene's possession and matchups pointing into a roster that no longer existed. Loading a play or
+  preset replaces the whole play, so the whole model is now copied. Designer's export also writes
+  `playModelOf(scene)`: the thrower role would recover possession on its own, but matchups are a
+  coach's choice and geometry cannot re-derive them.
+- Mutation-tested: removing the thrower-role fallback, and ignoring stored matchups, each produce 11
+  failures. 458 pre-existing tests pass unmodified (no test file was edited); 34 new tests added,
+  493 total green, `tsc --noEmit` clean.
 
 ## Partition: feat/fieldview-play-model-ui
 
