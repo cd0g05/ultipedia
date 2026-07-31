@@ -39,6 +39,17 @@
       "owner": "unknown",
       "created_at": "2026-07-31T05:25:44.643091+00:00",
       "initiative": "fieldview-motion"
+    },
+    "feat/fieldview-motion-driver": {
+      "intent": "Fixed-timestep accumulator driving step() off rAF, writing through store.mutate; transient motion mode state; run/stop/reset; reduced-motion path",
+      "modules": [
+        "ui/motion/motionMode.ts",
+        "ui/motion/useMotionRun.ts",
+        "ui/motion/driver.ts"
+      ],
+      "owner": "unknown",
+      "created_at": "2026-07-31T05:37:09.200331+00:00",
+      "initiative": "fieldview-motion"
     }
   }
 }
