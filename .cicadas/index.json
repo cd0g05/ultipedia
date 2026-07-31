@@ -161,6 +161,13 @@
       "summary": "Cushion pursuit model on a reaction delay, step() as single physics entry point, headless simulate() with exact live/headless agreement. 36 new tests.",
       "decisions": "",
       "modules": []
+    },
+    {
+      "timestamp": "2026-07-31T05:42:49.977496+00:00",
+      "branch": "feat/fieldview-motion-driver",
+      "summary": "Fixed-timestep accumulator driving step() off rAF; one store.mutate per rendered frame; run/stop/reset; reduced-motion path; ADR-2 Profiler assertion. 19 new tests.",
+      "decisions": "",
+      "modules": []
     }
   ]
 }
