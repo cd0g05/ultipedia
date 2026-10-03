@@ -170,11 +170,11 @@ and record the number in the Reflect notes).
 
 ## Initiative Boundary
 
-- [ ] Merge `feat/fieldview-ui-render` → `initiative/fieldview-ui-rework` <!-- id: 200 -->
-- [ ] Merge `feat/fieldview-ui-frame` → `initiative/fieldview-ui-rework` <!-- id: 201 -->
-- [ ] Merge `feat/fieldview-ui-explore` → `initiative/fieldview-ui-rework` <!-- id: 202 -->
-- [ ] Merge `feat/fieldview-ui-watch` → `initiative/fieldview-ui-rework` (expect hand-resolved overlap, if any, in `ui/app/*` slots) <!-- id: 203 -->
-- [ ] Merge `feat/fieldview-ui-touch-qa` → `initiative/fieldview-ui-rework` <!-- id: 204 -->
-- [ ] Full suite green on the initiative branch, including `npm run test:perf` <!-- id: 205 -->
+- [x] Merge `feat/fieldview-ui-render` → `initiative/fieldview-ui-rework` <!-- id: 200 -->
+- [x] Merge `feat/fieldview-ui-frame` → `initiative/fieldview-ui-rework` <!-- id: 201 -->
+- [x] Merge `feat/fieldview-ui-explore` → `initiative/fieldview-ui-rework` <!-- id: 202 -->
+- [x] Merge `feat/fieldview-ui-watch` → `initiative/fieldview-ui-rework` (expect hand-resolved overlap, if any, in `ui/app/*` slots) <!-- id: 203 -->
+- [x] Merge `feat/fieldview-ui-touch-qa` → `initiative/fieldview-ui-rework` <!-- id: 204 -->
+- [x] Full suite green on the initiative branch, including `npm run test:perf` <!-- id: 205 -->
 - [ ] Builder-approved merge to `main`, then canon synthesis and archive <!-- id: 206 -->
-- [ ] Archive the stale `fieldview-motion` active specs if still present (separate housekeeping; see handoff) <!-- id: 207 -->
+- [x] Archive the stale `fieldview-motion` active specs (done before kickoff, commit `eec46a6`) <!-- id: 207 -->
