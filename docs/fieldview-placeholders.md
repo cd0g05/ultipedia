@@ -11,14 +11,14 @@ placeholder is resolved, set Status to `done` (don't delete the row until the in
 Status: `open` = Builder must supply/confirm · `toy` = a development stand-in exists in code ·
 `tune` = real value needs device/by-eye tuning · `done`.
 
-*Last updated: 2026-10-03 (P1 and P2 in code: rows 1 (opening setup only), 6, 7, 8, 9 (menu half), 11, 12, 14, 15 have `PLACEHOLDER` markers; the rest are still planned).*
+*Last updated: 2026-10-03 (P1–P3 in code; P3 added rows 1, 2, 10 and the Defense-follows stub; P1 and P2: rows 1 (opening setup only), 6, 7, 8, 9 (menu half), 11, 12, 14, 15 have `PLACEHOLDER` markers; the rest are still planned).*
 
 ## Content the Builder must supply
 
 | # | Area | What's placeholder | Planned location | Builder must supply | Partition | Status |
 |---|---|---|---|---|---|---|
-| 1 | Curated **setups** | Names, player coordinates (first-pass yards), order. (Opening setup marker already in `ui/app/FieldViewApp.tsx`.) | `scene/presets.ts` (`CURATED_SETUPS`) | Final set of setups and their positions (≥5; mockup placeholders: Vertical stack, Horizontal stack, Ho stack, Side stack, Clumped) | P3 | open (toy planned) |
-| 2 | Setup **takeaways** | One-line "what to notice" per setup | `scene/presets.ts` (`PRESET_TAKEAWAYS`) | Final one-sentence copy per setup | P3 | open (toy planned) |
+| 1 | Curated **setups** | Names, player coordinates (first-pass yards), order. Toy presets `vertStack`, `hoStack`, `sideStack`, `clumped` + the order in `CURATED_SETUPS`. Note: stacks need ≥3 yd spacing at the new piece size. | `scene/presets.ts` (`CURATED_SETUPS`) | Final set of setups and their positions (≥5; mockup placeholders: Vertical stack, Horizontal stack, Ho stack, Side stack, Clumped) | P3 | open (toy in code) |
+| 2 | Setup **takeaways** | One-line "what to notice" per setup | `scene/presets.ts` (`PRESET_TAKEAWAYS`) | Final one-sentence copy per setup | P3 | open (toy in code) |
 | 3 | Curated **plays** | Entire play content (toy plays, ≥3, one ≥5 frames) | `play/builtin/*.json` (`"_placeholder": true`) | Real plays, authored with the unlinked `/fieldview/designer` and exported | P4 | open (toy planned) |
 | 4 | Play **names / descriptions** | Play list titles and one-liners | `play/builtin/*.json` | Final names and descriptions | P4 | open (toy planned) |
 | 5 | Frame **labels** | Optional per-keyframe labels shown in the filmstrip ("Cut under", "Clear"…) | `play/builtin/*.json` (`label`) | Final labels (or decide to omit) | P4 | open (toy planned) |
@@ -31,7 +31,7 @@ Status: `open` = Builder must supply/confirm · `toy` = a development stand-in e
 | 7 | **Rotate message** | "Rotate your phone to landscape for the best view." + dismiss label | `ui/app/RotateNotice.tsx` | Final copy | P2 | open (toy in code) |
 | 8 | **Build placeholder** | Card copy ("Play designer — coming in the next update…") | `pages/Build.tsx` | Final copy | P2 | open (toy in code) |
 | 9 | **Menu & settings labels** | "Back to Ultipedia", "How to read the colours", "Colour-blind mode", "Defense follows — coming soon" | `ui/app/MenuDrawer.tsx`, `ui/content/Options.tsx` | Confirm wording | P2/P3 | open (toy in code; Options half in P3) |
-| 10 | **Selected-player card** | Row labels and the definition of "Side of field" / "Moved from start" | `ui/content/SelectedPlayerCard.tsx` | Confirm labels and definitions | P3 | open (toy planned) |
+| 10 | **Selected-player card** | Row labels and the definition of "Side of field" / "Moved from start" | `ui/content/SelectedPlayerCard.tsx` | Confirm labels and definitions | P3 | open (toy in code) |
 | 11 | **Route titles / SEO meta** | `<title>`/description for explore, watch, build | page `Seo` usage | Final titles and descriptions | P2 | open (toy in code) |
 
 ## Values to tune (need a real device or an eye)
@@ -49,7 +49,7 @@ Status: `open` = Builder must supply/confirm · `toy` = a development stand-in e
 
 | # | Area | Stub in the MVP | Real work later | Status |
 |---|---|---|---|---|
-| 18 | **Defense follows** | Toggle + persisted pref, labelled "coming soon", no behaviour | Wire pursuit to dragging; design deliberately (ADR-33 reserved) | deferred (backlog) |
+| 18 | **Defense follows** | Toggle + persisted pref, labelled "coming soon", no behaviour — **in code** (`pages/Explore.tsx`, `ui/prefs.ts`) | Wire pursuit to dragging; design deliberately (ADR-33 reserved) | deferred (backlog) |
 | 19 | **Advanced settings** | Not shown at all | Space-model sliders etc.; intended home is the open space under the Explore field | deferred (backlog) |
 
 ## Where the mockups differ from what will be built

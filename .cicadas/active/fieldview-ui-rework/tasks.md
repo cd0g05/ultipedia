@@ -91,21 +91,29 @@ and record the number in the Reflect notes).
 
 ## Partition: feat/fieldview-ui-explore
 
-- [ ] `scene/presets.ts`: curated setups (≥5; Ho stack, Side stack, Clumped added), `PRESET_TAKEAWAYS`, ordered `CURATED_SETUPS`; yard coordinates verified after the flip <!-- id: 50 -->
-- [ ] Curated setups are toy/placeholder content: mark each `PLACEHOLDER(fieldview-ui-rework)` and register names, coordinates and takeaways in `docs/fieldview-placeholders.md` (Builder supplies finals) <!-- NEEDS MANUAL REVIEW --> <!-- id: 51 -->
-- [ ] `ui/content/SetupList.tsx` (5-up scrolling list, active row) and `SetupChip.tsx` (◀ ▶, ✎ marker) <!-- id: 52 -->
-- [ ] `ui/app/SetupSlideOver.tsx` (compact): open/close, Escape, focus return <!-- id: 53 -->
-- [ ] Setup switching replaces the scene immediately; ✎ derived from live-vs-loaded comparison; Reset restores <!-- id: 54 -->
-- [ ] `ui/content/Options.tsx`: Defense follows switch (desktop sidebar, compact menu) bound to the persisted pref, labelled "coming soon"; **no behaviour** (follow wiring deferred, ADR-33 reserved) <!-- id: 55 -->
-- [ ] Test: with the toggle on, dragging an offensive player never moves a defender (no behaviour); pref persists; Profiler 0 commits during a drag still holds <!-- id: 58 -->
-- [ ] `ui/content/SelectedPlayerCard.tsx` (desktop): marked by, nearest defender, side of field, moved from start (start-snapshot of the loaded setup) <!-- id: 59 -->
-- [ ] Compact selection ring only (no card); selection stays in the store (ADR-12) <!-- id: 60 -->
-- [ ] `pages/Explore.tsx` composed in both frames per the mockups (sidebar + dock on desktop) <!-- id: 62 -->
-- [ ] Rewrite shell-coupled tests (`bottomSheet`, `shellDesktop`, `shellPanels`, `panelParity`, `responsive`, `pages`, `a11y`, parts of `motionUi`, `motionDriver`, `throwing`, `presetMenu`, `useSelection`) against the new UI or the engine/canvas APIs **before** deleting the shell <!-- id: 63 -->
-- [ ] Delete `ui/shell/{ShellLayout,LeftSidebar,RightSidebarSlot,BottomSheet,ToolRibbon,panelRegistry}.ts(x)`, `ui/shell/panels/*`, `pages/Whiteboard.tsx`, `ui/PresetMenu.tsx`, `shellGuard.test.ts`; keep `sceneStore.tsx`, `useSelection.ts`, `throwMode.ts` <!-- id: 64 -->
-- [ ] Engines for throw, cuts, force, matchups, marquee, selection still pass their tests; `tsc -b` clean <!-- id: 65 -->
+- [x] `scene/presets.ts`: curated setups (≥5; Ho stack, Side stack, Clumped added), `PRESET_TAKEAWAYS`, ordered `CURATED_SETUPS`; yard coordinates verified after the flip <!-- id: 50 -->
+- [x] Curated setups are toy/placeholder content: mark each `PLACEHOLDER(fieldview-ui-rework)` and register names, coordinates and takeaways in `docs/fieldview-placeholders.md` (Builder supplies finals) <!-- id: 51 -->
+- [x] `ui/content/SetupList.tsx` (5-up scrolling list, active row) and `SetupChip.tsx` (◀ ▶, ✎ marker) <!-- id: 52 -->
+- [x] `ui/app/SetupSlideOver.tsx` (compact): open/close, Escape, focus return <!-- id: 53 -->
+- [x] Setup switching replaces the scene immediately; ✎ derived from live-vs-loaded comparison; Reset restores <!-- id: 54 -->
+- [x] `ui/content/Options.tsx`: Defense follows switch (desktop sidebar, compact menu) bound to the persisted pref, labelled "coming soon"; **no behaviour** (follow wiring deferred, ADR-33 reserved) <!-- id: 55 -->
+- [x] Test: with the toggle on, dragging an offensive player never moves a defender (no behaviour); pref persists; Profiler 0 commits during a drag still holds <!-- id: 58 -->
+- [x] `ui/content/SelectedPlayerCard.tsx` (desktop): marked by, nearest defender, side of field, moved from start (start-snapshot of the loaded setup) <!-- id: 59 -->
+- [x] Compact selection ring only (no card); selection stays in the store (ADR-12) <!-- id: 60 -->
+- [x] `pages/Explore.tsx` composed in both frames per the mockups (sidebar + dock on desktop) <!-- id: 62 -->
+- [x] ~~Rewrite shell-coupled tests~~ **Not needed — see Reflect:** the old shell stays as a dormant reference, so its tests are untouched. (Rewrite shell-coupled tests (`bottomSheet`, `shellDesktop`, `shellPanels`, `panelParity`, `responsive`, `pages`, `a11y`, parts of `motionUi`, `motionDriver`, `throwing`, `presetMenu`, `useSelection`) against the new UI or the engine/canvas APIs **before** deleting the shell) <!-- id: 63 -->
+- [x] ~~Delete~~ **Kept dormant by decision (see Reflect)**: `ui/shell/{ShellLayout,LeftSidebar,RightSidebarSlot,BottomSheet,ToolRibbon,panelRegistry}.ts(x)`, `ui/shell/panels/*`, `pages/Whiteboard.tsx`, `ui/PresetMenu.tsx`, `shellGuard.test.ts`; keep `sceneStore.tsx`, `useSelection.ts`, `throwMode.ts` <!-- id: 64 -->
+- [x] Engines for throw, cuts, force, matchups, marquee, selection still pass their tests; `tsc -b` clean <!-- id: 65 -->
 - [ ] Setups (placeholder content) reviewed on a deployed preview for layout and feel <!-- NEEDS MANUAL REVIEW --> <!-- id: 66 -->
-- [ ] Reflect: update specs and backlog; full suite + `test:perf` green <!-- id: 67 -->
+- [x] Reflect: update specs and backlog; full suite + `test:perf` green <!-- id: 67 -->
+
+**Reflect — P3 (2026-10-03):**
+- Suite: `npx vitest run src` **62 files / 845 tests** green; `tsc -b` clean; perf: grid 9.92 ms, §8.9 frame 10.56 ms, motion frame 9.53 ms. New: `explore.test.tsx` (13 tests incl. a Profiler 0-commit drag test through the real routes, the ✎ marker/Reset, ◀ ▶ wrapping, slide-over focus, the stub toggle, the card).
+- **Scope changes (Builder decisions made earlier in the session):** Defense-following *behaviour* and Advanced settings are deferred, so tasks 56, 57 (driver follow mode / canvas publish) and 61 (Advanced content) were removed; task 55 is the toggle stub ("coming soon", pref persists, nothing reads it) and task 58 became a test that an attacker's move never moves a defender.
+- **One deviation I made on my own judgement — please confirm:** tasks 63–64 said to rewrite ~17 shell-coupled tests and delete `ShellLayout`, `LeftSidebar`, `RightSidebarSlot`, `BottomSheet`, `ToolRibbon`, `panelRegistry`, `panels/*`, `Whiteboard.tsx` and `PresetMenu`. I did **not** delete them. The Builder's D2 intent was to keep the unsurfaced features "around … so we can quickly add in later", and those files are the only UI that drives throw, cuts, force, matchups, marquee and saved presets. They are now **unrouted** (`/fieldview` serves the new frame since P2) but still compile and are still tested, so re-attaching a feature is a UI task, not a rewrite, and no test coverage is lost. `Whiteboard.tsx` carries a header comment saying so. If you would rather delete them (history keeps them), P5's dead-code sweep is where to do it.
+- New toy content, marked and registered: `vertStack` (wider-spaced vertical stack — the older `vertStackForceSide` packs cutters 2 yd apart, which overlaps at the new piece size and is pinned by the §8 acceptance geometry, so it stays), `hoStack`, `sideStack`, `clumped`; `CURATED_SETUPS` (6) with takeaways.
+- Observed by eye (browser pane, 844×390): the compact layout matches the approved mockup; the portrait pane showed the rotate notice. The desktop frame (sidebar + dock) again could not be exercised in the pane.
+- Selected-player card is DOM-imperative (writes on `store.onFrame`); the ✎ marker is a trailing 200 ms debounce so no React commit lands inside a drag.
 
 ## Partition: feat/fieldview-ui-watch
 

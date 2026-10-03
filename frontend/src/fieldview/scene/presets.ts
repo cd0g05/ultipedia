@@ -152,27 +152,142 @@ const DEEP_HELP = buildScene({
   ],
 });
 
+// Vertical stack at a spacing the DISC-SIZED pieces can show: the six cutters
+// four yards apart on the centre line (the older VERT_STACK_FORCE_SIDE packs
+// them two yards apart, which suited the old small dots and is pinned by the
+// space model's §8 acceptance geometry, so it stays as it is). Defenders stand
+// alternately either side of the line so no two pieces overlap.
+// PLACEHOLDER(fieldview-ui-rework): toy coordinates (docs/fieldview-placeholders.md #1).
+const VERT_STACK = buildScene({
+  throwerX: 38,
+  throwerY: 20,
+  markOffset: { x: -1, y: 3 },
+  cutters: [
+    { x: 48, y: 20 },
+    { x: 52, y: 20 },
+    { x: 56, y: 20 },
+    { x: 60, y: 20 },
+    { x: 64, y: 20 },
+    { x: 68, y: 20 },
+  ],
+  defenderOffsets: [
+    { x: 1, y: 3 },
+    { x: 1, y: -3 },
+    { x: 1, y: 3 },
+    { x: 1, y: -3 },
+    { x: 1, y: 3 },
+    { x: 1, y: -3 },
+  ],
+});
+
+// Ho stack: two handlers split wide behind the disc, the other four in a
+// short vertical stack up the middle — one clean lane up the middle.
+// PLACEHOLDER(fieldview-ui-rework): toy coordinates (docs/fieldview-placeholders.md #1).
+const HO_STACK = buildScene({
+  throwerX: 45,
+  throwerY: 20,
+  markOffset: { x: -1, y: 0 },
+  cutters: [
+    { x: 40, y: 8 },
+    { x: 40, y: 32 },
+    { x: 54, y: 20 },
+    { x: 58, y: 20 },
+    { x: 62, y: 20 },
+    { x: 66, y: 20 },
+  ],
+  defenderOffsets: [
+    { x: -1.5, y: 1 },
+    { x: -1.5, y: -1 },
+    { x: 2, y: 0 },
+    { x: 2, y: 0 },
+    { x: 2, y: 0 },
+    { x: 2, y: 0 },
+  ],
+});
+
+// Side stack: the whole offense lined up along one sideline, so the entire far
+// side is open to attack.
+// PLACEHOLDER(fieldview-ui-rework): toy coordinates (#1).
+const SIDE_STACK = buildScene({
+  throwerX: 40,
+  throwerY: 12,
+  markOffset: { x: -1, y: -1 },
+  cutters: [
+    { x: 50, y: 6 },
+    { x: 54, y: 6 },
+    { x: 58, y: 6 },
+    { x: 62, y: 6 },
+    { x: 66, y: 6 },
+    { x: 70, y: 6 },
+  ],
+  defenderOffsets: [
+    { x: 1.5, y: 2 },
+    { x: 1.5, y: 2 },
+    { x: 1.5, y: 2 },
+    { x: 1.5, y: 2 },
+    { x: 1.5, y: 2 },
+    { x: 1.5, y: 2 },
+  ],
+});
+
+// Clumped: everyone bunched near the disc — a picture of how little space a
+// crowded team leaves.
+// PLACEHOLDER(fieldview-ui-rework): toy coordinates (#1).
+const CLUMPED = buildScene({
+  throwerX: 40,
+  throwerY: 20,
+  markOffset: { x: -1, y: 0 },
+  cutters: [
+    { x: 48, y: 18 },
+    { x: 50, y: 22 },
+    { x: 52, y: 18 },
+    { x: 54, y: 22 },
+    { x: 50, y: 20 },
+    { x: 52, y: 20 },
+  ],
+  defenderOffsets: [
+    { x: -1.5, y: 0 },
+    { x: -1.5, y: 0 },
+    { x: -1.5, y: 0 },
+    { x: -1.5, y: 0 },
+    { x: -1.5, y: 0 },
+    { x: -1.5, y: 0 },
+  ],
+});
+
 export const PRESET_NAMES = [
   "vertStackForceSide",
+  "vertStack",
   "horizontalStack",
   "flatMark",
   "deepHelp",
+  "hoStack",
+  "sideStack",
+  "clumped",
 ] as const;
 
 export type PresetName = (typeof PRESET_NAMES)[number];
 
 const PRESETS: Record<PresetName, Scene> = {
   vertStackForceSide: VERT_STACK_FORCE_SIDE,
+  vertStack: VERT_STACK,
   horizontalStack: HORIZONTAL_STACK,
   flatMark: FLAT_MARK,
   deepHelp: DEEP_HELP,
+  hoStack: HO_STACK,
+  sideStack: SIDE_STACK,
+  clumped: CLUMPED,
 };
 
 export const PRESET_LABELS: Record<PresetName, string> = {
   vertStackForceSide: "Vert Stack, Force Side",
+  vertStack: "Vert Stack",
   horizontalStack: "Horizontal Stack",
   flatMark: "Flat Mark",
   deepHelp: "Deep Help",
+  hoStack: "Ho Stack",
+  sideStack: "Side Stack",
+  clumped: "Clumped",
 };
 
 export function getPreset(name: PresetName): Scene {
@@ -187,3 +302,26 @@ export function getPreset(name: PresetName): Scene {
 export function listPresetNames(): PresetName[] {
   return [...PRESET_NAMES];
 }
+
+// The setups Explore offers, in the order it shows them, each with the one-line
+// takeaway a new player reads. UI names and takeaways are separate from
+// PRESET_LABELS (the registry's names) on purpose: this is the coach's
+// vocabulary and the learner's sentence.
+//
+// PLACEHOLDER(fieldview-ui-rework): which setups, their order, their names and
+// every takeaway are toy content the Builder replaces
+// (docs/fieldview-placeholders.md #1, #2).
+export interface CuratedSetup {
+  name: PresetName;
+  label: string;
+  takeaway: string;
+}
+
+export const CURATED_SETUPS: CuratedSetup[] = [
+  { name: "vertStack", label: "Vertical stack", takeaway: "Cutters have the deep and under lanes to themselves." },
+  { name: "horizontalStack", label: "Horizontal stack", takeaway: "Wide and flat: the middle opens up." },
+  { name: "hoStack", label: "Ho stack", takeaway: "Handlers split wide; one clean lane up the middle." },
+  { name: "sideStack", label: "Side stack", takeaway: "Everyone on one side — the open side is free to attack." },
+  { name: "clumped", label: "Clumped", takeaway: "See how little space a bunched team leaves." },
+  { name: "deepHelp", label: "Deep help", takeaway: "One cutter deep, the rest underneath — watch the help defender sag." },
+];
