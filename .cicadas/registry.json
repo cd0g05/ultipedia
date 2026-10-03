@@ -19,6 +19,21 @@
       "owner": "unknown",
       "created_at": "2026-10-03T19:13:11.162248+00:00",
       "initiative": "fieldview-ui-rework"
+    },
+    "feat/fieldview-ui-frame": {
+      "intent": "App frame: routes, FieldViewApp layout route, compact+desktop chrome, menu, legend + colour-blind palette, rotate notice, Build placeholder",
+      "modules": [
+        "frontend/src/router.tsx",
+        "frontend/src/fieldview/ui/content",
+        "frontend/src/fieldview/space/palette.ts",
+        "frontend/src/encyclopedia/components/Layout.tsx",
+        "frontend/tailwind.config.js",
+        "frontend/src/fieldview/ui/app",
+        "frontend/src/fieldview/ui/prefs.ts"
+      ],
+      "owner": "unknown",
+      "created_at": "2026-10-03T19:26:09.380104+00:00",
+      "initiative": "fieldview-ui-rework"
     }
   }
 }

@@ -11,13 +11,13 @@ placeholder is resolved, set Status to `done` (don't delete the row until the in
 Status: `open` = Builder must supply/confirm · `toy` = a development stand-in exists in code ·
 `tune` = real value needs device/by-eye tuning · `done`.
 
-*Last updated: 2026-10-03 (P1 render merged-ready: row 12 is now in code; all other rows are still planned).*
+*Last updated: 2026-10-03 (P1 and P2 in code: rows 1 (opening setup only), 6, 7, 8, 9 (menu half), 11, 12, 14, 15 have `PLACEHOLDER` markers; the rest are still planned).*
 
 ## Content the Builder must supply
 
 | # | Area | What's placeholder | Planned location | Builder must supply | Partition | Status |
 |---|---|---|---|---|---|---|
-| 1 | Curated **setups** | Names, player coordinates (first-pass yards), order | `scene/presets.ts` (`CURATED_SETUPS`) | Final set of setups and their positions (≥5; mockup placeholders: Vertical stack, Horizontal stack, Ho stack, Side stack, Clumped) | P3 | open (toy planned) |
+| 1 | Curated **setups** | Names, player coordinates (first-pass yards), order. (Opening setup marker already in `ui/app/FieldViewApp.tsx`.) | `scene/presets.ts` (`CURATED_SETUPS`) | Final set of setups and their positions (≥5; mockup placeholders: Vertical stack, Horizontal stack, Ho stack, Side stack, Clumped) | P3 | open (toy planned) |
 | 2 | Setup **takeaways** | One-line "what to notice" per setup | `scene/presets.ts` (`PRESET_TAKEAWAYS`) | Final one-sentence copy per setup | P3 | open (toy planned) |
 | 3 | Curated **plays** | Entire play content (toy plays, ≥3, one ≥5 frames) | `play/builtin/*.json` (`"_placeholder": true`) | Real plays, authored with the unlinked `/fieldview/designer` and exported | P4 | open (toy planned) |
 | 4 | Play **names / descriptions** | Play list titles and one-liners | `play/builtin/*.json` | Final names and descriptions | P4 | open (toy planned) |
@@ -27,12 +27,12 @@ Status: `open` = Builder must supply/confirm · `toy` = a development stand-in e
 
 | # | Area | What's placeholder | Planned location | Builder must supply | Partition | Status |
 |---|---|---|---|---|---|---|
-| 6 | **Colour guide** text | Explanation of Closed / Contested / Strong space | `ui/content/ColourGuide.tsx` | Plain-language wording (derived from `space/constants.ts`/`explain.ts`; terms are decided, wording is not) | P2 | open (toy planned) |
-| 7 | **Rotate message** | "Rotate your phone to landscape for the best view." + dismiss label | `ui/app/RotateNotice.tsx` | Final copy | P2 | open (toy planned) |
-| 8 | **Build placeholder** | Card copy ("Play designer — coming in the next update…") | `pages/Build.tsx` | Final copy | P2 | open (toy planned) |
-| 9 | **Menu & settings labels** | "Back to Ultipedia", "How to read the colours", "Colour-blind mode", "Defense follows — coming soon" | `ui/app/MenuDrawer.tsx`, `ui/content/Options.tsx` | Confirm wording | P2/P3 | open (toy planned) |
+| 6 | **Colour guide** text | Explanation of Closed / Contested / Strong space | `ui/content/ColourGuide.tsx` | Plain-language wording (derived from `space/constants.ts`/`explain.ts`; terms are decided, wording is not) | P2 | open (toy in code) |
+| 7 | **Rotate message** | "Rotate your phone to landscape for the best view." + dismiss label | `ui/app/RotateNotice.tsx` | Final copy | P2 | open (toy in code) |
+| 8 | **Build placeholder** | Card copy ("Play designer — coming in the next update…") | `pages/Build.tsx` | Final copy | P2 | open (toy in code) |
+| 9 | **Menu & settings labels** | "Back to Ultipedia", "How to read the colours", "Colour-blind mode", "Defense follows — coming soon" | `ui/app/MenuDrawer.tsx`, `ui/content/Options.tsx` | Confirm wording | P2/P3 | open (toy in code; Options half in P3) |
 | 10 | **Selected-player card** | Row labels and the definition of "Side of field" / "Moved from start" | `ui/content/SelectedPlayerCard.tsx` | Confirm labels and definitions | P3 | open (toy planned) |
-| 11 | **Route titles / SEO meta** | `<title>`/description for explore, watch, build | page `Seo` usage | Final titles and descriptions | P2 | open (toy planned) |
+| 11 | **Route titles / SEO meta** | `<title>`/description for explore, watch, build | page `Seo` usage | Final titles and descriptions | P2 | open (toy in code) |
 
 ## Values to tune (need a real device or an eye)
 
@@ -40,8 +40,8 @@ Status: `open` = Builder must supply/confirm · `toy` = a development stand-in e
 |---|---|---|---|---|---|---|
 | 12 | **Piece radius** | 11.5 SVG units (≈21 px on a phone) — **in code**, marked `PLACEHOLDER` in `render/tokens.ts` (`PIECE_TOKENS`) | `render/tokens.ts` | Real-phone check in a huddle-distance context | P1/P5 | tune (in code) |
 | 13 | **Touch grab radius** | ≥ ~44 px effective | `render/pick.ts` | Real-device check | P5 | tune |
-| 14 | **`desktop` breakpoint** | ≥1280 × ≥640 px | `tailwind.config.js` | Real tablet/laptop check (canon already says the old 1024 px was never validated) | P2/P5 | tune |
-| 15 | **Colour-blind palette** | orange `#e8731a` → neutral `#f3efe3` → blue `#2f7fd6` | `space/palette.ts` | Confirm the colours (ideally check with a colour-blind player) | P2 | tune |
+| 14 | **`desktop` breakpoint** | ≥1280 × ≥640 px — **in code** (also `--fv-chrome` in `index.css`) | `tailwind.config.js` | Real tablet/laptop check (canon already says the old 1024 px was never validated) | P2/P5 | tune |
+| 15 | **Colour-blind palette** | orange `#e8731a` → neutral `#f3efe3` → blue `#2f7fd6` — **in code** | `space/constants.ts` (`CB_RAMP_STOPS`) | Confirm the colours (ideally check with a colour-blind player) | P2 | tune |
 | 16 | **Heat opacity / field look** | Existing `HEATMAP_ALPHA` 0.78 | `render/heatmap.ts` | By-eye on sun/glare | P5 | tune |
 | 17 | **Playback speeds** | 0.5× / 1× / 2×; frame transition duration | `ui/playback/playback.ts` | Feel check | P4 | tune |
 

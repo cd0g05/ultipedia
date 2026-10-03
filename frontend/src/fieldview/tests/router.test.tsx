@@ -1,5 +1,5 @@
-// Router-level regression: /fieldview and /fieldview/designer resolve to
-// their shells, the shipped /field-view URLs still land there via redirect,
+// Router-level regression: /fieldview/{explore,watch,build} and the unlinked
+// /fieldview/designer resolve to their pages, the shipped /field-view URLs still land there via redirect,
 // and none of the four shadow the /:section dynamic route or any other
 // existing static route.
 
@@ -27,12 +27,27 @@ function renderAt(path: string) {
 }
 
 describe("fieldview routes", () => {
-  it("/fieldview renders the Whiteboard shell", () => {
+  it("/fieldview redirects to /fieldview/explore (D5)", () => {
     renderAt("/fieldview");
-    // Exact: the sub-768px notice carries its own h1, and only one of the
-    // two is ever displayed.
-    expect(screen.getByRole("heading", { name: "Field View" })).toBeInTheDocument();
+    expect(screen.getByTestId("mode-label")).toHaveTextContent("Explore");
     expect(screen.getByRole("group", { name: /ultimate field/i })).toBeInTheDocument();
+  });
+
+  it("/fieldview/watch renders the Watch frame with the field", () => {
+    renderAt("/fieldview/watch");
+    expect(screen.getByTestId("mode-label")).toHaveTextContent("Watch");
+    expect(screen.getByRole("group", { name: /ultimate field/i })).toBeInTheDocument();
+  });
+
+  it("/fieldview/build renders the placeholder and no field", () => {
+    renderAt("/fieldview/build");
+    expect(screen.getByRole("heading", { name: /play designer/i })).toBeInTheDocument();
+    expect(screen.queryByRole("group", { name: /ultimate field/i })).not.toBeInTheDocument();
+  });
+
+  it("Field View is outside the site Layout: no site footer", () => {
+    renderAt("/fieldview/explore");
+    expect(screen.queryByRole("contentinfo")).not.toBeInTheDocument();
   });
 
   it("/fieldview/designer renders the Designer shell", () => {
@@ -43,9 +58,9 @@ describe("fieldview routes", () => {
 
   // The client has the old URLs. Losing them to the /:section 404 would be a
   // silent regression, so both are asserted rather than assumed.
-  it("/field-view redirects to the Whiteboard", () => {
+  it("/field-view redirects to Explore", () => {
     renderAt("/field-view");
-    expect(screen.getByRole("heading", { name: "Field View" })).toBeInTheDocument();
+    expect(screen.getByTestId("mode-label")).toHaveTextContent("Explore");
     expect(screen.getByRole("group", { name: /ultimate field/i })).toBeInTheDocument();
   });
 

@@ -15,6 +15,8 @@ import { PIXELS_PER_YARD } from "./coords";
 
 export interface HeatmapPainter {
   paint(grid: ScoreGrid): void;
+  // Swaps the ramp (colour-blind mode). Takes effect on the next paint.
+  setColorize(colorize: NonNullable<HeatmapPainterOptions["colorize"]>): void;
   resize(fieldPxWidth: number, fieldPxHeight: number): void;
   dispose(): void;
 }
@@ -33,7 +35,7 @@ export function createHeatmapPainter(
   canvas: HTMLCanvasElement,
   options: HeatmapPainterOptions = {},
 ): HeatmapPainter {
-  const colorize = options.colorize ?? scoreToRgba;
+  let colorize = options.colorize ?? scoreToRgba;
   const ctx = canvas.getContext("2d");
 
   // Kept across frames and only reallocated when the grid's dimensions
@@ -83,6 +85,10 @@ export function createHeatmapPainter(
       // heatmap.test.ts is what keeps them honest).
       ctx.drawImage(scratch!, 0, 0, canvas.width, canvas.height);
       ctx.globalAlpha = 1;
+    },
+
+    setColorize(next) {
+      colorize = next;
     },
 
     resize(fieldPxWidth, fieldPxHeight) {

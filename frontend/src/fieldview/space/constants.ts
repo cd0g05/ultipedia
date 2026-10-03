@@ -95,6 +95,18 @@ export const RAMP_STOPS = [
   { at: 1, hex: "#4F941D" },
 ] as const;
 
+// Colour-blind ramp (fieldview-ui-rework ADR-32): orange (closed) → neutral →
+// blue (strong). Three stops rather than four — the red/amber/green ramp needs
+// the interior anchors to carry two hues apart, this one does not. The legend
+// and the painter both read these arrays, so they cannot drift.
+// PLACEHOLDER(fieldview-ui-rework): hex values are a first guess; confirm with
+// a colour-blind player (docs/fieldview-placeholders.md #15).
+export const CB_RAMP_STOPS = [
+  { at: 0, hex: "#E8731A" },
+  { at: 0.5, hex: "#F3EFE3" },
+  { at: 1, hex: "#2F7FD6" },
+] as const;
+
 // Readout labels (FR-3.8) derive from the ramp's interior anchors, applied to
 // the gamma'd score: below the amber stop reads "closed", from the green stop
 // up reads "strong" — so the verbal label and the colour never disagree.
