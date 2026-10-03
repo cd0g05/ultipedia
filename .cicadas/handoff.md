@@ -1,57 +1,48 @@
 ---
 boundary: kickoff
-initiative: fieldview-motion
+initiative: fieldview-ui-rework
 ---
 
-# Handoff: fieldview-motion kickoff
+# Handoff: fieldview-ui-rework kickoff
 
 ## Just completed
 
-Five specs drafted and Builder-approved; `kickoff fieldview-motion` run. `initiative/fieldview-motion`
-created and pushed; specs promoted to `.cicadas/active/fieldview-motion/`. No peer feature branches
-registered — no intent conflict.
-
-(This file replaced a stale `fieldview-shell` kickoff handoff left behind from Initiative A.)
+All five specs drafted and Builder-approved (2026-10-03); `kickoff fieldview-ui-rework` run.
+`initiative/fieldview-ui-rework` created and pushed; specs promoted to `.cicadas/active/fieldview-ui-rework/`.
+`fieldview-motion` was archived first (stale registration, five branches, one worktree removed).
+The vertical-tuning WIP is parked on `checkpoint/fieldview-vertical-tuning` (`d2e4836`), not a dependency.
+No PR boundaries (`lifecycle.json`): all merges direct.
 
 ## Approved/authoritative state
 
-- `.cicadas/active/fieldview-motion/prd.md` — FR-1..FR-7. Growth scope resolved at kickoff:
-  multi-waypoint cuts **in**, disc flight **in**, best-positioned defender **deferred**.
-- `.cicadas/active/fieldview-motion/tech-design.md` — ADR-1 one stepper (live + headless agree);
-  ADR-2 cushion pursuit on a reaction delay; ADR-3 no duplicate `vmax`/`react`/flight-time;
-  ADR-4 transient state, no `Scene`/format change; ADR-5 fixed-timestep accumulator (`DT = 1/120`);
-  ADR-6 reduced-motion JS exception.
-- `.cicadas/active/fieldview-motion/approach.md` — 5 partitions, DAG 1→2→3, then 4 ∥ 5.
-- `.cicadas/active/fieldview-motion/tasks.md` — 60 partition tasks + 7 boundary. **No `Open PR:`
-  tasks**; `lifecycle.json` has every `pr_boundaries` false. All merges direct.
-- Canon `.cicadas/canon/modules/fieldview.md` — ADR-1..ADR-21 still binding. Most at risk here:
-  **ADR-2** (React never in the frame path) and **ADR-17** (`normalize()` is the only writer of
-  `Player.role`).
+- `.cicadas/active/fieldview-ui-rework/{prd,ux,tech-design,approach,tasks}.md`
+- Decisions D1–D12: `docs/fieldview-ui-rework-plan.md` §5. Visual spec: `design/fieldview-watch-explore-mockup.html`, `design/fieldview-desktop-mockup.html`.
+- **Deferred by Builder (do NOT build):** defense-following *behaviour* (toggle + pref stub only, "coming soon"; ADR-33 reserved), Advanced settings UI, Present/fullscreen, saved-preset UI, throw/cuts/force/matchup/marquee UI.
+- **Placeholders are allowed** (toy setups, plays, copy). Every one must carry `// PLACEHOLDER(fieldview-ui-rework): …` (or `"_placeholder": true`) **and** a row in `docs/fieldview-placeholders.md`; P5 audits.
+- Builder preferences: doc-sourced, review-at-end, no PRs; ask before merge to main / canon commit / archive.
 
 ## Next action
 
-Partition 1 — `feat/fieldview-motion-core`, tasks 1–13: `motion/types.ts`, `constants.ts`, `vec.ts`,
-`kinematics.ts`, `route.ts`, plus `motionGuard.test.ts` (purity + no-duplicate-constants, both halves
-mutation-tested). Pure math only — no clock, no store, no React.
+Partition 1 — `feat/fieldview-ui-render` (tasks 1–13): re-measure baseline on clean `main`
+(expected 46 files / 671 tests), audit coords consumers, then horizontal `coords.ts` →
+`fieldLayer` → `heatmap` (delete the quarter-turn) → piece language/tokens → `FieldCanvas` sizing,
+with a corner-registration test. Start it with `cicadas.py branch feat/fieldview-ui-render --initiative fieldview-ui-rework …`
+(Semantic Intent Check first; no peer feature branches are registered).
 
 ## Reload list
 
 - `canon/summary.md`
-- `active/fieldview-motion/approach.md` front matter + "Partition 1: Kinematics"
-- `active/fieldview-motion/tasks.md` front matter + "Partition: feat/fieldview-motion-core"
-- `active/fieldview-motion/tech-design.md` § ADR-1, ADR-3, "Data Models", "Implementation Patterns"
-- `frontend/src/fieldview/space/constants.ts` and `space/types.ts` — the structural precedent to
-  copy, and the source of `vmax`/`react` that motion must not redeclare.
+- `active/fieldview-ui-rework/approach.md` front matter + "Partition 1: Render"
+- `active/fieldview-ui-rework/tasks.md` front matter + "Partition: feat/fieldview-ui-render"
+- `active/fieldview-ui-rework/tech-design.md` § ADR-28, "Brownfield Notes", "Implementation Patterns"
+- `frontend/src/fieldview/render/{coords,fieldLayer,heatmap,pieceLayer,tokens}.ts(x)`; canon ADR-2, ADR-10, ADR-11
 
 ## Carry forward
 
-- **OPEN (Builder, affects Partition 4):** waypoint-marker dragging. `ux.md` Journey 2 has the coach
-  dragging marker `1` shallower to re-run a tweaked cut, but Flow 2 specifies only `Clear`, and no FR
-  or task covers marker drag. Either the journey overstates it (clear + re-click) or P4 gains a
-  marker-drag task. **Does not block Partitions 1–3.**
-- Partitions 4 and 5 both touch `ui/FieldCanvas.tsx` (disjoint regions). Signal on first merge;
-  expect a hand-resolved conflict on the second.
-- Defaults for `accel`/`decel`/`cushion` are a first pass flagged `NEEDS MANUAL REVIEW` — they want a
-  coach's eye on the deployed preview, as `FORCE_PRESETS` did before them.
-- Field View has now merged to `main` ahead of its client review twice (shell, play model). The
-  roadmap warns this debt recurs each time.
+- `main`'s `coords.ts` is the **committed vertical** version (no `LATERAL_STRETCH`, `STAGE_MARGIN` top 36).
+- Subagent partitions: do **not** use `isolation:"worktree"`; follow memory `cicadas-subagent-worktrees`
+  (create the worktree via `cicadas.py branch`, `cd` into it, verify branch, symlink `frontend/node_modules`,
+  give the absolute path to `.cicadas/active/` for Reflect).
+- Footer-omitted and dismissible-rotate-message assumptions were confirmed by the Builder.
+- Open design detail for P2: shared field cell via CSS grid areas vs. portalling (one-canvas invariant is what matters).
+- Untracked, deliberately uncommitted: `Field View UI Ideas - Gemini.html`, `fonts/Arena Font/`, `fonts/Druk_Collection/` (licensing).
