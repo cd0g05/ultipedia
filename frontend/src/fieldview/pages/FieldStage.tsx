@@ -13,7 +13,7 @@ export function FieldStage({ scene }: { scene: Scene }) {
   return (
     <svg
       role="img"
-      aria-label={`Ultimate field, ${FIELD.length} by ${FIELD.width} yards. Offense attacks up the field.`}
+      aria-label={`Ultimate field, ${FIELD.length} by ${FIELD.width} yards. Offense attacks to the right.`}
       viewBox={viewBox}
       className="h-auto w-full"
     >
@@ -31,16 +31,17 @@ export function FieldStage({ scene }: { scene: Scene }) {
               cy={y}
               r={radius}
               fill={style.fill}
-              stroke={isSpecial ? PIECE_TOKENS.special.stroke : undefined}
-              strokeWidth={isSpecial ? PIECE_TOKENS.special.strokeWidth : undefined}
+              stroke={isSpecial ? PIECE_TOKENS.special.stroke : style.stroke}
+              strokeWidth={isSpecial ? PIECE_TOKENS.special.strokeWidth : style.strokeWidth}
             />
             {p.label && (
               <text
                 x={x}
-                y={y + PIECE_TOKENS.label.fontSize / 2}
+                y={y + PIECE_TOKENS.label.fontSize * 0.35}
                 textAnchor="middle"
                 fontSize={PIECE_TOKENS.label.fontSize}
-                fill={PIECE_TOKENS.label.fill}
+                fontFamily={PIECE_TOKENS.label.fontFamily}
+                fill={p.team === "offense" ? PIECE_TOKENS.offense.labelFill : PIECE_TOKENS.defense.labelFill}
               >
                 {p.label}
               </text>

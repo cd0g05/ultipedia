@@ -7,6 +7,8 @@ import { createHeatmapPainter, fieldPixelSize } from "../render/heatmap";
 import { GRID_STEP } from "../space/constants";
 import type { ScoreGrid } from "../space/types";
 import { FIELD } from "../scene/field";
+import { yardToPixel } from "../render/coords";
+import { FIELD_PX_HEIGHT, FIELD_PX_WIDTH } from "../render/fieldLayer";
 
 const COLS = Math.round(FIELD.length / GRID_STEP); // 220
 const ROWS = Math.round(FIELD.width / GRID_STEP); // 80
@@ -176,6 +178,39 @@ describe("heatmap painter", () => {
       expect(best).toBeLessThan(6);
     } finally {
       restore();
+    }
+  });
+});
+
+// The orientation lives in coords.ts and the painter blits straight across, so
+// this is the test that keeps the two honest (ADR-28): a grid cell must land on
+// the same pixel the field markings and pieces put the same yard.
+describe("heat canvas registers with the field markings", () => {
+  it("sizes the canvas to exactly the field's pixel extent", () => {
+    const size = fieldPixelSize(FIELD.length, FIELD.width);
+    expect(size.width).toBe(FIELD_PX_WIDTH);
+    expect(size.height).toBe(FIELD_PX_HEIGHT);
+  });
+
+  it("maps the grid's four corners to the same pixels as yardToPixel", () => {
+    const size = fieldPixelSize(FIELD.length, FIELD.width);
+    // A grid cell (col,row) is drawn at (col/COLS*width, row/ROWS*height) on
+    // the straight-blit canvas.
+    const cellToCanvas = (col: number, row: number) => ({
+      x: (col / COLS) * size.width,
+      y: (row / ROWS) * size.height,
+    });
+    const corners: Array<[number, number, { x: number; y: number }]> = [
+      [0, 0, { x: 0, y: 0 }],
+      [COLS, 0, { x: FIELD.length, y: 0 }],
+      [0, ROWS, { x: 0, y: FIELD.width }],
+      [COLS, ROWS, { x: FIELD.length, y: FIELD.width }],
+    ];
+    for (const [col, row, yard] of corners) {
+      const fromGrid = cellToCanvas(col, row);
+      const fromYards = yardToPixel(yard);
+      expect(fromGrid.x).toBeCloseTo(fromYards.x);
+      expect(fromGrid.y).toBeCloseTo(fromYards.y);
     }
   });
 });

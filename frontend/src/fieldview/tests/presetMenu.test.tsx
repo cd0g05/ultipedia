@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { Whiteboard } from "../pages/Whiteboard";
+import { yardToPixel } from "../render/coords";
 
 beforeEach(() => {
   localStorage.clear();
@@ -26,9 +27,11 @@ describe("Whiteboard preset flow", () => {
     render(<MemoryRouter><Whiteboard /></MemoryRouter>);
     const cutter = screen.getByRole("button", { name: "offense cutter 1" });
     fireEvent.keyDown(cutter, { key: "ArrowRight" });
-    // +1 yd downfield is -8px on the screen-y axis in this vertical
-    // orientation (coords.ts ADR-2) — attacking is up the screen.
-    await waitFor(() => expect(cutter.getAttribute("transform")).toContain("472"));
+    // +1 yd downfield from the vert-stack cutter's start (50, 20).
+    const moved = yardToPixel({ x: 51, y: 20 });
+    await waitFor(() =>
+      expect(cutter.getAttribute("transform")).toBe(`translate(${moved.x}, ${moved.y})`),
+    );
 
     openMenu();
     fireEvent.click(screen.getByRole("button", { name: "Horizontal Stack" }));

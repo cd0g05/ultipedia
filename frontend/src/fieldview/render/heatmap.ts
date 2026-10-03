@@ -74,6 +74,13 @@ export function createHeatmapPainter(
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.imageSmoothingEnabled = true;
       ctx.globalAlpha = HEATMAP_ALPHA;
+      // The grid is indexed in YARD space — `cols` is downfield (x), `rows` is
+      // lateral (y) — and the field renders horizontally (coords.ts ADR-28),
+      // so the scratch image already has the canvas's orientation:
+      // grid (col,row) -> screen (col*step*PPY, row*step*PPY). A straight
+      // upscale is the whole transform. If orientation ever changes again,
+      // change coords.ts and this together (the corner-registration test in
+      // heatmap.test.ts is what keeps them honest).
       ctx.drawImage(scratch!, 0, 0, canvas.width, canvas.height);
       ctx.globalAlpha = 1;
     },
@@ -92,13 +99,12 @@ export function createHeatmapPainter(
 }
 
 // The canvas covers the field itself, not the stage margin, so it lines up
-// with the SVG's field rect exactly. Screen width/height, not yard-axis
-// order — the field renders vertically (coords.ts ADR-2), so the *lateral*
-// yards become the pixel width and the *downfield* yards become the pixel
-// height, matching fieldLayer.tsx's FIELD_PX_WIDTH/FIELD_PX_HEIGHT.
+// with the SVG's field rect exactly. Screen width is the downfield span and
+// screen height the lateral span, matching fieldLayer.tsx's
+// FIELD_PX_WIDTH/FIELD_PX_HEIGHT (coords.ts ADR-28).
 export function fieldPixelSize(fieldLengthYards: number, fieldWidthYards: number) {
   return {
-    width: fieldWidthYards * PIXELS_PER_YARD,
-    height: fieldLengthYards * PIXELS_PER_YARD,
+    width: fieldLengthYards * PIXELS_PER_YARD,
+    height: fieldWidthYards * PIXELS_PER_YARD,
   };
 }

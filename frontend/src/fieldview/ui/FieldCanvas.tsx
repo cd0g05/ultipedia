@@ -820,7 +820,7 @@ export function FieldCanvas({
         <svg
           ref={svgRef}
           role="group"
-          aria-label={`Ultimate field, ${FIELD.length} by ${FIELD.width} yards. Offense attacks up the field.`}
+          aria-label={`Ultimate field, ${FIELD.length} by ${FIELD.width} yards. Offense attacks to the right.`}
           viewBox={viewBoxString}
           className="relative h-auto w-full"
           // The stage owns the drag, so it must own the gesture: without this a
@@ -833,7 +833,7 @@ export function FieldCanvas({
           <circle
             ref={reticleRef}
             data-testid="cell-reticle"
-            r={FIELD_PX_WIDTH / FIELD.length / 2}
+            r={FIELD_PX_HEIGHT / FIELD.length / 2}
             fill="none"
             stroke={FIELD_TOKENS.reticle.stroke}
             strokeWidth={FIELD_TOKENS.reticle.strokeWidth}
