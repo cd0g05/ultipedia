@@ -30,6 +30,11 @@ export interface OverlayPrefs {
   // Which teams are drawn on the diagram. Display-only — a coach showing one
   // side of a formation should not silently be shown a different map.
   visible: TeamVisibility;
+  // fieldview-ui-rework: colour-blind heat ramp (ADR-32), and the Defense
+  // follows toggle. The latter is a STUB — the pref persists but nothing reads
+  // it yet (behaviour deferred, ADR-33 reserved).
+  colourBlind: boolean;
+  defenseFollows: boolean;
 }
 
 export const DEFAULT_PREFS: OverlayPrefs = {
@@ -40,6 +45,8 @@ export const DEFAULT_PREFS: OverlayPrefs = {
   motion: { ...DEFAULT_MOTION_PARAMS },
   advancedExpanded: false,
   visible: { offense: true, defense: true },
+  colourBlind: false,
+  defenseFollows: false,
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -80,6 +87,9 @@ export function parsePrefs(raw: unknown): OverlayPrefs {
 
   return {
     on: typeof raw.on === "boolean" ? raw.on : DEFAULT_PREFS.on,
+    colourBlind: typeof raw.colourBlind === "boolean" ? raw.colourBlind : DEFAULT_PREFS.colourBlind,
+    defenseFollows:
+      typeof raw.defenseFollows === "boolean" ? raw.defenseFollows : DEFAULT_PREFS.defenseFollows,
     lens: raw.lens === "defense-only" ? "defense-only" : "offense",
     // Was `tuningExpanded` before the panel grew to hold the lens and layers
     // too. The old key is still honoured so a returning coach's disclosure
@@ -186,6 +196,8 @@ export interface OverlayState extends OverlayPrefs {
   setMotionParam: (param: keyof MotionParams, value: number) => void;
   setAdvancedExpanded: (expanded: boolean) => void;
   setVisible: (team: keyof TeamVisibility, shown: boolean) => void;
+  setColourBlind: (colourBlind: boolean) => void;
+  setDefenseFollows: (defenseFollows: boolean) => void;
   resetParams: () => void;
 }
 
@@ -242,6 +254,14 @@ export function useOverlayState(): OverlayState {
   const prefs = useSyncExternalStore(subscribe, getSnapshot);
 
   const setOn = useCallback((on: boolean) => setPrefsState((p) => ({ ...p, on })), []);
+  const setColourBlind = useCallback(
+    (colourBlind: boolean) => setPrefsState((p) => ({ ...p, colourBlind })),
+    [],
+  );
+  const setDefenseFollows = useCallback(
+    (defenseFollows: boolean) => setPrefsState((p) => ({ ...p, defenseFollows })),
+    [],
+  );
   const setLens = useCallback((lens: Lens) => setPrefsState((p) => ({ ...p, lens })), []);
   const setAdvancedExpanded = useCallback(
     (advancedExpanded: boolean) => setPrefsState((p) => ({ ...p, advancedExpanded })),
@@ -289,6 +309,8 @@ export function useOverlayState(): OverlayState {
     setMotionParam,
     setAdvancedExpanded,
     setVisible,
+    setColourBlind,
+    setDefenseFollows,
     resetParams,
   };
 }

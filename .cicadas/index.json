@@ -182,6 +182,48 @@
       "summary": "Animated disc flight timed by the space model's flightTime(); possession changes on arrival, not on click. 18 new tests.",
       "decisions": "",
       "modules": []
+    },
+    {
+      "timestamp": "2026-10-03T18:51:58.589889+00:00",
+      "branch": "fieldview-motion",
+      "summary": "Archived: motion model merged to main, canon synthesized (ADR-22..27)",
+      "decisions": "",
+      "modules": []
+    },
+    {
+      "timestamp": "2026-10-03T19:25:59.393266+00:00",
+      "branch": "feat/fieldview-ui-render",
+      "summary": "P1 render: horizontal field, new piece tokens, corner-registration test",
+      "decisions": "",
+      "modules": []
+    },
+    {
+      "timestamp": "2026-10-03T19:31:42.821600+00:00",
+      "branch": "feat/fieldview-ui-frame",
+      "summary": "P2 frame: routes, FieldViewFrame, legend, colour-blind, Build placeholder",
+      "decisions": "",
+      "modules": []
+    },
+    {
+      "timestamp": "2026-10-03T19:36:46.851884+00:00",
+      "branch": "feat/fieldview-ui-explore",
+      "summary": "P3 explore: curated setups, chip, card, defense-follows stub",
+      "decisions": "",
+      "modules": []
+    },
+    {
+      "timestamp": "2026-10-03T19:43:01.323055+00:00",
+      "branch": "feat/fieldview-ui-watch",
+      "summary": "P4 watch: plays, playback, transport, filmstrip",
+      "decisions": "",
+      "modules": []
+    },
+    {
+      "timestamp": "2026-10-03T19:49:58.762409+00:00",
+      "branch": "feat/fieldview-ui-touch-qa",
+      "summary": "P5 touch/QA: lift, grab radius, safe areas, audits",
+      "decisions": "",
+      "modules": []
     }
   ]
 }

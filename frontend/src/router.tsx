@@ -12,7 +12,10 @@ import { Section } from "./encyclopedia/pages/Section";
 import { EntryDetail } from "./encyclopedia/pages/EntryDetail";
 import { About, Contact, Privacy } from "./encyclopedia/pages/InfoPages";
 import { NotFound } from "./encyclopedia/pages/NotFound";
-import { Whiteboard } from "./fieldview/pages/Whiteboard";
+import { FieldViewApp } from "./fieldview/ui/app/FieldViewApp";
+import { Explore } from "./fieldview/pages/Explore";
+import { Watch } from "./fieldview/pages/Watch";
+import { Build } from "./fieldview/pages/Build";
 import { Designer } from "./fieldview/pages/Designer";
 
 export const routes: RouteObject[] = [
@@ -24,7 +27,6 @@ export const routes: RouteObject[] = [
       { path: "/about", element: <About /> },
       { path: "/contact", element: <Contact /> },
       { path: "/privacy", element: <Privacy /> },
-      { path: "/fieldview", element: <Whiteboard /> },
       { path: "/fieldview/designer", element: <Designer /> },
       // The product was shipped at /field-view and the client has that URL.
       // Redirect rather than drop it: `replace` keeps the old path out of
@@ -37,6 +39,21 @@ export const routes: RouteObject[] = [
       { path: "/:section", element: <Section /> },
       { path: "/:section/:slug", element: <EntryDetail /> },
       { path: "*", element: <NotFound /> },
+    ],
+  },
+  // Field View is a full-viewport app: a SIBLING of Layout, not a child
+  // (fieldview-ui-rework ADR-29), so the site header/footer do not wrap it —
+  // its desktop frame renders the header itself. /fieldview/designer stays a
+  // Layout child above (the unlinked authoring tool); the more specific
+  // static path wins over this subtree.
+  {
+    path: "/fieldview",
+    element: <FieldViewApp />,
+    children: [
+      { index: true, element: <Navigate to="/fieldview/explore" replace /> },
+      { path: "explore", element: <Explore /> },
+      { path: "watch", element: <Watch /> },
+      { path: "build", element: <Build /> },
     ],
   },
   { path: "/contribute/*", element: <IntakeApp /> },

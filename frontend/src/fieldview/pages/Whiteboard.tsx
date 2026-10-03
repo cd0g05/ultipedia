@@ -1,3 +1,11 @@
+// UNROUTED since fieldview-ui-rework P3. /fieldview now serves the new
+// Explore/Watch/Build frame (pages/Explore.tsx etc.). This page is kept on
+// purpose — compiled and tested — as the reference composition of every
+// feature the new UI does not surface yet: throw to player, cuts/routes,
+// force and matchup panels, marquee select, saved presets, the advanced
+// sliders. Re-attaching any of them is a UI task, not a rewrite; see
+// docs/fieldview-backlog.md "Built but not surfaced". Nothing links here.
+//
 // /fieldview — Mode 1: the coaching whiteboard. Drag, presets, PNG export,
 // and keyboard nudge in full (approach.md Partition 2), composed through the
 // fieldview-shell three-pane desktop grid / mobile bottom sheet (Partition 6:

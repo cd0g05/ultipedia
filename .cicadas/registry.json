@@ -1,81 +1,79 @@
 {
   "schema_version": "2.0",
   "initiatives": {
-    "fieldview-motion": {
-      "intent": "Pure motion library: accel-limited kinematics, multi-waypoint cuts, non-naive defender pursuit, animated disc flight. Transient state; no Scene or format change.",
+    "fieldview-ui-rework": {
+      "intent": "Replace Field View's presentation layer with the approved Watch/Explore/Build layouts for phone, tablet and desktop: horizontal field, full-viewport app frame, compact + desktop chrome, Explore (setups, selected-player card), Watch (curated plays, playback, filmstrip), Build placeholder, colour-blind mode. Space/motion/scene models unchanged; defense-following behaviour and Advanced settings deferred.",
       "owner": "unknown",
-      "signals": [
-        {
-          "timestamp": "2026-07-31T05:34:49.822817+00:00",
-          "message": "MotionParams gained a 4th tunable: lead (seconds, default 0.6, range 0-1.5). Partition 2 found the 3-param cushion model insufficient \u2014 without a velocity-projected lead, a defender deep on a cutter breaking deep drifts UNDER to reclaim its cushion instead of turning and carrying the cut, failing PRD FR-3.4. Touches P1 files (motion/types.ts, motion/constants.ts) from the P2 branch. Impact: Partition 4's Movement slider group covers accel, decel, cushion, lead; prefs.ts validation/clamping must include lead. Also resolves the PRD open question 'whether cushion magnitude varies with the cutter's speed' \u2014 it does not; cushion is fixed and lead scales with speed.",
-          "from_branch": "feat/fieldview-motion-pursuit"
-        }
-      ],
-      "created_at": "2026-07-31T05:08:00.071882+00:00"
+      "signals": [],
+      "created_at": "2026-10-03T18:53:58.407350+00:00"
     }
   },
   "branches": {
-    "feat/fieldview-motion-core": {
-      "intent": "Pure kinematics: Mover/MotionState types, motion tunables, Vec2 math, accel-limited arrive() with braking, multi-waypoint route sequencing, purity guard test",
+    "feat/fieldview-ui-render": {
+      "intent": "Horizontal field orientation, new piece language and tokens, heat registration (render layer only)",
       "modules": [
-        "motion/types.ts",
-        "motion/vec.ts",
-        "motion/route.ts",
-        "motion/constants.ts",
-        "motion/kinematics.ts"
+        "frontend/src/fieldview/render",
+        "frontend/src/fieldview/pages/FieldStage.tsx",
+        "frontend/src/fieldview/ui/FieldCanvas.tsx"
       ],
       "owner": "unknown",
-      "created_at": "2026-07-31T05:09:04.828309+00:00",
-      "worktree_path": "/Users/cartercripe/dev/code/projects/ulti-pedia-feat-fieldview-motion-core",
-      "initiative": "fieldview-motion"
+      "created_at": "2026-10-03T19:13:11.162248+00:00",
+      "initiative": "fieldview-ui-rework"
     },
-    "feat/fieldview-motion-pursuit": {
-      "intent": "Cushion pursuit model on a reaction delay, step() as the single physics entry point, headless simulate() producing a Trajectory",
+    "feat/fieldview-ui-frame": {
+      "intent": "App frame: routes, FieldViewApp layout route, compact+desktop chrome, menu, legend + colour-blind palette, rotate notice, Build placeholder",
       "modules": [
-        "motion/step.ts",
-        "motion/simulate.ts",
-        "motion/pursuit.ts"
+        "frontend/src/router.tsx",
+        "frontend/src/fieldview/ui/content",
+        "frontend/src/fieldview/space/palette.ts",
+        "frontend/src/encyclopedia/components/Layout.tsx",
+        "frontend/tailwind.config.js",
+        "frontend/src/fieldview/ui/app",
+        "frontend/src/fieldview/ui/prefs.ts"
       ],
       "owner": "unknown",
-      "created_at": "2026-07-31T05:25:44.643091+00:00",
-      "initiative": "fieldview-motion"
+      "created_at": "2026-10-03T19:26:09.380104+00:00",
+      "initiative": "fieldview-ui-rework"
     },
-    "feat/fieldview-motion-driver": {
-      "intent": "Fixed-timestep accumulator driving step() off rAF, writing through store.mutate; transient motion mode state; run/stop/reset; reduced-motion path",
+    "feat/fieldview-ui-explore": {
+      "intent": "Explore mode: curated setups, setup chip/list/slide-over, custom marker + reset, Defense-follows toggle stub, selected-player card, retire old shell",
       "modules": [
-        "ui/motion/motionMode.ts",
-        "ui/motion/useMotionRun.ts",
-        "ui/motion/driver.ts"
+        "frontend/src/fieldview/ui/app",
+        "frontend/src/fieldview/pages/Explore.tsx",
+        "frontend/src/fieldview/pages/Whiteboard.tsx",
+        "frontend/src/fieldview/scene/presets.ts",
+        "frontend/src/fieldview/ui/PresetMenu.tsx",
+        "frontend/src/fieldview/ui/content",
+        "frontend/src/fieldview/ui/shell"
       ],
       "owner": "unknown",
-      "created_at": "2026-07-31T05:37:09.200331+00:00",
-      "initiative": "fieldview-motion"
+      "created_at": "2026-10-03T19:31:52.771572+00:00",
+      "initiative": "fieldview-ui-rework"
     },
-    "feat/fieldview-motion-ui": {
-      "intent": "Route section in the offense panel, destination picking and draggable markers in FieldCanvas, routeLayer, Movement sliders, motion params persisted in prefs",
+    "feat/fieldview-ui-watch": {
+      "intent": "Watch mode: curated plays registry, additive keyframe label, playback controller, transport, dots, filmstrip, play list, playback options",
       "modules": [
-        "ui/shell/panels/OffensePlayerPanel.tsx",
-        "ui/FieldCanvas.tsx",
-        "ui/prefs.ts",
-        "render/routeLayer.tsx",
-        "render/tokens.ts",
-        "ui/AdvancedPanel.tsx"
+        "frontend/src/fieldview/ui/playback",
+        "frontend/src/fieldview/ui/content",
+        "frontend/src/fieldview/pages/Watch.tsx",
+        "frontend/src/fieldview/play"
       ],
       "owner": "unknown",
-      "created_at": "2026-07-31T05:45:34.951031+00:00",
-      "initiative": "fieldview-motion"
+      "created_at": "2026-10-03T19:36:56.450338+00:00",
+      "initiative": "fieldview-ui-rework"
     },
-    "feat/fieldview-motion-disc": {
-      "intent": "Animated disc flight timed by the space model's flightTime(); possession changes on arrival, not on click",
+    "feat/fieldview-ui-touch-qa": {
+      "intent": "Touch lift + scale-aware grab radius, safe areas, overscroll guard, a11y pass, frame guard, placeholder audit, dead-code sweep",
       "modules": [
-        "motion/disc.ts",
-        "ui/shell/throwMode.ts",
-        "ui/FieldCanvas.tsx",
-        "render/pieceLayer.tsx"
+        "frontend/src/fieldview/render/pick.ts",
+        "docs",
+        "frontend/src/fieldview/ui/FieldCanvas.tsx",
+        "frontend/src/fieldview/ui/app",
+        "frontend/src/fieldview/tests"
       ],
       "owner": "unknown",
-      "created_at": "2026-07-31T05:58:10.014425+00:00",
-      "initiative": "fieldview-motion"
+      "created_at": "2026-10-03T19:44:36.691347+00:00",
+      "initiative": "fieldview-ui-rework"
     }
   }
 }

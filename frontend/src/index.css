@@ -101,3 +101,25 @@ body {
     linear-gradient(to bottom, #e4e4e7 1px, transparent 1px);
   background-size: 2rem 2rem;
 }
+
+/* Field View frame: the vertical space the surrounding chrome takes, so the
+   field can be height-capped by its own aspect (ui/app/FieldViewFrame.tsx).
+   Compact = the 56 px top bar; desktop = site header + bar + padding + a dock
+   allowance. PLACEHOLDER(fieldview-ui-rework): both are first guesses, tuned in
+   the real-device pass (docs/fieldview-placeholders.md #14). The desktop media query must match the `desktop` screen
+   in tailwind.config.js. */
+.fv-app {
+  --fv-chrome: 56px;
+}
+@media (min-width: 1280px) and (min-height: 640px) {
+  .fv-app {
+    --fv-chrome: 380px;
+  }
+}
+
+/* Field View is a no-scroll app: while it is mounted (FieldViewApp adds the
+   class), a drag must never turn into pull-to-refresh or an overscroll bounce. */
+html.fv-active,
+html.fv-active body {
+  overscroll-behavior: none;
+}

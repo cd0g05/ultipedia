@@ -6,7 +6,7 @@
 // numbers) is written imperatively.
 
 import { useEffect, useLayoutEffect, useRef } from "react";
-import type { CSSProperties, MutableRefObject, RefObject } from "react";
+import type { CSSProperties, MutableRefObject, ReactNode, RefObject } from "react";
 import type { SceneStore } from "../scene/store";
 import type { Player, Vec2 } from "../scene/types";
 import { FIELD, clampToField } from "../scene/field";
@@ -23,22 +23,25 @@ import {
   setPicking,
   useMotionMode,
 } from "./motion/motionMode";
-import { ROUTE_TOKENS } from "../render/tokens";
+import { PIECE_TOKENS, ROUTE_TOKENS, TOUCH_TOKENS } from "../render/tokens";
 import { usePlayModel } from "./playModel";
 import { FIELD_PX_HEIGHT, FIELD_PX_WIDTH, FieldLayer } from "../render/fieldLayer";
 import { PieceLayer } from "../render/pieceLayer";
 import { RouteLayer } from "../render/routeLayer";
 import type { PieceIdentity } from "../render/pieceLayer";
-import { pickNearest } from "../render/pick";
+import { hitRadiusYd, pickNearest } from "../render/pick";
 import { FIELD_TOKENS } from "../render/tokens";
 import {
   STAGE_MARGIN,
   clientToYard,
+  PIXELS_PER_YARD,
   getStageViewBox,
+  pixelToYard,
   viewBoxToString,
   yardToPixel,
 } from "../render/coords";
 import { createHeatmapPainter } from "../render/heatmap";
+import { colorizerFor } from "../space/palette";
 import type { HeatmapPainter } from "../render/heatmap";
 import { computeGrid } from "../space/score";
 import { explainCell } from "../space/explain";
@@ -51,6 +54,9 @@ export interface OverlaySettings {
   lens: Lens;
   layers: LayerFlags;
   params: SpaceParams;
+  // Colour-blind ramp (ADR-32). Optional so the legacy designer, which never
+  // sets it, keeps the default ramp.
+  colourBlind?: boolean;
 }
 
 // Which teams are drawn. Display-only, deliberately: the space model always
@@ -61,7 +67,9 @@ const ALL_VISIBLE: TeamVisibility = { offense: true, defense: true };
 
 // A press either takes a piece, takes the current selection, or draws a box.
 type DragState =
-  | { kind: "piece"; id: string; grabOffset: Vec2 }
+  // `lift` is set for touch drags: the yard position the piece started from,
+  // where the dashed ghost is drawn (ADR-35).
+  | { kind: "piece"; id: string; grabOffset: Vec2; lift?: Vec2 }
   // `start` is every moving piece's position at grab time — including a mark
   // carried by a selected thrower. Applying one delta to that snapshot is what
   // keeps a group rigid; moving each piece toward the cursor would not.
@@ -104,6 +112,9 @@ interface FieldCanvasProps {
   // piece you cannot see must not be a piece you can accidentally drag.
   visible?: TeamVisibility;
   disabled?: boolean;
+  // Extra SVG drawn above the pieces and below the route markers (Watch's
+  // movement trails). Must be pointer-transparent: the stage owns the pointer.
+  overlayLayer?: ReactNode;
 }
 
 const viewBox = getStageViewBox(FIELD_PX_WIDTH, FIELD_PX_HEIGHT);
@@ -136,12 +147,14 @@ export function FieldCanvas({
   stageRef,
   visible = ALL_VISIBLE,
   disabled = false,
+  overlayLayer,
 }: FieldCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const painterRef = useRef<HeatmapPainter | null>(null);
   const perfRef = useRef<HTMLParagraphElement | null>(null);
   const reticleRef = useRef<SVGCircleElement | null>(null);
   const marqueeRef = useRef<SVGRectElement | null>(null);
+  const liftRef = useRef<SVGGElement | null>(null);
 
   // Settings are mirrored into a ref so the frame callback always reads the
   // current values without the subscription being torn down and rebuilt on
@@ -206,7 +219,9 @@ export function FieldCanvas({
   useLayoutEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const painter = createHeatmapPainter(canvas);
+    const painter = createHeatmapPainter(canvas, {
+      colorize: colorizerFor(overlayRef.current.colourBlind ?? false),
+    });
     painter.resize(FIELD_PX_WIDTH, FIELD_PX_HEIGHT);
     painterRef.current = painter;
     return () => {
@@ -397,6 +412,14 @@ export function FieldCanvas({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [overlay.on, overlay.lens, overlay.layers, overlay.params]);
 
+  // The palette is a painter parameter (ADR-32), swapped in place rather than
+  // rebuilding the painter, then repainted.
+  useEffect(() => {
+    painterRef.current?.setColorize(colorizerFor(overlay.colourBlind ?? false));
+    paint();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [overlay.colourBlind]);
+
   // Pointer tracking is a native listener, not a React prop: a hover must
   // not cost a render, and a drag must not cost a readout recompute.
   useEffect(() => {
@@ -469,7 +492,15 @@ export function FieldCanvas({
       // Nearest-within-radius, not a hit test (render/pick.ts). Overlapping
       // targets used to hand the pointer to whichever piece was rendered
       // last; distance settles it correctly however they are ordered.
-      const piece = pickNearest(pos, grabbablePlayers());
+      // The grab radius for a finger is scaled to what is actually on screen,
+      // so a small phone does not shrink the target (render/pick.ts).
+      const rect = svg!.getBoundingClientRect();
+      const pxPerYard = rect.width > 0 ? (rect.width / viewBox.width) * PIXELS_PER_YARD : 0;
+      const piece = pickNearest(
+        pos,
+        grabbablePlayers(),
+        hitRadiusYd(event.pointerType, pxPerYard),
+      );
 
       // Throwing mode exits on ANY press — a receiver, a defender, empty
       // grass, all of them (ux.md Flow 1 Alternate A). Disarming here rather
@@ -513,11 +544,26 @@ export function FieldCanvas({
         // case, so grabbing the already-singly-selected piece again clears it
         // rather than re-selecting it.
         store.setSelection(selectPlayer(store.getSelection(), piece));
+        // Touch: hold the piece ABOVE the finger. The lift is baked into the grab
+        // offset, so the piece's real position (and therefore the picture, the
+        // heat and the data) is where it is drawn — the finger is just a handle
+        // below it. Expressed in pixels and converted through coords.ts so no
+        // orientation leaks in here.
+        const touch = event.pointerType === "touch";
+        const liftYd = touch
+          ? {
+              x: pixelToYard({ x: 0, y: -TOUCH_TOKENS.liftPx }).x - pixelToYard({ x: 0, y: 0 }).x,
+              y: pixelToYard({ x: 0, y: -TOUCH_TOKENS.liftPx }).y - pixelToYard({ x: 0, y: 0 }).y,
+            }
+          : { x: 0, y: 0 };
         dragRef.current = {
           kind: "piece",
           id: piece.id,
-          grabOffset: { x: piece.pos.x - pos.x, y: piece.pos.y - pos.y },
+          grabOffset: { x: piece.pos.x - pos.x + liftYd.x, y: piece.pos.y - pos.y + liftYd.y },
+          lift: touch ? { ...piece.pos } : undefined,
         };
+        // Nothing moves on the press itself: a TAP (select, no travel) must not
+        // nudge the piece. The lift appears with the first move.
       }
 
       svg!.setPointerCapture?.(event.pointerId);
@@ -564,6 +610,7 @@ export function FieldCanvas({
         hideMarquee();
       }
 
+      hideLift();
       dragRef.current = null;
       svg!.releasePointerCapture?.(event.pointerId);
       svg!.style.cursor = "";
@@ -598,6 +645,7 @@ export function FieldCanvas({
         // The readout stands still while the scene is being rearranged.
         if (drag.kind === "piece") {
           moveTo(drag.id, { x: pos.x + drag.grabOffset.x, y: pos.y + drag.grabOffset.y });
+          if (drag.lift) drawLift(drag.lift, drag.id);
           // The first leg starts at the player, so dragging a player who is
           // carrying a route has to bring that leg with it — imperatively,
           // for the same ADR-2 reason the marker drag is imperative.
@@ -635,6 +683,7 @@ export function FieldCanvas({
       pendingThrowRef.current = null;
       if (!dragRef.current) return;
       hideMarquee();
+      hideLift();
       dragRef.current = null;
       svg!.releasePointerCapture?.(event.pointerId);
       svg!.style.cursor = "";
@@ -742,6 +791,31 @@ export function FieldCanvas({
     marqueeRef.current?.setAttribute("opacity", "0");
   }
 
+  // Touch lift (ADR-35): a dashed ghost where the piece started and a faint
+  // connector to where it is now — written straight into the DOM, like the
+  // marquee, so a touch drag costs no React commit.
+  function drawLift(origin: Vec2, pieceId: string) {
+    const group = liftRef.current;
+    if (!group) return;
+    const player = store.getScene().players.find((p) => p.id === pieceId);
+    if (!player) return;
+    const from = yardToPixel(origin);
+    const to = yardToPixel(player.pos);
+    const ghost = group.querySelector("circle");
+    ghost?.setAttribute("cx", String(from.x));
+    ghost?.setAttribute("cy", String(from.y));
+    const line = group.querySelector("line");
+    line?.setAttribute("x1", String(from.x));
+    line?.setAttribute("y1", String(from.y));
+    line?.setAttribute("x2", String(to.x));
+    line?.setAttribute("y2", String(to.y));
+    group.setAttribute("opacity", "1");
+  }
+
+  function hideLift() {
+    liftRef.current?.setAttribute("opacity", "0");
+  }
+
   // Re-anchor leg 0 to wherever its player currently is.
   function drawRouteOrigin(playerId: string) {
     const svg = svgRef.current;
@@ -820,7 +894,7 @@ export function FieldCanvas({
         <svg
           ref={svgRef}
           role="group"
-          aria-label={`Ultimate field, ${FIELD.length} by ${FIELD.width} yards. Offense attacks up the field.`}
+          aria-label={`Ultimate field, ${FIELD.length} by ${FIELD.width} yards. Offense attacks to the right.`}
           viewBox={viewBoxString}
           className="relative h-auto w-full"
           // The stage owns the drag, so it must own the gesture: without this a
@@ -833,13 +907,31 @@ export function FieldCanvas({
           <circle
             ref={reticleRef}
             data-testid="cell-reticle"
-            r={FIELD_PX_WIDTH / FIELD.length / 2}
+            r={FIELD_PX_HEIGHT / FIELD.length / 2}
             fill="none"
             stroke={FIELD_TOKENS.reticle.stroke}
             strokeWidth={FIELD_TOKENS.reticle.strokeWidth}
             opacity={0}
             pointerEvents="none"
           />
+          {/* Touch lift marks: drawn under the pieces so the lifted piece sits on
+              top of its own connector. */}
+          <g ref={liftRef} data-testid="touch-lift" aria-hidden="true" pointerEvents="none" opacity={0}>
+            <circle
+              r={PIECE_TOKENS.offense.radius}
+              fill="none"
+              stroke={TOUCH_TOKENS.ghost.stroke}
+              strokeWidth={TOUCH_TOKENS.ghost.strokeWidth}
+              strokeDasharray={TOUCH_TOKENS.ghost.dash}
+              opacity={TOUCH_TOKENS.ghost.opacity}
+            />
+            <line
+              stroke={TOUCH_TOKENS.connector.stroke}
+              strokeWidth={TOUCH_TOKENS.connector.strokeWidth}
+              strokeDasharray={TOUCH_TOKENS.connector.dash}
+              opacity={TOUCH_TOKENS.connector.opacity}
+            />
+          </g>
           <PieceLayer
             players={livePlayers}
             store={store}
@@ -853,6 +945,7 @@ export function FieldCanvas({
               completeThrow(id);
             }}
           />
+          {overlayLayer}
           {/* The selected player's pending route. Drawn above the pieces so a
               marker standing on a piece is still grabbable, and hidden during
               a run — the markers describe a plan, and while it is executing

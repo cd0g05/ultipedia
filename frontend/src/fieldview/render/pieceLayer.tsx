@@ -205,15 +205,17 @@ export function PieceLayer({
             <circle
               r={radius}
               fill={style.fill}
-              stroke={isSpecial ? PIECE_TOKENS.special.stroke : undefined}
-              strokeWidth={isSpecial ? PIECE_TOKENS.special.strokeWidth : undefined}
+              stroke={isSpecial ? PIECE_TOKENS.special.stroke : style.stroke}
+              strokeWidth={isSpecial ? PIECE_TOKENS.special.strokeWidth : style.strokeWidth}
             />
             {p.label && (
               <text
-                y={PIECE_TOKENS.label.fontSize / 2}
+                y={PIECE_TOKENS.label.fontSize * 0.35}
                 textAnchor="middle"
                 fontSize={PIECE_TOKENS.label.fontSize}
-                fill={PIECE_TOKENS.label.fill}
+                fontFamily={PIECE_TOKENS.label.fontFamily}
+                fontWeight={700}
+                fill={style.labelFill}
                 pointerEvents="none"
               >
                 {p.label}

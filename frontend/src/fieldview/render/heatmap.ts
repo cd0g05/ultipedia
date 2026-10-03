@@ -15,6 +15,8 @@ import { PIXELS_PER_YARD } from "./coords";
 
 export interface HeatmapPainter {
   paint(grid: ScoreGrid): void;
+  // Swaps the ramp (colour-blind mode). Takes effect on the next paint.
+  setColorize(colorize: NonNullable<HeatmapPainterOptions["colorize"]>): void;
   resize(fieldPxWidth: number, fieldPxHeight: number): void;
   dispose(): void;
 }
@@ -27,13 +29,16 @@ export interface HeatmapPainterOptions {
 
 // The overlay sits under the pieces and must not bury the field markings;
 // the brief's prototype used a partly transparent map.
+// PLACEHOLDER(fieldview-ui-rework): the opacity is untouched from before the
+// rework but has never been judged in sunlight; confirm in the real-device pass
+// (docs/fieldview-placeholders.md #16).
 export const HEATMAP_ALPHA = 0.78;
 
 export function createHeatmapPainter(
   canvas: HTMLCanvasElement,
   options: HeatmapPainterOptions = {},
 ): HeatmapPainter {
-  const colorize = options.colorize ?? scoreToRgba;
+  let colorize = options.colorize ?? scoreToRgba;
   const ctx = canvas.getContext("2d");
 
   // Kept across frames and only reallocated when the grid's dimensions
@@ -74,8 +79,19 @@ export function createHeatmapPainter(
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.imageSmoothingEnabled = true;
       ctx.globalAlpha = HEATMAP_ALPHA;
+      // The grid is indexed in YARD space — `cols` is downfield (x), `rows` is
+      // lateral (y) — and the field renders horizontally (coords.ts ADR-28),
+      // so the scratch image already has the canvas's orientation:
+      // grid (col,row) -> screen (col*step*PPY, row*step*PPY). A straight
+      // upscale is the whole transform. If orientation ever changes again,
+      // change coords.ts and this together (the corner-registration test in
+      // heatmap.test.ts is what keeps them honest).
       ctx.drawImage(scratch!, 0, 0, canvas.width, canvas.height);
       ctx.globalAlpha = 1;
+    },
+
+    setColorize(next) {
+      colorize = next;
     },
 
     resize(fieldPxWidth, fieldPxHeight) {
@@ -92,13 +108,12 @@ export function createHeatmapPainter(
 }
 
 // The canvas covers the field itself, not the stage margin, so it lines up
-// with the SVG's field rect exactly. Screen width/height, not yard-axis
-// order — the field renders vertically (coords.ts ADR-2), so the *lateral*
-// yards become the pixel width and the *downfield* yards become the pixel
-// height, matching fieldLayer.tsx's FIELD_PX_WIDTH/FIELD_PX_HEIGHT.
+// with the SVG's field rect exactly. Screen width is the downfield span and
+// screen height the lateral span, matching fieldLayer.tsx's
+// FIELD_PX_WIDTH/FIELD_PX_HEIGHT (coords.ts ADR-28).
 export function fieldPixelSize(fieldLengthYards: number, fieldWidthYards: number) {
   return {
-    width: fieldWidthYards * PIXELS_PER_YARD,
-    height: fieldLengthYards * PIXELS_PER_YARD,
+    width: fieldLengthYards * PIXELS_PER_YARD,
+    height: fieldWidthYards * PIXELS_PER_YARD,
   };
 }

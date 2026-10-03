@@ -1,0 +1,386 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Field View — Watch &amp; Explore mockup</title>
+<style>
+  @font-face { font-family: "Archivo Black"; font-weight: 400; font-display: swap; src: url("../frontend/public/fonts/ArchivoBlack-Regular.ttf") format("truetype"); }
+  @font-face { font-family: "JetBrains Mono"; font-weight: 400; font-display: swap; src: url("../frontend/public/fonts/JetBrainsMono-Regular.ttf") format("truetype"); }
+  @font-face { font-family: "JetBrains Mono"; font-weight: 700; font-display: swap; src: url("../frontend/public/fonts/JetBrainsMono-Bold.ttf") format("truetype"); }
+
+  /* Light Film Room tokens (style-guide/design.md, tailwind.config.js `film`) */
+  :root {
+    --base: #ffffff; --panel: #f4f4f5; --border: #d4d4d8;
+    --ink: #18181b; --ink-2: #52525b; --ink-3: #a1a1aa; --grid: #e4e4e7;
+    --pink: #be185d; --pink-dark: #9d174d; --green: #047857;
+    --f-head: "Archivo Black", "Oswald", "Arial Narrow", sans-serif;
+    --f-mono: "JetBrains Mono", monospace;
+    --f-body: "Helvetica Neue", Arial, sans-serif;
+    /* heatmap: default red → amber → green; colour-blind mode: orange → neutral → blue */
+    --h-tight: #d64b4a; --h-mid: #f2c14e; --h-open: #4f941d;
+  }
+  .cb { --h-tight: #e8731a; --h-mid: #f3efe3; --h-open: #2f7fd6; }
+  * { box-sizing: border-box; border-radius: 0; }
+  body { margin: 0; background: var(--panel); color: var(--ink); font: 15px/1.6 var(--f-body); }
+  .wrap { max-width: 1240px; margin: 0 auto; padding: 32px 24px 80px; }
+  h1 { font: 400 2.25rem/1.1 var(--f-head); margin: 0 0 8px; text-transform: uppercase; }
+  h2 { font: 400 1.5rem/1.2 var(--f-head); margin: 56px 0 4px; text-transform: uppercase; padding-top: 16px; border-top: 1px solid var(--border); }
+  h3 { font: 700 .75rem/1.4 var(--f-mono); letter-spacing: .05em; text-transform: uppercase; color: var(--ink-2); margin: 0 0 8px; }
+  p.lede { color: var(--ink-2); max-width: 72ch; margin: 0 0 8px; }
+  .row { display: grid; grid-template-columns: minmax(0, 1fr) 304px; gap: 32px; align-items: start; margin-top: 16px; }
+  @media (max-width: 1000px) { .row { grid-template-columns: 1fr; } }
+  .notes { background: var(--base); border: 1px solid var(--border); padding: 24px; font-size: .875rem; }
+  .notes ul { margin: 0 0 16px; padding-left: 18px; } .notes li { margin: 4px 0; }
+  .tag { display: inline-block; font: 700 .6875rem/1.6 var(--f-mono); letter-spacing: .05em; text-transform: uppercase; padding: 0 8px; border: 1px solid var(--border); background: var(--panel); margin-right: 4px; }
+  .t-on { background: #ecfdf5; border-color: var(--green); color: var(--green); }
+  .t-tap { background: #fdf2f8; border-color: var(--pink); color: var(--pink); }
+  .scaler-host { width: 100%; overflow: hidden; } .scaler { transform-origin: top left; }
+
+  /* device frames stay neutral so the UI inside reads as the product */
+  .device { background: #18181b; position: relative; }
+  .device.phone { width: 864px; height: 410px; padding: 10px; }
+  .device.tablet { width: 1200px; height: 840px; padding: 10px; }
+  .screen { position: relative; overflow: hidden; background: var(--panel);
+    background-image: linear-gradient(to right, var(--grid) 1px, transparent 1px), linear-gradient(to bottom, var(--grid) 1px, transparent 1px);
+    background-size: 2rem 2rem; }
+  .phone .screen { width: 844px; height: 390px; }
+  .tablet .screen { width: 1180px; height: 820px; }
+  .screen svg.field { position: absolute; left: 0; display: block; }
+
+  /* one top bar */
+  .bar { position: absolute; left: 0; right: 0; top: 0; display: flex; align-items: center; gap: 8px; padding: 0 8px; height: 56px; background: var(--base); border-bottom: 1px solid var(--border); }
+  .tablet .bar { height: 72px; padding: 0 16px; gap: 16px; }
+  .btn, .chip, .pill { background: var(--base); border: 1px solid var(--border); color: var(--ink); font: 700 .75rem var(--f-mono); }
+  .btn { width: 40px; height: 40px; display: grid; place-items: center; padding: 0; flex: none; }
+  .tablet .btn { width: 48px; height: 48px; }
+  .btn.primary { background: var(--pink); border-color: var(--pink); color: #fff; }
+  .ic svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2.2; stroke-linecap: square; stroke-linejoin: miter; display: block; }
+  .ic.fill svg { fill: currentColor; stroke: none; }
+  .tablet .ic svg { width: 24px; height: 24px; }
+  .pill { height: 40px; padding: 0 16px; display: inline-flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: .05em; white-space: nowrap; }
+  .tablet .pill { height: 48px; font-size: .875rem; padding: 0 20px; }
+  .mode { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .chip { height: 40px; display: inline-flex; align-items: stretch; }
+  .tablet .chip { height: 48px; }
+  .chip button { all: unset; width: 36px; display: grid; place-items: center; color: var(--ink-2); }
+  .chip button:first-child { border-right: 1px solid var(--border); } .chip button:last-child { border-left: 1px solid var(--border); }
+  .chip .lbl { display: flex; flex-direction: column; justify-content: center; padding: 0 12px; line-height: 1.15; min-width: 148px; }
+  .chip .lbl small { font: 400 .625rem var(--f-mono); color: var(--ink-3); letter-spacing: .05em; text-transform: uppercase; }
+  .chip .lbl b { font: 700 .75rem var(--f-mono); letter-spacing: .05em; text-transform: uppercase; }
+  .tablet .chip .lbl { min-width: 190px; } .tablet .chip .lbl small { font-size: .6875rem; } .tablet .chip .lbl b { font-size: .875rem; }
+  .spacer { flex: 1; }
+  .legend { gap: 8px; padding: 0 12px; font: 700 .625rem var(--f-mono); color: var(--ink-2); }
+  .tablet .legend { font-size: .75rem; padding: 0 16px; }
+  .legend i { display: block; width: 64px; height: 8px; background: linear-gradient(90deg, var(--h-tight), var(--h-mid), var(--h-open)); border: 1px solid #0003; }
+  .tablet .legend i { width: 88px; height: 10px; }
+  .legend .q { width: 16px; height: 16px; border: 1.5px solid var(--ink-2); display: grid; place-items: center; font-size: .625rem; }
+  .dots { display: inline-flex; gap: 8px; align-items: center; font: 700 .75rem var(--f-mono); color: var(--ink-2); padding: 0 8px; }
+  .dots i { width: 10px; height: 10px; background: var(--border); display: block; } .dots i.on { background: var(--pink); }
+  .tablet .dots { font-size: .875rem; } .tablet .dots i { width: 14px; height: 14px; }
+
+  .sw { width: 40px; height: 22px; background: var(--border); position: relative; flex: none; margin-left: auto; }
+  .sw::after { content: ""; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; background: #fff; }
+  .sw.on { background: var(--green); } .sw.on::after { left: 21px; }
+
+  .scrim { position: absolute; inset: 0; background: rgba(24,24,27,.5); }
+  .drawer { position: absolute; top: 0; bottom: 0; left: 0; width: 304px; background: var(--base); border-right: 1px solid var(--border); overflow-y: auto; }
+  .drawer.right { left: auto; right: 0; width: 336px; border-right: 0; border-left: 1px solid var(--border); }
+  .drawer h4 { margin: 0; padding: 8px 16px 4px; font: 700 .625rem var(--f-mono); letter-spacing: .05em; text-transform: uppercase; color: var(--ink-3); }
+  .drawer .hd { padding: 16px 16px 8px; border-bottom: 1px solid var(--border); font: 400 1.125rem var(--f-head); text-transform: uppercase; }
+  .item { display: flex; align-items: center; gap: 16px; padding: 8px 16px; font: 700 .75rem/1.3 var(--f-mono); letter-spacing: .05em; text-transform: uppercase; border-left: 3px solid transparent; }
+  .item.active { background: var(--panel); border-left-color: var(--pink); color: var(--pink); }
+  .item small { display: block; font: 400 .6875rem var(--f-body); text-transform: none; letter-spacing: 0; color: var(--ink-3); }
+  .hr { height: 1px; background: var(--border); margin: 8px 0; }
+  .preset { padding: 8px 16px; border-left: 3px solid transparent; border-bottom: 1px solid var(--border); }
+  .preset b { display: block; font: 700 .75rem var(--f-mono); letter-spacing: .05em; text-transform: uppercase; }
+  .preset span { font-size: .75rem; color: var(--ink-2); line-height: 1.35; display: block; }
+  .preset.active { background: var(--panel); border-left-color: var(--pink); } .preset.active b { color: var(--pink); }
+
+  table { border-collapse: collapse; width: 100%; font-size: .875rem; background: var(--base); border: 1px solid var(--border); }
+  th, td { text-align: left; padding: 12px 16px; vertical-align: top; border-bottom: 1px solid var(--border); }
+  th { background: var(--panel); font: 700 .75rem var(--f-mono); letter-spacing: .05em; text-transform: uppercase; color: var(--ink-2); }
+  tr:last-child td { border-bottom: 0; } td:first-child { font: 700 .75rem var(--f-mono); text-transform: uppercase; letter-spacing: .05em; white-space: nowrap; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Field View — Watch &amp; Explore (rev 3)</h1>
+  <p class="lede">Static mockup, no functionality; colours, fonts and styling are placeholders — the point is layout. Phone frames are 844×390 (landscape, 1:1 CSS px); tablet is 1180×820. Heat values are illustrative (distance to nearest defender), not output of the real space model. Frames scale down to fit your window.</p>
+  <p class="lede"><b>Rev 3 — styled to the Light Film Room system</b> (<code>style-guide/design.md</code>): hard corners, zinc neutrals, pink <code>#be185d</code> for interactive/primary, green <code>#047857</code> for on-states, Archivo Black headings, JetBrains Mono uppercase UI labels, Helvetica Neue body, graph-paper backdrop. Layout is unchanged from rev 2. <b>Changes in rev 2:</b> all chrome now lives in one top bar. The readout/caption is gone. Setup picker and colour guide moved to the top. “Defense follows” moved into the menu. Tablet no longer unfolds controls — it is the phone layout, larger. Default heatmap is back to red/amber/green, with a colour-blind mode in Settings.</p>
+
+  <h2>1 · Explore (phone, landscape)</h2>
+  <div class="row">
+    <div class="scaler-host"><div class="scaler" data-w="864" data-h="410" id="s-explore"></div></div>
+    <div class="notes">
+      <h3>Always on screen (one top bar)</h3>
+      <ul>
+        <li><span class="tag t-on">left</span> ☰ menu + current mode</li>
+        <li><span class="tag t-on">centre</span> setup chip with ◀ ▶ to flip presets</li>
+        <li><span class="tag t-on">right</span> colour guide (legend, tappable) + reset</li>
+      </ul>
+      <h3>One tap away</h3>
+      <ul>
+        <li><span class="tag t-tap">chip</span> setup list</li>
+        <li><span class="tag t-tap">legend</span> “how to read the colours”</li>
+        <li><span class="tag t-tap">player</span> highlight ring (detail TBD)</li>
+        <li><span class="tag t-tap">☰</span> modes, Defense follows, Settings</li>
+      </ul>
+      <h3>Hidden</h3>
+      <ul><li><span class="tag t-hide">Settings</span> colour-blind mode, layers, force, motion tunables, piece size</li></ul>
+      <p style="margin:0;color:var(--muted)">Everything below the bar is field. Note the field is width-limited on a 19.5:9 phone, so the real gain is breathing room; on squarer screens (iPad, older phones) it is a genuinely taller field.</p>
+    </div>
+  </div>
+
+  <h2>2 · Watch (phone, landscape)</h2>
+  <div class="row">
+    <div class="scaler-host"><div class="scaler" data-w="864" data-h="410" id="s-watch"></div></div>
+    <div class="notes">
+      <h3>Always on screen (one top bar)</h3>
+      <ul>
+        <li><span class="tag t-on">left</span> ☰ menu + mode</li>
+        <li><span class="tag t-on">centre</span> ◀ prev · ▶ play/pause · next ▶, plus progress dots (2/4)</li>
+        <li><span class="tag t-on">right</span> colour guide + play selector</li>
+      </ul>
+      <h3>One tap away</h3>
+      <ul>
+        <li><span class="tag t-tap">dots</span> jump to a frame</li>
+        <li><span class="tag t-tap">play chip</span> play list</li>
+        <li><span class="tag t-tap">field</span> pause / resume</li>
+      </ul>
+      <h3>Hidden</h3>
+      <ul><li><span class="tag t-hide">menu</span> speed, loop, trails, show captions (when authored plays have them)</li></ul>
+      <p style="margin:0;color:var(--muted)">No caption for now. Captions return when coaches can author them — they would appear as an optional overlay, not permanent chrome.</p>
+    </div>
+  </div>
+
+  <h2>3 · Menu open</h2>
+  <div class="row">
+    <div class="scaler-host"><div class="scaler" data-w="864" data-h="410" id="s-menu"></div></div>
+    <div class="notes">
+      <ul>
+        <li>Modes first. Build is listed but flagged as laptop-first.</li>
+        <li><b>Defense follows</b> now lives here as a switch (Explore only).</li>
+        <li><b>Colour-blind mode</b> is a switch under Settings; frame 5 shows its effect.</li>
+        <li>Field remains visible, dimmed, behind the drawer.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2>4 · Setup picker</h2>
+  <div class="row">
+    <div class="scaler-host"><div class="scaler" data-w="864" data-h="410" id="s-presets"></div></div>
+    <div class="notes">
+      <ul>
+        <li>For now: a handful of presets authored by you (names and one-line takeaways are placeholders).</li>
+        <li>Later: “Your setups” section for coach-made presets; the same panel doubles as Watch's play list.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2>5 · Colour-blind mode on</h2>
+  <div class="row">
+    <div class="scaler-host"><div class="scaler" data-w="864" data-h="410" id="s-cb"></div></div>
+    <div class="notes"><ul>
+      <li>Same layout; only the heat ramp changes (orange → neutral → blue) and the legend follows it.</li>
+      <li>Pieces already avoid hue (filled = offense, ringed = defense), so only the heatmap needs a mode.</li>
+    </ul></div>
+  </div>
+
+  <h2>6 · Explore (tablet, landscape)</h2>
+  <div class="row">
+    <div class="scaler-host"><div class="scaler" data-w="1200" data-h="840" id="s-tablet"></div></div>
+    <div class="notes"><ul>
+      <li>Identical to the phone layout, just scaled up (bigger targets, same slots).</li>
+      <li>The field is width-limited, so a 4:3 tablet leaves empty space below. Here it is centred; options are a larger piece size, a second row for info later, or leaving it calm.</li>
+    </ul></div>
+  </div>
+
+  <h2>Where things live</h2>
+  <table>
+    <tr><th>Tier</th><th>Explore</th><th>Watch</th></tr>
+    <tr><td>Always visible</td><td>Menu · mode · setup chip (◀ ▶) · colour guide · reset</td><td>Menu · mode · prev / play / next · progress dots · colour guide · play selector</td></tr>
+    <tr><td>One tap</td><td>Setup list · colour explanation · player highlight</td><td>Play list · jump to frame · pause</td></tr>
+    <tr><td>In the menu</td><td colspan="2">Modes · Defense follows (Explore) · How to read the colours · Settings</td></tr>
+    <tr><td>Behind Settings</td><td colspan="2">Colour-blind mode · layers · force · motion tunables · piece size</td></tr>
+    <tr><td>Build only</td><td colspan="2">Add/remove players · frame editing · captions · save/share</td></tr>
+  </table>
+</div>
+
+<script>
+const IC = {
+  menu: '<svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg>',
+  prev: '<svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>',
+  next: '<svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>',
+  play: '<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>',
+  skipPrev: '<svg viewBox="0 0 24 24"><path d="M6 5v14M18 5l-9 7 9 7z"/></svg>',
+  skipNext: '<svg viewBox="0 0 24 24"><path d="M18 5v14M6 5l9 7-9 7z"/></svg>',
+  reset: '<svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 3-6.2M4 4v5h5"/></svg>',
+  eye: '<svg viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>',
+  hand: '<svg viewBox="0 0 24 24"><path d="M9 11V5a1.5 1.5 0 0 1 3 0v5m0-1a1.5 1.5 0 0 1 3 0v2m0-1a1.5 1.5 0 0 1 3 0v4a6 6 0 0 1-6 6h-1a6 6 0 0 1-5-3l-2-3a1.5 1.5 0 0 1 2.5-1.5L9 15"/></svg>',
+  pen: '<svg viewBox="0 0 24 24"><path d="M4 20l4-1 11-11-3-3L5 16z"/></svg>',
+  help: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 .9-1 1.7M12 17v.1"/></svg>',
+  gear: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></svg>',
+  follow: '<svg viewBox="0 0 24 24"><circle cx="8" cy="8" r="3"/><circle cx="16" cy="16" r="3"/><path d="M10 10l4 4"/></svg>',
+  eyeoff: '<svg viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/><path d="M4 4l16 16"/></svg>',
+  chev: '<svg viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M6 9l6 6 6-6"/></svg>'
+};
+const ic = (n, cls='') => `<span class="ic ${cls}">${IC[n]}</span>`;
+
+/* ---------- field rendering ---------- */
+const FW = 110, FH = 40;
+const lerp = (a,b,t)=>a+(b-a)*t;
+const PALS = {
+  def: {T:[214,75,74],  M:[242,193,78], O:[79,148,29]},
+  cb:  {T:[232,115,26], M:[243,239,227], O:[47,127,214]}
+};
+function heatRGB(t, pal){
+  const P = PALS[pal];
+  const [a,b,u] = t<.5 ? [P.T,P.M,t/.5] : [P.M,P.O,(t-.5)/.5];
+  return `rgb(${a.map((v,i)=>Math.round(lerp(v,b[i],u))).join(',')})`;
+}
+let uid = 0;
+function fieldSVG(scene, {w, h, top, arrows=[], ghost=null, lifted=null, pal='def'}) {
+  const id = 'f' + (uid++);
+  let cells = '';
+  const cs = 2;
+  for (let x = 0; x < FW; x += cs) for (let y = 0; y < FH; y += cs) {
+    const cx = x + cs/2, cy = y + cs/2;
+    let d = 99; for (const p of scene.def) d = Math.min(d, Math.hypot(p[0]-cx, p[1]-cy));
+    const t = Math.min(1, Math.max(0, (d - 1.5) / 8));
+    cells += `<rect x="${x}" y="${y}" width="${cs}" height="${cs}" fill="${heatRGB(t, pal)}"/>`;
+  }
+  const R = 1.45;
+  const piece = (p, i, off) => `<g>
+      <circle cx="${p[0]}" cy="${p[1]}" r="${R}" fill="${off?'#18181b':'#fff'}" stroke="${off?'#fff':'#18181b'}" stroke-width="${off?.28:.38}"/>
+      <text x="${p[0]}" y="${p[1]+.62}" text-anchor="middle" font-size="1.75" font-weight="700" fill="${off?'#fff':'#18181b'}" font-family="JetBrains Mono,monospace">${i+1}</text></g>`;
+  let pieces = '';
+  scene.def.forEach((p,i)=> pieces += piece(p,i,false));
+  scene.off.forEach((p,i)=> {
+    if (lifted && lifted.i === i) return;
+    pieces += piece(p,i,true);
+    if (i === 0) pieces += `<circle cx="${p[0]+1.9}" cy="${p[1]-1.9}" r=".75" fill="#fff" stroke="#18181b" stroke-width=".25"/>`;
+  });
+  let extra = '';
+  for (const a of arrows) extra += `<line x1="${a[0]}" y1="${a[1]}" x2="${a[2]}" y2="${a[3]}" stroke="#18181b" stroke-width=".45" stroke-dasharray="1.1 .8" marker-end="url(#${id}a)"/>`;
+  if (ghost) extra += `<circle cx="${ghost[0]}" cy="${ghost[1]}" r="${R}" fill="none" stroke="#18181b" stroke-width=".3" stroke-dasharray=".8 .6"/>`;
+  if (lifted) {
+    const [x,y] = lifted.p;
+    extra += `<line x1="${ghost[0]}" y1="${ghost[1]}" x2="${x}" y2="${y}" stroke="#18181b" stroke-width=".25" stroke-dasharray=".6 .6" opacity=".6"/>`;
+    extra += `<circle cx="${x}" cy="${y+.5}" r="${R+.6}" fill="#0003" filter="url(#${id}b)"/>`;
+    extra += `<circle cx="${x}" cy="${y}" r="${R+1.5}" fill="none" stroke="#be185d" stroke-width=".4"/>`;
+    extra += piece(lifted.p, lifted.i, true);
+  }
+  return `<svg class="field" viewBox="0 0 ${FW} ${FH}" width="${w}" height="${h}" style="top:${top}px">
+    <defs>
+      <marker id="${id}a" viewBox="0 0 6 6" refX="5" refY="3" markerWidth="3" markerHeight="3" orient="auto"><path d="M0 0L6 3L0 6z" fill="#18181b"/></marker>
+      <filter id="${id}b"><feGaussianBlur stdDeviation=".5"/></filter>
+      <filter id="${id}s" x="-5%" y="-5%" width="110%" height="110%"><feGaussianBlur stdDeviation="1.7"/></filter>
+      <clipPath id="${id}c"><rect width="${FW}" height="${FH}"/></clipPath>
+    </defs>
+    <rect width="${FW}" height="${FH}" fill="#ffffff"/>
+    <g clip-path="url(#${id}c)"><g filter="url(#${id}s)" opacity=".72">${cells}</g></g>
+    <rect x="0" y="0" width="20" height="${FH}" fill="#fff" opacity=".22"/><rect x="90" y="0" width="20" height="${FH}" fill="#fff" opacity=".22"/>
+    <g stroke="#a1a1aa" stroke-width=".25" fill="none"><rect x=".12" y=".12" width="${FW-.24}" height="${FH-.24}"/><line x1="20" y1="0" x2="20" y2="${FH}"/><line x1="90" y1="0" x2="90" y2="${FH}"/></g>
+    <text x="55" y="38.4" text-anchor="middle" font-size="1.5" font-weight="700" letter-spacing=".25" fill="#be185d" font-family="JetBrains Mono,monospace">ATTACKING  →</text>
+    ${extra}${pieces}
+  </svg>`;
+}
+
+/* ---------- scenes (attacking right; x = yards downfield, y = across) ---------- */
+function stack() {
+  const off = [[40,28],[34,18],[54,20],[60,20],[66,20],[72,20],[78,20]];
+  const def = off.map(([x,y]) => [x+2.6, y]); def[0] = [41.6, 27]; return {off, def};
+}
+const exploreScene = (() => { const s = stack(); s.off[4] = [60.5,31]; s.def[4] = [63,30.2]; return s; })();
+const watchScene = (() => {
+  const s = stack();
+  s.off[2] = [46,9];  s.def[2] = [48.8,10.4];
+  s.off[3] = [54,20]; s.def[3] = [56.6,20];
+  return s;
+})();
+
+/* ---------- chrome ---------- */
+const legend = `<span class="pill legend">Tight<i></i>Open<span class="q">?</span></span>`;
+const resetBtn = `<button class="btn ic" aria-label="Reset">${IC.reset}</button>`;
+const menuBtn = (mode) => `<button class="btn ic" aria-label="Menu">${IC.menu}</button><span class="pill mode">${mode}</span>`;
+const presetChip = `<span class="chip"><button>${IC.prev}</button><span class="lbl"><small>Setup</small><b>Vertical stack ✎</b></span><button>${IC.next}</button></span>`;
+
+// Phone: field is width-limited (844×307); centre it under the 50px bar.
+const PH = {w:844, h:307, top:56 + Math.round((390-56-307)/2)};
+// Tablet: field 1180×429, centred in the space below the 68px bar.
+const TB = {w:1180, h:429, top:72 + Math.round((820-72-429)/2)};
+
+function phoneExplore({overlay='', pal='def', cb=false} = {}) {
+  return `<div class="device phone ${cb?'cb':''}"><div class="screen">
+    ${fieldSVG(exploreScene, {...PH, pal, ghost:[66,20], lifted:{i:4, p:[60.5,31]}})}
+    <div class="bar">${menuBtn('Explore')}<span class="spacer"></span>${presetChip}<span class="spacer"></span>${legend}${resetBtn}</div>
+    ${overlay}
+  </div></div>`;
+}
+function phoneWatch() {
+  return `<div class="device phone"><div class="screen">
+    ${fieldSVG(watchScene, {...PH, arrows:[[54,20,47.6,10.4],[56.6,20,50.2,11.6],[60,20,55.4,20.4]]})}
+    <div class="bar">${menuBtn('Watch')}<span class="spacer"></span>
+      <button class="btn ic">${IC.skipPrev}</button><button class="btn primary ic fill" style="width:52px">${IC.play}</button><button class="btn ic">${IC.skipNext}</button>
+      <span class="dots"><i class="on"></i><i class="on"></i><i></i><i></i>&nbsp;2/4</span>
+      <span class="spacer"></span>${legend}
+      <span class="chip"><span class="lbl" style="min-width:112px"><small>Play</small><b>Under cut ▾</b></span></span>
+    </div>
+  </div></div>`;
+}
+function phoneMenu() {
+  const overlay = `<div class="scrim"></div><div class="drawer">
+    <div class="hd">Field View</div>
+    <h4>Mode</h4>
+    <div class="item">${ic('eye')}<div>Watch</div></div>
+    <div class="item active">${ic('hand')}<div>Explore</div></div>
+    <div class="item">${ic('pen')}<div>Build<small>Best on a laptop</small></div></div>
+    <div class="hr"></div>
+    <h4>Explore options</h4>
+    <div class="item">${ic('follow')}<div>Defense follows</div><span class="sw on"></span></div>
+    <div class="item">${ic('help')}<div>How to read the colours</div></div>
+    <div class="hr"></div>
+    <h4>Settings</h4>
+    <div class="item">${ic('eyeoff')}<div>Colour-blind mode</div><span class="sw"></span></div>
+    <div class="item">${ic('gear')}<div>More settings…</div></div>
+  </div>`;
+  return phoneExplore({overlay});
+}
+function phonePresets() {
+  const p = (n, s, a) => `<div class="preset ${a?'active':''}"><b>${n}</b><span>${s}</span></div>`;
+  const overlay = `<div class="scrim" style="background:rgba(20,26,40,.28)"></div><div class="drawer right">
+    <div class="hd">Setup</div>
+    ${p('Vertical stack','Cutters have the deep and under lanes to themselves.',1)}
+    ${p('Horizontal stack','Wide and flat: the middle opens up.')}
+    ${p('Ho stack','Handlers split wide; one clean lane up the middle.')}
+    ${p('Side stack','Everyone on one side — the open side is free to attack.')}
+    ${p('Clumped','See how little space a bunched team leaves.')}
+  </div>`;
+  return phoneExplore({overlay});
+}
+function tablet() {
+  return `<div class="device tablet"><div class="screen">
+    ${fieldSVG(exploreScene, {...TB, ghost:[66,20], lifted:{i:4, p:[60.5,31]}})}
+    <div class="bar">${menuBtn('Explore')}<span class="spacer"></span>${presetChip}<span class="spacer"></span>${legend}${resetBtn}</div>
+  </div></div>`;
+}
+
+document.getElementById('s-explore').innerHTML = phoneExplore();
+document.getElementById('s-watch').innerHTML = phoneWatch();
+document.getElementById('s-menu').innerHTML = phoneMenu();
+document.getElementById('s-presets').innerHTML = phonePresets();
+document.getElementById('s-cb').innerHTML = phoneExplore({pal:'cb', cb:true});
+document.getElementById('s-tablet').innerHTML = tablet();
+function fit() {
+  document.querySelectorAll('.scaler').forEach(el => {
+    const w = +el.dataset.w, h = +el.dataset.h, avail = el.parentElement.clientWidth;
+    const s = Math.min(1, avail / w);
+    el.style.transform = `scale(${s})`; el.style.width = w + 'px';
+    el.parentElement.style.height = (h * s) + 'px';
+  });
+}
+addEventListener('resize', fit); fit();
+</script>
+</body>
+</html>

@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Field View — Desktop mockup</title>
+<style>
+  @font-face { font-family: "Archivo Black"; font-weight: 400; font-display: swap; src: url("../frontend/public/fonts/ArchivoBlack-Regular.ttf") format("truetype"); }
+  @font-face { font-family: "JetBrains Mono"; font-weight: 400; font-display: swap; src: url("../frontend/public/fonts/JetBrainsMono-Regular.ttf") format("truetype"); }
+  @font-face { font-family: "JetBrains Mono"; font-weight: 700; font-display: swap; src: url("../frontend/public/fonts/JetBrainsMono-Bold.ttf") format("truetype"); }
+
+  :root {
+    --base: #ffffff; --panel: #f4f4f5; --border: #d4d4d8;
+    --ink: #18181b; --ink-2: #52525b; --ink-3: #a1a1aa; --grid: #e4e4e7;
+    --pink: #be185d; --pink-dark: #9d174d; --green: #047857;
+    --f-head: "Archivo Black", "Oswald", "Arial Narrow", sans-serif;
+    --f-mono: "JetBrains Mono", monospace;
+    --f-body: "Helvetica Neue", Arial, sans-serif;
+    --h-tight: #d64b4a; --h-mid: #f2c14e; --h-open: #4f941d;
+  }
+  * { box-sizing: border-box; border-radius: 0; }
+  body { margin: 0; background: var(--panel); color: var(--ink); font: 15px/1.6 var(--f-body); }
+  .wrap { max-width: 1480px; margin: 0 auto; padding: 32px 24px 80px; }
+  h1 { font: 400 2.25rem/1.1 var(--f-head); margin: 0 0 8px; text-transform: uppercase; }
+  h2 { font: 400 1.5rem/1.2 var(--f-head); margin: 56px 0 4px; text-transform: uppercase; padding-top: 16px; border-top: 1px solid var(--border); }
+  h3 { font: 700 .75rem/1.4 var(--f-mono); letter-spacing: .05em; text-transform: uppercase; color: var(--ink-2); margin: 0 0 8px; }
+  p.lede { color: var(--ink-2); max-width: 80ch; margin: 0 0 8px; }
+  .notes { background: var(--base); border: 1px solid var(--border); padding: 24px; font-size: .875rem; margin-top: 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 24px; }
+  .notes ul { margin: 0; padding-left: 18px; } .notes li { margin: 4px 0; }
+  .scaler-host { width: 100%; overflow: hidden; margin-top: 16px; } .scaler { transform-origin: top left; }
+
+  /* ===== desktop screen 1440 × 820 ===== */
+  .screen { position: relative; width: 1440px; height: 820px; overflow: hidden; border: 1px solid var(--ink); background: var(--panel);
+    background-image: linear-gradient(to right, var(--grid) 1px, transparent 1px), linear-gradient(to bottom, var(--grid) 1px, transparent 1px); background-size: 2rem 2rem; }
+  .screen svg.field { position: absolute; display: block; border: 1px solid var(--border); }
+
+  .top { position: absolute; left: 0; right: 0; top: 0; height: 64px; background: var(--base); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 16px; padding: 0 24px; }
+  .brand { font: 400 1.25rem var(--f-head); text-transform: uppercase; letter-spacing: .01em; }
+  .tabs { display: flex; border: 1px solid var(--border); margin-left: 16px; }
+  .tab { height: 40px; padding: 0 20px; display: inline-flex; align-items: center; gap: 8px; font: 700 .75rem var(--f-mono); letter-spacing: .05em; text-transform: uppercase; color: var(--ink-2); border-right: 1px solid var(--border); background: var(--base); }
+  .tab:last-child { border-right: 0; }
+  .tab.on { background: var(--ink); color: #fff; }
+  .tab .soon { font-size: .625rem; border: 1px solid currentColor; padding: 0 6px; color: var(--ink-3); }
+  .spacer { flex: 1; }
+  .btn, .pill { background: var(--base); border: 1px solid var(--border); color: var(--ink); font: 700 .75rem var(--f-mono); }
+  .btn { width: 40px; height: 40px; display: grid; place-items: center; padding: 0; flex: none; }
+  .btn.wide { width: auto; padding: 0 16px; letter-spacing: .05em; text-transform: uppercase; gap: 8px; display: inline-flex; align-items: center; }
+  .btn.primary { background: var(--pink); border-color: var(--pink); color: #fff; }
+  .btn.big { width: 56px; height: 48px; }
+  .ic svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2.2; stroke-linecap: square; stroke-linejoin: miter; display: block; }
+  .ic.fill svg { fill: currentColor; stroke: none; }
+  .pill { height: 40px; padding: 0 12px; display: inline-flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: .05em; white-space: nowrap; font-size: .6875rem; color: var(--ink-2); }
+  .legend i { display: block; width: 80px; height: 8px; background: linear-gradient(90deg, var(--h-tight), var(--h-mid), var(--h-open)); border: 1px solid #0003; }
+  .q { width: 16px; height: 16px; border: 1.5px solid var(--ink-2); display: grid; place-items: center; font-size: .625rem; }
+
+  /* right sidebar */
+  .side { position: absolute; top: 64px; right: 0; bottom: 0; width: 320px; background: var(--base); border-left: 1px solid var(--border); overflow: hidden; }
+  .sec { border-bottom: 1px solid var(--border); }
+  .sec > h4 { margin: 0; padding: 16px 16px 8px; font: 700 .625rem var(--f-mono); letter-spacing: .05em; text-transform: uppercase; color: var(--ink-3); display: flex; justify-content: space-between; }
+  .opt { display: flex; align-items: center; gap: 12px; padding: 8px 16px; font: 700 .75rem/1.3 var(--f-mono); letter-spacing: .05em; text-transform: uppercase; }
+  .opt small { display: block; font: 400 .6875rem var(--f-body); text-transform: none; letter-spacing: 0; color: var(--ink-3); }
+  .sw { width: 40px; height: 22px; background: var(--border); position: relative; flex: none; margin-left: auto; }
+  .sw::after { content: ""; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; background: #fff; }
+  .sw.on { background: var(--green); } .sw.on::after { left: 21px; }
+  .item { padding: 8px 16px; border-left: 3px solid transparent; border-top: 1px solid var(--border); }
+  .item b { display: block; font: 700 .75rem var(--f-mono); letter-spacing: .05em; text-transform: uppercase; }
+  .item span { font-size: .75rem; color: var(--ink-2); line-height: 1.35; display: block; }
+  .item.on { background: var(--panel); border-left-color: var(--pink); } .item.on b { color: var(--pink); }
+  .seg { display: flex; margin: 0 16px 12px; border: 1px solid var(--border); }
+  .seg span { flex: 1; text-align: center; padding: 8px 0; font: 700 .75rem var(--f-mono); border-right: 1px solid var(--border); }
+  .seg span:last-child { border-right: 0; } .seg span.on { background: var(--ink); color: #fff; }
+  .adv { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; font: 700 .75rem var(--f-mono); letter-spacing: .05em; text-transform: uppercase; color: var(--ink-2); }
+  .foot { position: absolute; left: 0; right: 0; bottom: 0; border-top: 1px solid var(--border); background: var(--base); padding: 12px 16px; display: flex; gap: 8px; }
+
+  /* dock under the field */
+  .dock { position: absolute; left: 24px; right: 344px; display: grid; gap: 16px; }
+  .card { background: var(--base); border: 1px solid var(--border); padding: 16px; }
+  .card h5 { margin: 0 0 8px; font: 700 .625rem var(--f-mono); letter-spacing: .05em; text-transform: uppercase; color: var(--ink-3); }
+  .card p { margin: 0; font-size: 1rem; line-height: 1.45; }
+  .card .big { font: 400 1.25rem/1.2 var(--f-head); text-transform: uppercase; }
+  .kv { display: flex; justify-content: space-between; border-top: 1px solid var(--border); padding: 6px 0; font-size: .875rem; } .kv b { font: 700 .75rem var(--f-mono); }
+  .scale { display: grid; gap: 8px; margin-top: 8px; font-size: .875rem; }
+  .scale div { display: flex; gap: 8px; align-items: center; } .scale i { width: 16px; height: 16px; display: block; flex: none; border: 1px solid #0003; }
+  .strip { display: flex; gap: 16px; overflow-x: auto; padding-bottom: 12px; scrollbar-width: thin; scrollbar-color: var(--ink-3) var(--panel); }
+  .strip::-webkit-scrollbar { height: 8px; } .strip::-webkit-scrollbar-track { background: var(--panel); border: 1px solid var(--border); } .strip::-webkit-scrollbar-thumb { background: var(--ink-3); }
+  .strip .frame { flex: 0 0 calc((100% - 48px) / 4); }
+  .list { max-height: 270px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--ink-3) var(--panel); }
+  .list::-webkit-scrollbar { width: 8px; } .list::-webkit-scrollbar-track { background: var(--panel); border-left: 1px solid var(--border); } .list::-webkit-scrollbar-thumb { background: var(--ink-3); }
+  .list.fixed { max-height: 260px; } .list.fixed .item { height: 52px; overflow: hidden; }
+  .hint { position: absolute; right: 0; top: 8px; font: 700 .6875rem var(--f-mono); letter-spacing: .05em; text-transform: uppercase; color: var(--ink-3); }
+  .frame { background: var(--base); border: 1px solid var(--border); padding: 8px; }
+  .frame.on { border-color: var(--pink); box-shadow: 0 0 0 1px var(--pink); }
+  .frame svg { display: block; width: 100%; height: auto; border: 1px solid var(--border); }
+  .frame b { display: flex; justify-content: space-between; margin-top: 8px; font: 700 .6875rem var(--f-mono); letter-spacing: .05em; text-transform: uppercase; }
+  .frame.on b { color: var(--pink); }
+  .transport { position: relative; display: flex; justify-content: center; align-items: center; gap: 8px; }
+  .dots { display: inline-flex; gap: 8px; align-items: center; font: 700 .75rem var(--f-mono); color: var(--ink-2); padding: 0 16px; }
+  .dots i { width: 12px; height: 12px; background: var(--border); display: block; } .dots i.on { background: var(--pink); }
+
+  /* build placeholder */
+  .ghost { position: absolute; border: 1px dashed var(--ink-3); color: var(--ink-3); font: 700 .6875rem var(--f-mono); letter-spacing: .05em; text-transform: uppercase; padding: 8px 12px; background: #ffffffb0; }
+  .soonbox { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 520px; background: var(--base); border: 1px solid var(--ink); padding: 32px; text-align: left; }
+  .soonbox .big { font: 400 1.5rem/1.2 var(--f-head); text-transform: uppercase; margin: 8px 0 12px; }
+  .soonbox p { margin: 0 0 8px; color: var(--ink-2); }
+  .soonbox ul { margin: 8px 0 16px; padding-left: 18px; color: var(--ink-2); font-size: .875rem; }
+
+  table { border-collapse: collapse; width: 100%; font-size: .875rem; background: var(--base); border: 1px solid var(--border); margin-top: 16px; }
+  th, td { text-align: left; padding: 12px 16px; vertical-align: top; border-bottom: 1px solid var(--border); }
+  th { background: var(--panel); font: 700 .75rem var(--f-mono); letter-spacing: .05em; text-transform: uppercase; color: var(--ink-2); }
+  tr:last-child td { border-bottom: 0; } td:first-child { font: 700 .75rem var(--f-mono); text-transform: uppercase; letter-spacing: .05em; white-space: nowrap; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Field View — Desktop</h1>
+  <p class="lede">Static mockup, no functionality, 1440×820 laptop viewport, styled to the Light Film Room system like the phone/tablet mockup. Heat values are illustrative, not the real space model.</p>
+  <p class="lede"><b>Principle:</b> same top-bar idea and same field as the phone, but every “one tap away” item from mobile is now simply on screen — the mode switcher is tabs instead of a hamburger, the setup list / play list is an always-open right sidebar, and the Watch frames sit in a filmstrip. Nothing new is invented; things are unfolded. Build is a placeholder for now.</p>
+
+  <h2>1 · Explore</h2>
+  <div class="scaler-host"><div class="scaler" data-w="1440" data-h="820" id="s-explore"></div></div>
+  <div class="notes">
+    <div><h3>Top bar</h3><ul><li>Brand · Watch / Explore / Build tabs (replaces ☰)</li><li>Colour guide + settings on the right</li></ul></div>
+    <div><h3>Sidebar (was: setup chip + menu)</h3><ul><li>All setups listed with takeaways</li><li>Defense follows switch</li><li>Reset · Advanced settings collapsed</li></ul></div>
+    <div><h3>Under the field</h3><ul><li>Selected-player stats only, for now</li><li>The rest of this space is deliberately open — see backlog for ideas to fill it</li></ul></div>
+    <div><h3>Cut from the last draft</h3><ul><li>“Reading the field” sentence</li><li>Second colour guide (the top-bar legend opens the explanation)</li></ul></div>
+  </div>
+
+  <h2>2 · Watch</h2>
+  <div class="scaler-host"><div class="scaler" data-w="1440" data-h="820" id="s-watch"></div></div>
+  <div class="notes">
+    <div><h3>Sidebar (was: play selector + menu)</h3><ul><li>Plays list shows 5 at a time, scrolls for more</li><li>Speed, loop, trails</li></ul></div>
+    <div><h3>Dock (was: top-bar transport + dots)</h3><ul><li>Prev / play / next + progress</li><li>Filmstrip shows 4 frames at a time; plays with more frames scroll sideways (this one has 6)</li><li>Click a frame to jump</li></ul></div>
+    <div><h3>Not shown</h3><ul><li>Captions — they return as an optional overlay once plays can carry them</li></ul></div>
+  </div>
+
+  <h2>3 · Build (placeholder)</h2>
+  <div class="scaler-host"><div class="scaler" data-w="1440" data-h="820" id="s-build"></div></div>
+  <div class="notes">
+    <div><h3>MVP</h3><ul><li>The tab exists and says what's coming; nothing else.</li></ul></div>
+    <div><h3>Deliberately undecided</h3><ul><li>Tool palette, frame timeline, properties panel, caption editor, save/share — layout to be designed in the next iteration.</li><li>Dashed boxes only suggest that desktop will have room for those regions.</li></ul></div>
+  </div>
+
+  <h2>Phone / tablet → desktop mapping</h2>
+  <table>
+    <tr><th>Item</th><th>Phone / tablet</th><th>Desktop</th></tr>
+    <tr><td>Mode switch</td><td>☰ menu → modes</td><td>Tabs in the top bar</td></tr>
+    <tr><td>Setups / plays</td><td>Chip in the top bar → slide-over list</td><td>Always-open right sidebar (5 visible, scrolls)</td></tr>
+    <tr><td>Colour guide</td><td>Tappable legend → explanation</td><td>Same: legend in the top bar, click for the explanation</td></tr>
+    <tr><td>Defense follows</td><td>Menu switch</td><td>Sidebar switch</td></tr>
+    <tr><td>Transport / progress</td><td>Top bar</td><td>Under the field, with a scrolling 4-up filmstrip</td></tr>
+    <tr><td>Colour-blind mode, advanced</td><td>Menu → Settings</td><td>Gear in the top bar; Advanced row in the sidebar</td></tr>
+    <tr><td>Player detail</td><td>Highlight ring only</td><td>Selected-player card</td></tr>
+  </table>
+</div>
+
+<script>
+const IC = {
+  prev: '<svg viewBox="0 0 24 24"><path d="M6 5v14M18 5l-9 7 9 7z"/></svg>',
+  next: '<svg viewBox="0 0 24 24"><path d="M18 5v14M6 5l9 7-9 7z"/></svg>',
+  play: '<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>',
+  reset: '<svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 3-6.2M4 4v5h5"/></svg>',
+  gear: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></svg>',
+  chev: '<svg viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M9 5l7 7-7 7"/></svg>'
+};
+const FW = 110, FH = 40;
+const lerp = (a,b,t)=>a+(b-a)*t;
+const P = {T:[214,75,74], M:[242,193,78], O:[79,148,29]};
+const heatRGB = t => { const [a,b,u] = t<.5 ? [P.T,P.M,t/.5] : [P.M,P.O,(t-.5)/.5]; return `rgb(${a.map((v,i)=>Math.round(lerp(v,b[i],u))).join(',')})`; };
+let uid = 0;
+function fieldSVG(scene, {w, h, left=0, top=0, arrows=[], ghost=null, lifted=null, mini=false, style=''}) {
+  const id = 'f' + (uid++), cs = mini ? 3 : 2;
+  let cells = '';
+  for (let x = 0; x < FW; x += cs) for (let y = 0; y < FH; y += cs) {
+    const cx = x + cs/2, cy = y + cs/2; let d = 99;
+    for (const p of scene.def) d = Math.min(d, Math.hypot(p[0]-cx, p[1]-cy));
+    cells += `<rect x="${x}" y="${y}" width="${cs}" height="${cs}" fill="${heatRGB(Math.min(1, Math.max(0, (d-1.5)/8)))}"/>`;
+  }
+  const R = mini ? 2 : 1.45, fs = mini ? 2.4 : 1.75;
+  const piece = (p,i,off) => `<g><circle cx="${p[0]}" cy="${p[1]}" r="${R}" fill="${off?'#18181b':'#fff'}" stroke="${off?'#fff':'#18181b'}" stroke-width="${off?.28:.38}"/>${mini?'':`<text x="${p[0]}" y="${p[1]+.62}" text-anchor="middle" font-size="${fs}" font-weight="700" fill="${off?'#fff':'#18181b'}" font-family="JetBrains Mono,monospace">${i+1}</text>`}</g>`;
+  let pieces = '';
+  scene.def.forEach((p,i)=> pieces += piece(p,i,false));
+  scene.off.forEach((p,i)=> { if (lifted && lifted.i===i) return; pieces += piece(p,i,true);
+    if (i===0) pieces += `<circle cx="${p[0]+1.9}" cy="${p[1]-1.9}" r="${mini?1:.75}" fill="#fff" stroke="#18181b" stroke-width=".25"/>`; });
+  let extra = '';
+  for (const a of arrows) extra += `<line x1="${a[0]}" y1="${a[1]}" x2="${a[2]}" y2="${a[3]}" stroke="#18181b" stroke-width="${mini?.7:.45}" stroke-dasharray="1.1 .8" marker-end="url(#${id}a)"/>`;
+  if (ghost) extra += `<circle cx="${ghost[0]}" cy="${ghost[1]}" r="${R}" fill="none" stroke="#18181b" stroke-width=".3" stroke-dasharray=".8 .6"/>`;
+  if (lifted) { const [x,y]=lifted.p;
+    extra += `<line x1="${ghost[0]}" y1="${ghost[1]}" x2="${x}" y2="${y}" stroke="#18181b" stroke-width=".25" stroke-dasharray=".6 .6" opacity=".6"/>`;
+    extra += `<circle cx="${x}" cy="${y}" r="${R+1.5}" fill="none" stroke="#be185d" stroke-width=".4"/>` + piece(lifted.p, lifted.i, true); }
+  return `<svg class="field" viewBox="0 0 ${FW} ${FH}" width="${w}" height="${h}" style="left:${left}px;top:${top}px;${style}">
+    <defs><marker id="${id}a" viewBox="0 0 6 6" refX="5" refY="3" markerWidth="3" markerHeight="3" orient="auto"><path d="M0 0L6 3L0 6z" fill="#18181b"/></marker>
+    <filter id="${id}s" x="-5%" y="-5%" width="110%" height="110%"><feGaussianBlur stdDeviation="${mini?2.2:1.7}"/></filter><clipPath id="${id}c"><rect width="${FW}" height="${FH}"/></clipPath></defs>
+    <rect width="${FW}" height="${FH}" fill="#fff"/>
+    <g clip-path="url(#${id}c)"><g filter="url(#${id}s)" opacity=".72">${cells}</g></g>
+    <rect x="0" width="20" height="${FH}" fill="#fff" opacity=".22"/><rect x="90" width="20" height="${FH}" fill="#fff" opacity=".22"/>
+    <g stroke="#a1a1aa" stroke-width=".25" fill="none"><rect x=".12" y=".12" width="${FW-.24}" height="${FH-.24}"/><line x1="20" y1="0" x2="20" y2="${FH}"/><line x1="90" y1="0" x2="90" y2="${FH}"/></g>
+    ${mini?'':`<text x="55" y="38.4" text-anchor="middle" font-size="1.5" font-weight="700" letter-spacing=".25" fill="#be185d" font-family="JetBrains Mono,monospace">ATTACKING  →</text>`}
+    ${extra}${pieces}</svg>`;
+}
+
+/* scenes — attacking right */
+function stack() { const off=[[40,28],[34,18],[54,20],[60,20],[66,20],[72,20],[78,20]]; const def=off.map(([x,y])=>[x+2.6,y]); def[0]=[41.6,27]; return {off,def}; }
+const clone = s => ({off:s.off.map(p=>[...p]), def:s.def.map(p=>[...p])});
+const exploreScene = (()=>{ const s=stack(); s.off[4]=[60.5,31]; s.def[4]=[63,30.2]; return s; })();
+const f1 = stack();
+const f2 = (()=>{ const s=stack(); s.off[2]=[46,9]; s.def[2]=[48.8,10.4]; s.off[3]=[54,20]; s.def[3]=[56.6,20]; return s; })();
+const f3 = (()=>{ const s=clone(f2); s.off[2]=[44,12]; s.def[2]=[46.8,12.4]; s.off[3]=[60,20]; s.def[3]=[62.6,20]; s.off[1]=[30,24]; s.def[1]=[32.6,24]; return s; })();
+const f4 = (()=>{ const s=clone(f3); s.off=s.off.map(([x,y],i)=>i<2?[x,y]:[x+8,y]); s.def=s.def.map(([x,y],i)=>i<2?[x,y]:[x+8,y]); return s; })();
+
+const f5 = (()=>{ const s=clone(f4); s.off[4]=[80,10]; s.def[4]=[83,11]; s.off[0]=[48,24]; s.def[0]=[50,23]; return s; })();
+const f6 = (()=>{ const s=clone(f5); s.off[0]=[52,32]; s.def[0]=[54,31]; s.off[1]=[44,22]; s.def[1]=[46.6,22]; return s; })();
+
+/* chrome pieces */
+const tabs = (on) => `<div class="tabs">${['Watch','Explore','Build'].map(t=>`<span class="tab ${t===on?'on':''}">${t}${t==='Build'?'<span class="soon">Soon</span>':''}</span>`).join('')}</div>`;
+const topBar = (on) => `<div class="top"><span class="brand">Field View</span>${tabs(on)}<span class="spacer"></span>
+  <span class="pill legend">Tight<i></i>Open<span class="q">?</span></span>
+  <button class="btn ic" aria-label="Settings">${IC.gear}</button></div>`;
+const sw = on => `<span class="sw ${on?'on':''}"></span>`;
+
+// layout: field 1072×390 at x=24,y=88 ; dock below from y=502
+const FIELD = {w:1072, h:390, left:24, top:88};
+
+function explore() {
+  const it = (n,s,a)=>`<div class="item ${a?'on':''}"><b>${n}</b><span>${s}</span></div>`;
+  return `<div class="screen">${topBar('Explore')}
+    ${fieldSVG(exploreScene, {...FIELD, ghost:[66,20], lifted:{i:4,p:[60.5,31]}})}
+    <div class="dock" style="top:502px;grid-template-columns:minmax(0,340px)">
+      <div class="card"><h5>Selected · #5 (offense)</h5>
+        <div class="kv"><span>Marked by</span><b>#5 (defense)</b></div><div class="kv"><span>Nearest defender</span><b>2.4 yd</b></div><div class="kv"><span>Side of field</span><b>Break side</b></div><div class="kv"><span>Moved from start</span><b>11 yd</b></div></div>
+    </div>
+    <div class="side">
+      <div class="sec"><h4>Setup <span>5</span></h4><div class="list">
+        ${it('Vertical stack ✎','Cutters have the deep and under lanes to themselves.',1)}
+        ${it('Horizontal stack','Wide and flat: the middle opens up.')}
+        ${it('Ho stack','Handlers split wide; one clean lane up the middle.')}
+        ${it('Side stack','Everyone on one side — the open side is free to attack.')}
+        ${it('Clumped','See how little space a bunched team leaves.')}</div></div>
+      <div class="sec"><h4>Options</h4><div class="opt">Defense follows${sw(true)}</div></div>
+      <div class="sec"><div class="adv">Advanced settings ${IC.chev}</div></div>
+      <div class="foot"><button class="btn wide" style="flex:1;justify-content:center"><span class="ic">${IC.reset}</span>Reset setup</button></div>
+    </div></div>`;
+}
+
+function watch() {
+  const frame = (s,i,label,on,arrows) => `<div class="frame ${on?'on':''}">${fieldSVG(s,{w:240,h:87,mini:true,arrows,style:'position:static;border:0;width:100%;height:auto'})}<b><span>${i} · ${label}</span><span>${on?'Now':''}</span></b></div>`;
+  const it = (n,s,a)=>`<div class="item ${a?'on':''}"><b>${n}</b><span>${s}</span></div>`;
+  return `<div class="screen">${topBar('Watch')}
+    ${fieldSVG(f2, {...FIELD, arrows:[[54,20,47.6,10.4],[56.6,20,50.2,11.6],[60,20,55.4,20.4]]})}
+    <div class="dock" style="top:502px;grid-template-columns:1fr">
+      <div class="transport">
+        <button class="btn ic big">${IC.prev}</button><button class="btn primary ic fill big" style="width:72px">${IC.play}</button><button class="btn ic big">${IC.next}</button>
+        <span class="dots"><i class="on"></i><i class="on"></i><i></i><i></i><i></i><i></i>&nbsp;2 / 6</span><span class="hint">Frames 1–4 of 6 · scroll →</span>
+      </div>
+      <div class="strip">
+        ${frame(f1,1,'Set',false,[])}${frame(f2,2,'Cut under',true,[[54,20,47.6,10.4]])}${frame(f3,3,'Clear',false,[[46,9,44,12]])}${frame(f4,4,'Push',false,[[60,20,68,20]])}${frame(f5,5,'Reset',false,[[72,20,80,10]])}${frame(f6,6,'Swing',false,[[48,24,52,32]])}
+      </div>
+    </div>
+    <div class="side">
+      <div class="sec"><h4>Plays <span>7</span></h4><div class="list fixed">
+        ${it('Under cut','6 frames · vertical stack',1)}
+        ${it('Flow offense','8 frames · continuous cuts')}
+        ${it('Dump swing','3 frames · reset to the open side')}
+        ${it('Endzone set','5 frames · short field')}
+        ${it('Ho stack basics','4 frames · handlers split wide')}
+        ${it('Zone break','6 frames · swing to the open side')}
+        ${it('Sideline trap escape','4 frames · get out of the box')}</div></div>
+      <div class="sec"><h4>Playback</h4><div class="seg"><span>0.5×</span><span class="on">1×</span><span>2×</span></div>
+        <div class="opt">Loop${sw(false)}</div><div class="opt">Show trails${sw(true)}</div></div>
+      <div class="sec"><div class="adv">Advanced settings ${IC.chev}</div></div>
+    </div></div>`;
+}
+
+function build() {
+  return `<div class="screen">${topBar('Build')}
+    <div class="ghost" style="left:24px;top:88px;width:200px;height:400px">Tools</div>
+    <div class="ghost" style="left:240px;top:88px;width:752px;height:400px;display:grid;place-items:center">Field</div>
+    <div class="ghost" style="left:1008px;top:88px;width:408px;height:400px">Properties</div>
+    <div class="ghost" style="left:24px;top:504px;width:1392px;height:292px">Frames timeline</div>
+    <div class="soonbox"><span class="tab" style="display:inline-flex;height:24px;padding:0 8px;border:1px solid var(--pink);color:var(--pink);background:var(--base)">Next iteration</span>
+      <div class="big">Play designer</div>
+      <p>This is where coaches will build plays on a laptop and then show them on a phone.</p>
+      <ul><li>Add frames and move players between them</li><li>Add captions</li><li>Save and send a play to the team</li></ul>
+      <p style="font-size:.875rem">Until then, use <b>Explore</b> to rearrange the field and <b>Watch</b> to run the included plays.</p>
+    </div></div>`;
+}
+
+document.getElementById('s-explore').innerHTML = explore();
+document.getElementById('s-watch').innerHTML = watch();
+document.getElementById('s-build').innerHTML = build();
+function fit() {
+  document.querySelectorAll('.scaler').forEach(el => {
+    const w=+el.dataset.w, h=+el.dataset.h, avail=el.parentElement.clientWidth, s=Math.min(1, avail/w);
+    el.style.transform=`scale(${s})`; el.style.width=w+'px'; el.parentElement.style.height=(h*s)+'px';
+  });
+}
+addEventListener('resize', fit); fit();
+</script>
+</body>
+</html>
