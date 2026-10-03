@@ -116,6 +116,18 @@ export const PIECE_TOKENS = {
   },
 };
 
+// Watch's movement trails: where each piece went to reach the current frame.
+// Ink dashes with an arrowhead, so they never read as a route marker (pink,
+// ROUTE_TOKENS) or as a piece.
+export const TRAIL_TOKENS = {
+  stroke: "#18181b", // zinc-900
+  strokeWidth: 2.5,
+  dash: "7 5",
+  opacity: 0.7,
+  // A piece that moved less than this (yards) draws no trail — noise, not a move.
+  minYards: 0.5,
+};
+
 export const NUDGE = {
   yards: 1,
   shiftYards: 5,

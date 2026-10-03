@@ -5,12 +5,22 @@
 // left in localStorage by the old Space View button harmless.
 
 import { useRef } from "react";
+import type { ReactNode } from "react";
 import { FieldCanvas } from "../FieldCanvas";
 import { CellReadout, type CellReadoutHandle } from "../CellReadout";
 import { useOverlayState } from "../prefs";
 import { useFieldViewApp } from "./FieldViewApp";
 
-export function FieldHost() {
+export interface FieldHostProps {
+  // Watch is read-only: no piece can be grabbed.
+  disabled?: boolean;
+  // A tap anywhere on the field (Watch: pause/resume). The stage is not a
+  // control — keyboard users have the transport buttons.
+  onTap?: () => void;
+  overlayLayer?: ReactNode;
+}
+
+export function FieldHost({ disabled = false, onTap, overlayLayer }: FieldHostProps) {
   const { store, identity } = useFieldViewApp();
   const overlay = useOverlayState();
   const svgRef = useRef<SVGSVGElement | null>(null);
@@ -19,7 +29,7 @@ export function FieldHost() {
   const stageRef = useRef<HTMLDivElement | null>(null);
 
   return (
-    <>
+    <div onClick={onTap} role={onTap ? "presentation" : undefined}>
       <FieldCanvas
         store={store}
         // Hidden teams are simply not rendered, which also keeps them out of
@@ -37,6 +47,8 @@ export function FieldHost() {
         canvasRef={canvasRef}
         stageRef={stageRef}
         visible={overlay.visible}
+        disabled={disabled}
+        overlayLayer={overlayLayer}
       />
       {/* Kept mounted and screen-reader-only: it is the model's "why is this
           spot open" answer and the reason colour is never the only carrier of
@@ -44,6 +56,6 @@ export function FieldHost() {
       <div className="sr-only">
         <CellReadout ref={readoutRef} />
       </div>
-    </>
+    </div>
   );
 }

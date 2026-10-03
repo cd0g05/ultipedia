@@ -11,7 +11,7 @@ placeholder is resolved, set Status to `done` (don't delete the row until the in
 Status: `open` = Builder must supply/confirm · `toy` = a development stand-in exists in code ·
 `tune` = real value needs device/by-eye tuning · `done`.
 
-*Last updated: 2026-10-03 (P1–P3 in code; P3 added rows 1, 2, 10 and the Defense-follows stub; P1 and P2: rows 1 (opening setup only), 6, 7, 8, 9 (menu half), 11, 12, 14, 15 have `PLACEHOLDER` markers; the rest are still planned).*
+*Last updated: 2026-10-03 (P1–P4 in code; P4 added rows 3, 4, 5, 17; P3 added rows 1, 2, 10 and the Defense-follows stub; P1 and P2: rows 1 (opening setup only), 6, 7, 8, 9 (menu half), 11, 12, 14, 15 have `PLACEHOLDER` markers; the rest are still planned).*
 
 ## Content the Builder must supply
 
@@ -19,9 +19,9 @@ Status: `open` = Builder must supply/confirm · `toy` = a development stand-in e
 |---|---|---|---|---|---|---|
 | 1 | Curated **setups** | Names, player coordinates (first-pass yards), order. Toy presets `vertStack`, `hoStack`, `sideStack`, `clumped` + the order in `CURATED_SETUPS`. Note: stacks need ≥3 yd spacing at the new piece size. | `scene/presets.ts` (`CURATED_SETUPS`) | Final set of setups and their positions (≥5; mockup placeholders: Vertical stack, Horizontal stack, Ho stack, Side stack, Clumped) | P3 | open (toy in code) |
 | 2 | Setup **takeaways** | One-line "what to notice" per setup | `scene/presets.ts` (`PRESET_TAKEAWAYS`) | Final one-sentence copy per setup | P3 | open (toy in code) |
-| 3 | Curated **plays** | Entire play content (toy plays, ≥3, one ≥5 frames) | `play/builtin/*.json` (`"_placeholder": true`) | Real plays, authored with the unlinked `/fieldview/designer` and exported | P4 | open (toy planned) |
-| 4 | Play **names / descriptions** | Play list titles and one-liners | `play/builtin/*.json` | Final names and descriptions | P4 | open (toy planned) |
-| 5 | Frame **labels** | Optional per-keyframe labels shown in the filmstrip ("Cut under", "Clear"…) | `play/builtin/*.json` (`label`) | Final labels (or decide to omit) | P4 | open (toy planned) |
+| 3 | Curated **plays** | Entire play content — seven toy plays (`play/builtin/01…07-*.json`), generated from presets; possession cannot change within a play yet | `play/builtin/*.json` (`"_placeholder": true`) | Real plays, authored with the unlinked `/fieldview/designer` and exported | P4 | open (toy in code) |
+| 4 | Play **names / descriptions** | Play list titles and one-liners | `play/builtin/*.json` | Final names and descriptions | P4 | open (toy in code) |
+| 5 | Frame **labels** | Optional per-keyframe labels shown in the filmstrip ("Cut under", "Clear"…) | `play/builtin/*.json` (`label`) | Final labels (or decide to omit) | P4 | open (toy in code) |
 
 ## Copy
 
@@ -43,7 +43,7 @@ Status: `open` = Builder must supply/confirm · `toy` = a development stand-in e
 | 14 | **`desktop` breakpoint** | ≥1280 × ≥640 px — **in code** (also `--fv-chrome` in `index.css`) | `tailwind.config.js` | Real tablet/laptop check (canon already says the old 1024 px was never validated) | P2/P5 | tune |
 | 15 | **Colour-blind palette** | orange `#e8731a` → neutral `#f3efe3` → blue `#2f7fd6` — **in code** | `space/constants.ts` (`CB_RAMP_STOPS`) | Confirm the colours (ideally check with a colour-blind player) | P2 | tune |
 | 16 | **Heat opacity / field look** | Existing `HEATMAP_ALPHA` 0.78 | `render/heatmap.ts` | By-eye on sun/glare | P5 | tune |
-| 17 | **Playback speeds** | 0.5× / 1× / 2×; frame transition duration | `ui/playback/playback.ts` | Feel check | P4 | tune |
+| 17 | **Playback feel** | speeds 0.5× / 1× / 2×; transition 1.2 s; hold 0.4 s — **in code** | `ui/playback/playback.ts` | Feel check | P4 | tune (in code) |
 
 ## Deferred features that leave a visible stub
 

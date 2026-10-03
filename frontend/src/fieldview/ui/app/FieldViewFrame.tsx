@@ -46,6 +46,10 @@ export interface FieldViewFrameProps {
   showField?: boolean;
   // Replaces the field area entirely (Build's placeholder).
   body?: ReactNode;
+  // Watch: read-only field, tap to pause/resume, trails drawn over the pieces.
+  fieldDisabled?: boolean;
+  onFieldTap?: () => void;
+  fieldOverlay?: ReactNode;
 }
 
 export function FieldViewFrame({
@@ -57,6 +61,9 @@ export function FieldViewFrame({
   menuExtras,
   showField = true,
   body,
+  fieldDisabled,
+  onFieldTap,
+  fieldOverlay,
 }: FieldViewFrameProps) {
   const overlay = useOverlayState();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -148,7 +155,7 @@ export function FieldViewFrame({
                 // vertical space the surrounding chrome takes; see index.css).
                 style={{ maxWidth: `calc((100dvh - var(--fv-chrome)) * ${STAGE_ASPECT})` }}
               >
-                <FieldHost />
+                <FieldHost disabled={fieldDisabled} onTap={onFieldTap} overlayLayer={fieldOverlay} />
               </div>
             ))}
           {dock && <div className="mt-4 hidden w-full desktop:block">{dock}</div>}
