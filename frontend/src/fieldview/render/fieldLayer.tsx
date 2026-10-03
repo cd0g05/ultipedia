@@ -1,14 +1,10 @@
 // SVG field markings: sidelines, goal lines, brick marks, and the
-// attacking-direction indicator. All visual values come from tokens.ts
-// (ADR-10); piece rendering lives in pieceLayer.tsx.
+// attacking-direction label. All visual values come from tokens.ts (ADR-10);
+// piece rendering lives in pieceLayer.tsx.
 //
-// The field renders vertically, offense attacking up the screen (coords.ts
-// ADR-2). FIELD_PX_WIDTH/HEIGHT are screen dimensions, not yard-axis-order
-// dimensions — width is the lateral (sideline-to-sideline) span, height is
-// the downfield span — so they're swapped from what a horizontal field's
-// same names would mean. Every downfield-relative line below is drawn
-// horizontal (perpendicular to the vertical length axis) for the same
-// reason a horizontal field draws its goal lines as verticals.
+// The field renders horizontally, offense attacking to the right (coords.ts,
+// ADR-28). FIELD_PX_WIDTH is the downfield span and FIELD_PX_HEIGHT the
+// lateral span. Goal lines are therefore vertical.
 
 import {
   BRICK_ATTACKING,
@@ -20,21 +16,21 @@ import {
 import { PIXELS_PER_YARD, yardToPixel } from "./coords";
 import { FIELD_TOKENS } from "./tokens";
 
-export const FIELD_PX_WIDTH = FIELD.width * PIXELS_PER_YARD;
-export const FIELD_PX_HEIGHT = FIELD.length * PIXELS_PER_YARD;
+export const FIELD_PX_WIDTH = FIELD.length * PIXELS_PER_YARD;
+export const FIELD_PX_HEIGHT = FIELD.width * PIXELS_PER_YARD;
 
 // A line at fixed downfield yard `x`, spanning the full lateral width —
 // e.g. a goal line. (Named for what it marks, not for its screen
 // orientation, since that's an implementation detail of coords.ts.)
 function downfieldLine(x: number) {
-  const py = yardToPixel({ x, y: 0 }).y;
+  const px = yardToPixel({ x, y: 0 }).x;
   return (
     <line
       key={`dline-${x}`}
-      x1={0}
-      y1={py}
-      x2={FIELD_PX_WIDTH}
-      y2={py}
+      x1={px}
+      y1={0}
+      x2={px}
+      y2={FIELD_PX_HEIGHT}
       stroke={FIELD_TOKENS.lineColor}
       strokeWidth={FIELD_TOKENS.lineWidth}
     />
@@ -42,7 +38,8 @@ function downfieldLine(x: number) {
 }
 
 export function FieldLayer() {
-  const midX = yardToPixel({ x: 0, y: FIELD.width / 2 }).x;
+  const midY = yardToPixel({ x: 0, y: FIELD.width / 2 }).y;
+  const midX = yardToPixel({ x: FIELD.length / 2, y: 0 }).x;
 
   return (
     <g aria-hidden="true">
@@ -61,43 +58,31 @@ export function FieldLayer() {
       {downfieldLine(GOAL_LINE_ATTACKING)}
       {/* Brick marks, 20 yd from each goal line */}
       <circle
-        cx={midX}
-        cy={yardToPixel({ x: BRICK_DEFENDING, y: FIELD.width / 2 }).y}
+        cx={yardToPixel({ x: BRICK_DEFENDING, y: 0 }).x}
+        cy={midY}
         r={FIELD_TOKENS.brickRadius}
         fill={FIELD_TOKENS.lineColor}
       />
       <circle
-        cx={midX}
-        cy={yardToPixel({ x: BRICK_ATTACKING, y: FIELD.width / 2 }).y}
+        cx={yardToPixel({ x: BRICK_ATTACKING, y: 0 }).x}
+        cy={midY}
         r={FIELD_TOKENS.brickRadius}
         fill={FIELD_TOKENS.lineColor}
       />
-      {/* Attacking-direction indicator: a labelled arrow pointing up-field
-          (+x, now up the screen), anchored just above the sideline and
-          centred over the field's lateral midpoint. Sized to fit inside
-          STAGE_MARGIN.top (36 px): arrow tip at -16, label baseline at -22,
-          leaving fontSize (11) worth of headroom under the -36 clip. */}
-      <g transform={`translate(${midX}, -2)`}>
-        <line
-          x1={0}
-          y1={0}
-          x2={0}
-          y2={-14}
-          stroke={FIELD_TOKENS.attackArrowColor}
-          strokeWidth={2}
-        />
-        <path d="M -4 -10 L 0 -16 L 4 -10 Z" fill={FIELD_TOKENS.attackArrowColor} />
-        <text
-          x={0}
-          y={-16 - FIELD_TOKENS.attackLabel.gapPx}
-          textAnchor="middle"
-          fontSize={FIELD_TOKENS.attackLabel.fontSize}
-          letterSpacing={FIELD_TOKENS.attackLabel.letterSpacing}
-          fill={FIELD_TOKENS.attackLabel.fill}
-        >
-          {FIELD_TOKENS.attackLabel.text}
-        </text>
-      </g>
+      {/* Which way the offense is going, said in words. Drawn inside the field
+          at the bottom, near midfield, so it costs the stage no margin. */}
+      <text
+        x={midX}
+        y={FIELD_PX_HEIGHT - FIELD_TOKENS.attackLabel.insetPx}
+        textAnchor="middle"
+        fontSize={FIELD_TOKENS.attackLabel.fontSize}
+        letterSpacing={FIELD_TOKENS.attackLabel.letterSpacing}
+        fontFamily={FIELD_TOKENS.attackLabel.fontFamily}
+        fontWeight={700}
+        fill={FIELD_TOKENS.attackLabel.fill}
+      >
+        {FIELD_TOKENS.attackLabel.text}
+      </text>
     </g>
   );
 }

@@ -57,7 +57,7 @@ next_section: "Overview & Context"
 
 ### Brownfield Notes
 
-- `main` has the **committed vertical** layout: `yardToPixel` maps `y*PIXELS_PER_YARD → x` and `(FIELD.length - x) → y`; `STAGE_MARGIN = {top:36,right:20,bottom:20,left:20}`; `heatmap.ts` rotates the grid a quarter turn; `fieldLayer.tsx` draws goal lines horizontally. The vertical-tuning experiment (1.2 lateral stretch, margin 12, shell open by default, etc.) lives only on `checkpoint/fieldview-vertical-tuning` and is **not** carried forward.
+- `main` has the **committed vertical** layout: `yardToPixel` maps `y*PIXELS_PER_YARD → x` and `(FIELD.length - x) → y`; `STAGE_MARGIN = {top:36,right:20,bottom:20,left:20}`; `fieldLayer.tsx` draws goal lines horizontally. *(Corrected in P1: committed `heatmap.ts` blits the grid straight, with no rotation, so the vertical field's heat map was distorted — the quarter-turn fix existed only in the parked WIP. The horizontal flip makes the straight blit correct.)* The vertical-tuning experiment (1.2 lateral stretch, margin 12, shell open by default, etc.) lives only on `checkpoint/fieldview-vertical-tuning` and is **not** carried forward.
 - Deferred, not built here: defense following on drag; Advanced settings UI.
 - Must NOT change: `space/*` (except `palette.ts`: additive second ramp), `motion/*`, `scene/*` (except additive presets/takeaways and an additive helper or two), `play/*` semantics, `useOverlayState` as a module-level external store (canon convention), `scene/possession.ts`'s sole-writer rule for `Player.role` (ADR-17).
 - The encyclopedia `Layout.tsx` currently wraps `/fieldview` (64 px sticky header + mobile nav row + footer).

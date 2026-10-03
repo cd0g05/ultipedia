@@ -7,14 +7,15 @@ export const FIELD_TOKENS = {
   lineColor: "#a1a1aa", // zinc-400
   lineWidth: 1.5,
   brickRadius: 2.5,
-  attackArrowColor: "#EF4B8A", // film-accentPink
   attackLabel: {
-    // The arrow alone reads as decoration. Say what it means.
-    text: "ATTACKING",
-    fill: "#EF4B8A",
+    // Said in words, inside the field at the bottom near midfield (the stage
+    // has no spare margin for an arrow). Colour is the style guide's pink.
+    text: "ATTACKING →",
+    fill: "#be185d", // film-accentPink
     fontSize: 11,
     letterSpacing: 1.5,
-    gapPx: 10, // between the end of the label and the tail of the arrow
+    fontFamily: "'JetBrains Mono', ui-monospace, monospace",
+    insetPx: 6, // baseline distance from the bottom sideline
   },
   // The hover reticle marks the cell the readout is describing. White rather
   // than black: it sits on top of the heatmap, which runs red → amber → green,
@@ -26,58 +27,72 @@ export const FIELD_TOKENS = {
   },
   // The marquee: drag a box over empty grass to select the players inside it.
   marquee: {
-    stroke: "#EF4B8A", // film-accentPink
+    stroke: "#be185d", // film-accentPink
     strokeWidth: 1.5,
     strokeDasharray: "4 3",
-    fill: "#EF4B8A",
+    fill: "#be185d",
     fillOpacity: 0.08,
   },
 };
 
-// Sizes are in SVG user units, i.e. PIXELS_PER_YARD (8) per yard. A real
-// player occupies about a yard, but this is a coaching diagram, not a scale
-// drawing — pieces are drawn at roughly 1.9 yd across so they read across a
-// room. Grab distance is deliberately NOT derived from these (see pick.ts),
-// which is what lets the pieces shrink without the board getting fiddlier to
-// use: at 9 (2.25 yd) all fourteen read as crowded and made the field itself
-// feel small, so this is a third of a yard back off that.
+// Sizes are in SVG user units, i.e. PIXELS_PER_YARD (8) per yard. This is a
+// coaching diagram, not a scale drawing: pieces are drawn ~2.9 yd across so
+// they read across a huddle. The stage is scaled to fit, so on a phone it
+// shrinks (~0.93x at 844 px wide) — radius 11.5 draws a ~21 px piece there,
+// which is what the approved mockups assume.
+// PLACEHOLDER(fieldview-ui-rework): radius is a first guess; tune on a real
+// phone in the P5 real-device pass (docs/fieldview-placeholders.md #12).
+//
+// Grab distance is deliberately NOT derived from these (see pick.ts), which
+// is what lets the pieces change size without the board getting fiddlier to
+// use.
+//
+// Team identity never rests on hue alone (heatmap runs red → green): offense
+// is a FILLED dark disc, defense a WHITE disc with a dark ring.
 export const PIECE_TOKENS = {
   offense: {
-    fill: "#4F941D", // film-accentGreen
-    radius: 7.5,
+    fill: "#18181b", // zinc-900
+    stroke: "#ffffff",
+    strokeWidth: 1.5,
+    labelFill: "#ffffff",
+    radius: 11.5,
   },
   defense: {
-    fill: "#D64B4A",
-    radius: 7.5,
+    fill: "#ffffff",
+    stroke: "#18181b",
+    strokeWidth: 2.5,
+    labelFill: "#18181b",
+    radius: 11.5,
   },
   special: {
     // thrower + mark are the same size as everyone else — a bigger dot read as
-    // "more important" rather than "different". Their outline and their T / M
-    // labels are what identify them.
-    radius: 7.5,
+    // "more important" rather than "different". The thrower is also marked by
+    // the disc beside it, the mark by its direction line; the heavier ring is
+    // what shows on the mark's white disc.
+    radius: 11.5,
     stroke: "#18181b", // zinc-900
-    strokeWidth: 1.5,
+    strokeWidth: 4,
   },
   disc: {
-    fill: "#f4f4f5", // zinc-100
+    fill: "#ffffff",
     stroke: "#18181b",
-    strokeWidth: 1,
-    radius: 3.5,
-    offsetPx: { dx: 10, dy: -10 }, // docked this far from the thrower, in screen pixels
+    strokeWidth: 1.5,
+    radius: 5,
+    offsetPx: { dx: 14, dy: -14 }, // docked this far from the thrower, in screen pixels
   },
   markDirection: {
     stroke: "#18181b",
-    strokeWidth: 1.5,
-    lengthPx: 20,
+    strokeWidth: 2,
+    lengthPx: 26,
   },
   label: {
-    fill: "#ffffff",
-    // Tracks the piece radius: a 9 px glyph in a 7.5 px circle touches the rim.
-    fontSize: 8,
+    // Tracks the piece radius: an 11 px glyph in a 11.5 px circle touches the rim.
+    fontSize: 12,
+    fontFamily: "'JetBrains Mono', ui-monospace, monospace",
   },
   focusRing: {
-    stroke: "#EF4B8A",
-    strokeWidth: 2,
+    stroke: "#be185d",
+    strokeWidth: 2.5,
     // Sits outside the glyph rather than on it, so the piece's own colour
     // stays readable while focused.
     gap: 3,
@@ -85,18 +100,18 @@ export const PIECE_TOKENS = {
   // Throwing mode (fieldview-play-model): eligible receivers are emphasised
   // and everything else recedes, so an armed tool is never invisible.
   //
-  // #EF4B8A is the CANVAS accent, deliberately not SHELL_TOKENS.accent
-  // (#be185d) — canon ADR-16 keeps chrome and game entities on separate
-  // accents because they mean different things, and this ring is drawn on a
-  // game entity. The de-emphasis is opacity rather than a second grey, so it
-  // composes over whatever the heatmap is painting underneath.
+  // The canvas accent is now the style guide's #be185d, the same as shell
+  // chrome — canon ADR-16's two-accent split is superseded by the UI rework
+  // (the "client review" it waited for decided on one system). The
+  // de-emphasis is opacity rather than a second grey, so it composes over
+  // whatever the heatmap is painting underneath.
   throwTarget: {
-    stroke: "#EF4B8A",
-    strokeWidth: 2,
+    stroke: "#be185d",
+    strokeWidth: 2.5,
     strokeDasharray: "3 2",
     // Outside the focus ring, so a focused receiver shows both rather than
     // one covering the other.
-    gap: 6,
+    gap: 7,
     dimOpacity: 0.35,
   },
 };
@@ -114,10 +129,9 @@ export const EXPORT_TOKENS = {
 // Scope is deliberately narrow: buttons, borders, and panel backgrounds for
 // ui/shell/. Never import this into render/pieceLayer.tsx, render/fieldLayer.tsx,
 // or anywhere else that draws a piece or a field marking — those read
-// FIELD_TOKENS/PIECE_TOKENS above, whose #EF4B8A accent identifies game
-// entities and is intentionally left untouched (ADR-6 resolves what would
-// otherwise be a two-accent inconsistency: chrome and canvas are allowed to
-// diverge because they mean different things).
+// FIELD_TOKENS/PIECE_TOKENS above. (Both now use the same #be185d accent —
+// fieldview-ui-rework superseded canon ADR-16's two-accent split — but the
+// token groups stay separate so shell chrome and canvas can still diverge.)
 //
 // Values are kept in sync by hand with the `film` colors in
 // tailwind.config.js (base/panel/border/accentPink) — that Tailwind palette
@@ -145,19 +159,19 @@ export const ROUTE_TOKENS = {
   marker: {
     size: 1.6, // yards, per side
     fill: "#ffffff",
-    stroke: "#EF4B8A",
+    stroke: "#be185d",
     strokeWidth: 0.28,
   },
   // The number inside the marker: which leg this is, counting from 1.
   markerLabel: {
-    fill: "#EF4B8A",
+    fill: "#be185d",
     fontSize: 1.15,
     fontFamily: "'JetBrains Mono', ui-monospace, monospace",
   },
   // Legs are dashed so a planned path never reads as a drawn annotation —
   // Initiative D's arrows will be solid, and the two must stay tellable apart.
   leg: {
-    stroke: "#EF4B8A",
+    stroke: "#be185d",
     strokeWidth: 0.22,
     dash: "1.2 0.8",
     opacity: 0.75,
@@ -166,7 +180,7 @@ export const ROUTE_TOKENS = {
   // the bottom sheet may be collapsed over the panel that would otherwise say
   // so — and the field is read-only in that state (ux.md UI States).
   runningIndicator: {
-    fill: "#EF4B8A",
+    fill: "#be185d",
     textFill: "#ffffff",
     fontSize: 1.6,
   },

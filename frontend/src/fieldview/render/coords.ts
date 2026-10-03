@@ -1,44 +1,45 @@
 // Yard -> pixel transform. This is the only place fieldview coordinates
-// leave yards; scene/ and (later) space/ never see a pixel value. It is also
-// the *only* place orientation lives (tech-design.md ADR-2): the field
-// renders vertically, offense attacking up the screen, and nothing outside
-// this file encodes that fact. scene/ stays orientation-agnostic — yard.x is
-// still "downfield, +x = attacking" (scene/types.ts) no matter how the stage
-// draws it; only this transform decides which screen axis that becomes.
+// leave yards; scene/ and space/ never see a pixel value. It is also the
+// *only* place orientation lives (canon ADR-11, ADR-28): the field renders
+// horizontally, offense attacking to the right, and nothing outside this file
+// encodes that fact. scene/ stays orientation-agnostic — yard.x is still
+// "downfield, +x = attacking" (scene/types.ts) no matter how the stage draws
+// it; only this transform decides which screen axis that becomes.
+//
+// Horizontal because the field is 2.75x longer than it is wide and every
+// target device is used in landscape: a vertical field is a thin ribbon on a
+// laptop and a small one on a phone (fieldview-ui-rework ADR-28).
 
 import type { Vec2 } from "../scene/types";
-import { FIELD } from "../scene/field";
 
 export const PIXELS_PER_YARD = 8;
 
-// Downfield yards (x) become screen-vertical, decreasing pixel-y as x grows,
-// so attacking (+x) points up the screen. Lateral yards (y) become
-// screen-horizontal unchanged. Flipping via `FIELD.length - x` (rather than
-// a bare negation) keeps every on-field point at a non-negative pixel-y, so
-// the pixel space stays [0, FIELD.length*PIXELS_PER_YARD] just like the
-// pre-rotation [0, FIELD.length*PIXELS_PER_YARD] horizontal span did —
-// getStageViewBox's margin math doesn't need to special-case a negative
-// range as a result.
+// Downfield yards (x) become screen-horizontal, increasing to the right, so
+// attacking (+x) points right. Lateral yards (y) become screen-vertical,
+// increasing downward, with y = 0 the top sideline. Pixel space is therefore
+// [0, FIELD.length*PIXELS_PER_YARD] x [0, FIELD.width*PIXELS_PER_YARD] with no
+// negative range, so getStageViewBox's margin math needs no special case.
 export function yardToPixel(pos: Vec2): Vec2 {
   return {
-    x: pos.y * PIXELS_PER_YARD,
-    y: (FIELD.length - pos.x) * PIXELS_PER_YARD,
+    x: pos.x * PIXELS_PER_YARD,
+    y: pos.y * PIXELS_PER_YARD,
   };
 }
 
 export function pixelToYard(pos: Vec2): Vec2 {
   return {
-    x: FIELD.length - pos.y / PIXELS_PER_YARD,
-    y: pos.x / PIXELS_PER_YARD,
+    x: pos.x / PIXELS_PER_YARD,
+    y: pos.y / PIXELS_PER_YARD,
   };
 }
 
-// Margin around the field itself so the attacking-direction indicator and
-// its label have room to render above the sideline. Shared by every stage
+// A breathing margin around the field. Pieces at the sideline are drawn
+// centred on it, so the margin has to hold a piece's radius plus its focus
+// ring or the stage's own clip would shave the glyph. Shared by every stage
 // (static or interactive) so their viewBoxes — and therefore pointer math —
 // agree. FieldCanvas also derives the heatmap canvas's inset from this, so
 // changing it moves the field markings and the overlay together.
-export const STAGE_MARGIN = { top: 36, right: 20, bottom: 20, left: 20 };
+export const STAGE_MARGIN = { top: 16, right: 16, bottom: 16, left: 16 };
 
 export interface ViewBox {
   x: number;
@@ -47,12 +48,8 @@ export interface ViewBox {
   height: number;
 }
 
-// Field-relative, not axis-relative: callers pass whatever their on-screen
-// width/height actually are. Since fieldLayer.tsx's FIELD_PX_WIDTH/HEIGHT
-// now measure the vertical field (width = FIELD.width * PIXELS_PER_YARD,
-// height = FIELD.length * PIXELS_PER_YARD — swapped from the pre-rotation
-// horizontal field), this function's own math is unchanged; it was already
-// generic over which yard dimension maps to which screen dimension.
+// Callers pass the field's on-screen pixel width and height (fieldLayer.tsx's
+// FIELD_PX_WIDTH/HEIGHT: downfield span by lateral span).
 export function getStageViewBox(fieldPxWidth: number, fieldPxHeight: number): ViewBox {
   return {
     x: -STAGE_MARGIN.left,

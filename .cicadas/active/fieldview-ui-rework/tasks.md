@@ -31,19 +31,28 @@ and record the number in the Reflect notes).
 
 ## Partition: feat/fieldview-ui-render
 
-- [ ] Re-measure baseline on clean `main` (`npx vitest run src/fieldview`, `npm run test:perf`); record counts and perf numbers <!-- id: 1 -->
-- [ ] Audit every consumer of `yardToPixel`/`pixelToYard`/`PIXELS_PER_YARD*`/`FIELD_PX_*`/`getStageViewBox`/`STAGE_MARGIN`; list them in Reflect notes <!-- id: 2 -->
-- [ ] `render/coords.ts`: horizontal `yardToPixel`/`pixelToYard`; re-derive `STAGE_MARGIN` and `getStageViewBox`; update comments (ADR-28) <!-- id: 3 -->
-- [ ] `render/fieldLayer.tsx`: vertical goal lines, brick marks, `FIELD_PX_WIDTH/HEIGHT` swapped back, "ATTACKING →" label <!-- id: 4 -->
-- [ ] `render/heatmap.ts`: delete the quarter-turn blit; `fieldPixelSize` swapped back; paint stays allocation-free <!-- id: 5 -->
-- [ ] Corner-registration test: heat canvas, goal lines and a piece at yard corners land at the same pixel corners <!-- id: 6 -->
-- [ ] `render/pieceLayer.tsx` + `render/tokens.ts`: offense filled dark / defense white ring, numerals in JetBrains Mono, larger radius token, thrower disc, mark direction, focus/selection ring `#be185d`, field line colour; keep ADR-10 <!-- id: 7 -->
-- [ ] `ui/FieldCanvas.tsx`: width-bound stage sizing; heatmap canvas inset math from the new margin; `aria-label` "attacks right" <!-- id: 8 -->
-- [ ] `pages/FieldStage.tsx` and `render/exportImage.ts` verified against the new orientation (exportImage reads live viewBox) <!-- id: 9 -->
-- [ ] Update orientation/token tests: `coords`, `heatmap`, `pick`, `drag`, `exportImage`, `tokensGuard`, relevant parts of `overlay` <!-- id: 10 -->
-- [ ] Profiler test (0 commits / 25 pointer moves) and `npm run test:perf` pass; record numbers <!-- id: 11 -->
+- [x] Re-measure baseline on clean `main` (`npx vitest run src/fieldview`, `npm run test:perf`); record counts and perf numbers <!-- id: 1 -->
+- [x] Audit every consumer of `yardToPixel`/`pixelToYard`/`PIXELS_PER_YARD*`/`FIELD_PX_*`/`getStageViewBox`/`STAGE_MARGIN`; list them in Reflect notes <!-- id: 2 -->
+- [x] `render/coords.ts`: horizontal `yardToPixel`/`pixelToYard`; re-derive `STAGE_MARGIN` and `getStageViewBox`; update comments (ADR-28) <!-- id: 3 -->
+- [x] `render/fieldLayer.tsx`: vertical goal lines, brick marks, `FIELD_PX_WIDTH/HEIGHT` swapped back, "ATTACKING →" label <!-- id: 4 -->
+- [x] `render/heatmap.ts`: delete the quarter-turn blit; `fieldPixelSize` swapped back; paint stays allocation-free <!-- id: 5 -->
+- [x] Corner-registration test: heat canvas, goal lines and a piece at yard corners land at the same pixel corners <!-- id: 6 -->
+- [x] `render/pieceLayer.tsx` + `render/tokens.ts`: offense filled dark / defense white ring, numerals in JetBrains Mono, larger radius token, thrower disc, mark direction, focus/selection ring `#be185d`, field line colour; keep ADR-10 <!-- id: 7 -->
+- [x] `ui/FieldCanvas.tsx`: width-bound stage sizing; heatmap canvas inset math from the new margin; `aria-label` "attacks right" <!-- id: 8 -->
+- [x] `pages/FieldStage.tsx` and `render/exportImage.ts` verified against the new orientation (exportImage reads live viewBox) <!-- id: 9 -->
+- [x] Update orientation/token tests: `coords`, `heatmap`, `pick`, `drag`, `exportImage`, `tokensGuard`, relevant parts of `overlay` <!-- id: 10 -->
+- [x] Profiler test (0 commits / 25 pointer moves) and `npm run test:perf` pass; record numbers <!-- id: 11 -->
 - [ ] Rendered piece and field look matches the mockup language <!-- NEEDS MANUAL REVIEW --> <!-- id: 12 -->
-- [ ] Reflect: update tech-design (Brownfield Notes) with the audit result; full suite green; `tsc -b` clean <!-- id: 13 -->
+- [x] Reflect: update tech-design (Brownfield Notes) with the audit result; full suite green; `tsc -b` clean <!-- id: 13 -->
+
+**Reflect — P1 (2026-10-03):**
+- Baseline on clean `main`: **46 files / 666 tests**, `computeGrid` best 9.29 ms, §8.9 frame 10.07 ms, motion frame 9.93 ms. (The 671 earlier was the WIP tree.) After P1: **46 files / 670 tests** green, `tsc -b` clean; perf: grid 9.43 ms, §8.9 frame 11.42 ms (budget 16), motion frame 9.31 ms.
+- **Audit result:** only `FieldCanvas`, `fieldLayer`, `heatmap`, `pieceLayer`, `routeLayer`, `FieldStage`, `Whiteboard` (reads `STAGE_MARGIN`/`FIELD_PX_*` for export crop) and tests consume the coords helpers — ADR-11's "orientation lives only in coords.ts" held.
+- **Surprise (good):** committed `main`'s `heatmap.ts` blits the grid *straight* onto the canvas (the quarter-turn fix lived only in the parked WIP), so `main`'s vertical field had a distorted heat map. The horizontal flip makes the straight blit correct, so task 5 became "update comments and `fieldPixelSize`" and the corner-registration test pins it.
+- **Surprise 2:** `main`'s `FieldCanvas` stage is already width-bound (`w-full`; no `fitHeight`), so task 8 was only the aria label and the reticle radius.
+- **Behaviour changes worth knowing (both are fixes):** arrow-key nudge now moves a piece the way the key points on screen (it was yard-space, so ArrowRight went *up* on the vertical field); the mark's direction line now points the right way (it mixed yard and pixel axes before).
+- Task 12 (visual match to mockup) left open for the Builder: the old Whiteboard page squeezes the field into a ~420 px column, so judge piece size on the new frame (P2), not this page. Space View heat visibly registers with the goal lines in the browser pane.
+- Piece radius 11.5 is marked `PLACEHOLDER(fieldview-ui-rework)` in `render/tokens.ts` and registered (#12).
 
 ## Partition: feat/fieldview-ui-frame
 

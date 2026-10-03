@@ -11,7 +11,7 @@ placeholder is resolved, set Status to `done` (don't delete the row until the in
 Status: `open` = Builder must supply/confirm · `toy` = a development stand-in exists in code ·
 `tune` = real value needs device/by-eye tuning · `done`.
 
-*Last updated: 2026-10-03 (initiative specs approved; no code yet — all rows below are planned, not yet in code).*
+*Last updated: 2026-10-03 (P1 render merged-ready: row 12 is now in code; all other rows are still planned).*
 
 ## Content the Builder must supply
 
@@ -38,7 +38,7 @@ Status: `open` = Builder must supply/confirm · `toy` = a development stand-in e
 
 | # | Area | First-guess value | Where | Needs | Partition | Status |
 |---|---|---|---|---|---|---|
-| 12 | **Piece radius** | ~11–12 SVG units (≈22 px on a phone) | `render/tokens.ts` | Real-phone check in a huddle-distance context | P1/P5 | tune |
+| 12 | **Piece radius** | 11.5 SVG units (≈21 px on a phone) — **in code**, marked `PLACEHOLDER` in `render/tokens.ts` (`PIECE_TOKENS`) | `render/tokens.ts` | Real-phone check in a huddle-distance context | P1/P5 | tune (in code) |
 | 13 | **Touch grab radius** | ≥ ~44 px effective | `render/pick.ts` | Real-device check | P5 | tune |
 | 14 | **`desktop` breakpoint** | ≥1280 × ≥640 px | `tailwind.config.js` | Real tablet/laptop check (canon already says the old 1024 px was never validated) | P2/P5 | tune |
 | 15 | **Colour-blind palette** | orange `#e8731a` → neutral `#f3efe3` → blue `#2f7fd6` | `space/palette.ts` | Confirm the colours (ideally check with a colour-blind player) | P2 | tune |
