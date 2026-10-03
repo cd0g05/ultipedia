@@ -67,6 +67,8 @@ and see the field shading respond.
 
 ## Built but not surfaced (re-attach later)
 
+> **Reference implementation kept alive:** `pages/Whiteboard.tsx` + `ui/shell/*` + `ui/PresetMenu.tsx` are now *unrouted* but still compile and are still tested (decided during P3 of fieldview-ui-rework). They compose every feature below together — start there when re-attaching one.
+
 Already implemented in some form, with code and tests in the repo, but **deliberately not in the new
 UI's MVP** (rework decision D2 and friends, 2026-10-03). Each should be quick to add back because the
 substance exists — the work is mostly UI entry points. Paths are under `frontend/src/fieldview/`.

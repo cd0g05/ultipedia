@@ -34,6 +34,21 @@
       "owner": "unknown",
       "created_at": "2026-10-03T19:26:09.380104+00:00",
       "initiative": "fieldview-ui-rework"
+    },
+    "feat/fieldview-ui-explore": {
+      "intent": "Explore mode: curated setups, setup chip/list/slide-over, custom marker + reset, Defense-follows toggle stub, selected-player card, retire old shell",
+      "modules": [
+        "frontend/src/fieldview/ui/app",
+        "frontend/src/fieldview/pages/Explore.tsx",
+        "frontend/src/fieldview/pages/Whiteboard.tsx",
+        "frontend/src/fieldview/scene/presets.ts",
+        "frontend/src/fieldview/ui/PresetMenu.tsx",
+        "frontend/src/fieldview/ui/content",
+        "frontend/src/fieldview/ui/shell"
+      ],
+      "owner": "unknown",
+      "created_at": "2026-10-03T19:31:52.771572+00:00",
+      "initiative": "fieldview-ui-rework"
     }
   }
 }

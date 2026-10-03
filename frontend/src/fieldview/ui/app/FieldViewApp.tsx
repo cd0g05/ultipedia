@@ -14,7 +14,7 @@ import { HelmetProvider } from "react-helmet-async";
 import { createSceneStore } from "../../scene/store";
 import type { SceneStore } from "../../scene/store";
 import type { Scene } from "../../scene/types";
-import { getPreset } from "../../scene/presets";
+import { CURATED_SETUPS, getPreset } from "../../scene/presets";
 import type { PieceIdentity } from "../../render/pieceLayer";
 import { MotionDriverProvider } from "../motion/driverContext";
 import { SceneStoreProvider } from "../shell/sceneStore";
@@ -39,10 +39,10 @@ export function useFieldViewApp(): FieldViewAppValue {
   return value;
 }
 
-// The setup the app opens on until a mode page loads its own.
-// PLACEHOLDER(fieldview-ui-rework): the opening setup is whichever curated
-// setup the Builder puts first (docs/fieldview-placeholders.md #1).
-const OPENING_PRESET = "vertStackForceSide" as const;
+// The setup the app opens on until a mode page loads its own: the first
+// curated setup. PLACEHOLDER(fieldview-ui-rework): whichever setup the Builder
+// puts first (docs/fieldview-placeholders.md #1).
+const OPENING_PRESET = CURATED_SETUPS[0].name;
 
 export function FieldViewApp() {
   const storeRef = useRef<SceneStore | null>(null);
