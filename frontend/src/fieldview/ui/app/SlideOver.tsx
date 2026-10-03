@@ -44,7 +44,7 @@ export function SlideOver({ open, onClose, title, children }: SlideOverProps) {
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className="absolute inset-y-0 right-0 flex w-[340px] max-w-[90vw] flex-col border-l border-film-border bg-white"
+        className="absolute inset-y-0 right-0 flex w-[340px] max-w-[90vw] flex-col border-l border-film-border bg-white pr-[env(safe-area-inset-right)]"
       >
         <div className="flex items-center justify-between border-b border-film-border px-4 py-3">
           <h2 className="font-heading text-lg uppercase">{title}</h2>

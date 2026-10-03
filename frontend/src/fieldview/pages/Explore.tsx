@@ -67,7 +67,7 @@ export function Explore() {
       checked={overlay.defenseFollows}
       onChange={overlay.setDefenseFollows}
       // PLACEHOLDER(fieldview-ui-rework): label/hint wording (#9). The toggle is a
-      // stub — it persists the pref only; nothing reads it yet.
+      // stub (#18) — it persists the pref only; nothing reads it yet.
       hint="Coming soon"
     >
       Defense follows

@@ -2,7 +2,7 @@
  "_placeholder": true,
  "formatVersion": 2,
  "name": "Flow offense",
- "description": "PLACEHOLDER (toy play, replace with a real one): Continuous cuts, each one opening the next.",
+ "description": "Continuous cuts, each one opening the next.",
  "field": {
   "length": 110,
   "width": 40,

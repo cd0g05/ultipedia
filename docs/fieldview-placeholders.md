@@ -11,7 +11,7 @@ placeholder is resolved, set Status to `done` (don't delete the row until the in
 Status: `open` = Builder must supply/confirm · `toy` = a development stand-in exists in code ·
 `tune` = real value needs device/by-eye tuning · `done`.
 
-*Last updated: 2026-10-03 (P1–P4 in code; P4 added rows 3, 4, 5, 17; P3 added rows 1, 2, 10 and the Defense-follows stub; P1 and P2: rows 1 (opening setup only), 6, 7, 8, 9 (menu half), 11, 12, 14, 15 have `PLACEHOLDER` markers; the rest are still planned).*
+*Last updated: 2026-10-03 (P1–P5 in code; the audit test `tests/placeholderAudit.test.ts` now enforces markers ⇄ rows. P5 added rows 13 (lift) and 16; P1–P4: P4 added rows 3, 4, 5, 17; P3 added rows 1, 2, 10 and the Defense-follows stub; P1 and P2: rows 1 (opening setup only), 6, 7, 8, 9 (menu half), 11, 12, 14, 15 have `PLACEHOLDER` markers; the rest are still planned).*
 
 ## Content the Builder must supply
 
@@ -39,10 +39,10 @@ Status: `open` = Builder must supply/confirm · `toy` = a development stand-in e
 | # | Area | First-guess value | Where | Needs | Partition | Status |
 |---|---|---|---|---|---|---|
 | 12 | **Piece radius** | 11.5 SVG units (≈21 px on a phone) — **in code**, marked `PLACEHOLDER` in `render/tokens.ts` (`PIECE_TOKENS`) | `render/tokens.ts` | Real-phone check in a huddle-distance context | P1/P5 | tune (in code) |
-| 13 | **Touch grab radius** | ≥ ~44 px effective | `render/pick.ts` | Real-device check | P5 | tune |
+| 13 | **Touch grab radius and lift distance** | target 44 px (`TOUCH_TARGET_PX`) and lift 30 units (`TOUCH_TOKENS.liftPx`) — **in code** | `render/pick.ts`, `render/tokens.ts` | Real-device check (`docs/fieldview-device-qa.md`) | P5 | tune (in code) |
 | 14 | **`desktop` breakpoint** | ≥1280 × ≥640 px — **in code** (also `--fv-chrome` in `index.css`) | `tailwind.config.js` | Real tablet/laptop check (canon already says the old 1024 px was never validated) | P2/P5 | tune |
 | 15 | **Colour-blind palette** | orange `#e8731a` → neutral `#f3efe3` → blue `#2f7fd6` — **in code** | `space/constants.ts` (`CB_RAMP_STOPS`) | Confirm the colours (ideally check with a colour-blind player) | P2 | tune |
-| 16 | **Heat opacity / field look** | Existing `HEATMAP_ALPHA` 0.78 | `render/heatmap.ts` | By-eye on sun/glare | P5 | tune |
+| 16 | **Heat opacity / field look** | Existing `HEATMAP_ALPHA` 0.78 — marked in code | `render/heatmap.ts` | By-eye on sun/glare | P5 | tune (in code) |
 | 17 | **Playback feel** | speeds 0.5× / 1× / 2×; transition 1.2 s; hold 0.4 s — **in code** | `ui/playback/playback.ts` | Feel check | P4 | tune (in code) |
 
 ## Deferred features that leave a visible stub

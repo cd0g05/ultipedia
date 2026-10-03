@@ -21,7 +21,7 @@ C author pre-programmed plays.
 
 ## Product shape
 
-Implementation plan: `docs/fieldview-ui-rework-plan.md` (drafted 2026-10-03). Things the Builder still has to supply: `docs/fieldview-placeholders.md`.
+Implementation plan: `docs/fieldview-ui-rework-plan.md` (drafted 2026-10-03). Real-device checklist: `docs/fieldview-device-qa.md`. Things the Builder still has to supply: `docs/fieldview-placeholders.md`.
 
 Three modes on one field: **Watch · Explore · Build**. Hamburger menu switches modes.
 Layout reference: `design/fieldview-watch-explore-mockup.html` (single top bar; field fills the rest).
@@ -31,20 +31,20 @@ Layout reference: `design/fieldview-watch-explore-mockup.html` (single top bar; 
 Watch + Explore, optimized for phone/tablet. If nothing else ships, a visitor can drag players around
 and see the field shading respond.
 
-- [ ] Explore: horizontal field, drag players, live heatmap
-- [ ] Explore: setup/preset picker (a few presets authored by the Builder, with one-line takeaways)
-- [ ] Explore: colour guide (tappable legend, “how to read the colours”)
-- [ ] Explore: "Defense follows" toggle **stub** (persisted pref, labelled "coming soon"; lives in the menu / sidebar) — behaviour deferred, see Future
-- [ ] Watch: play/pause, prev/next, progress dots, play selector (a few Builder-authored plays)
-- [ ] Hamburger menu: modes, how-to-read-colours, Settings
-- [ ] Settings: colour-blind mode (default is red/amber/green; CB mode = orange→blue)
-- [ ] Light theme by default
-- [ ] Touch dragging that works with a thumb (lifted piece + ghost at origin, ~44px hit area)
+- [x] Explore: horizontal field, drag players, live heatmap
+- [x] Explore: setup/preset picker (a few presets authored by the Builder, with one-line takeaways)
+- [x] Explore: colour guide (tappable legend, “how to read the colours”)
+- [x] Explore: "Defense follows" toggle **stub** (persisted pref, labelled "coming soon"; lives in the menu / sidebar) — behaviour deferred, see Future
+- [x] Watch: play/pause, prev/next, progress dots, play selector (a few Builder-authored plays)
+- [x] Hamburger menu: modes, how-to-read-colours, Settings
+- [x] Settings: colour-blind mode (default is red/amber/green; CB mode = orange→blue)
+- [x] Light theme by default
+- [x] Touch dragging that works with a thumb (lifted piece + ghost at origin, ~44px hit area)
 - [ ] Works on phone/tablet landscape; usable on laptop
-- [ ] Desktop layout (`design/fieldview-desktop-mockup.html`): tabs instead of hamburger, always-open
+- [x] Desktop layout (`design/fieldview-desktop-mockup.html`): tabs instead of hamburger, always-open
       right sidebar (setups/plays, options), dock under field (Explore: readout + selected player +
       colour guide; Watch: transport + frame filmstrip)
-- [ ] Build tab exists as a "coming next iteration" placeholder only (no designer in MVP)
+- [x] Build tab exists as a "coming next iteration" placeholder only (no designer in MVP)
 - [ ] Offline-capable after first load (practice fields have bad signal) — *confirm as requirement*
 
 ## Stretch goals
@@ -54,16 +54,16 @@ and see the field shading respond.
 - [ ] Desktop Explore: ideas to fill the space under the field (currently only a selected-player
       stats card) — TBD
 - [ ] Optional "reading the field" hint sentence (cut from desktop Explore 2026-10-03; revisit if wanted)
-- [ ] Watch (desktop): 4-up frame filmstrip that scrolls sideways for plays with more frames; plays
+- [x] Watch (desktop): 4-up frame filmstrip that scrolls sideways for plays with more frames; plays
       list shows 5 and scrolls for more (also applies to setups list)
-- [ ] Watch: playback speed (0.5×/1×/2×), loop, trails — shown in desktop sidebar
+- [x] Watch: playback speed (0.5×/1×/2×), loop, trails — shown in desktop sidebar
 - [ ] Save a play and share it by link (play encoded in the URL; no accounts)
 - [ ] Per-frame captions on plays (optional overlay in Watch)
 - [ ] Tap a player for detail (e.g. distance to nearest defender)
 - [ ] Coach-created presets
 - [ ] Watch: speed, loop, show/hide trails
 - [ ] Tablet layout that makes use of spare vertical room (open question)
-- [ ] Safe-area insets for notched phones
+- [x] Safe-area insets for notched phones
 
 ## Built but not surfaced (re-attach later)
 

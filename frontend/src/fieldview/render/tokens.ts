@@ -128,6 +128,27 @@ export const TRAIL_TOKENS = {
   minYards: 0.5,
 };
 
+// Touch dragging (fieldview-ui-rework ADR-35): the piece is held ABOVE the
+// finger so a thumb never hides it, and a dashed ghost marks where it came
+// from. All in SVG user units.
+// PLACEHOLDER(fieldview-ui-rework): lift distance is a first guess, tuned in the
+// real-device pass (docs/fieldview-placeholders.md #13).
+export const TOUCH_TOKENS = {
+  liftPx: 30,
+  ghost: {
+    stroke: "#18181b", // zinc-900
+    strokeWidth: 1.5,
+    dash: "4 3",
+    opacity: 0.7,
+  },
+  connector: {
+    stroke: "#18181b",
+    strokeWidth: 1.2,
+    dash: "3 3",
+    opacity: 0.5,
+  },
+};
+
 export const NUDGE = {
   yards: 1,
   shiftYards: 5,

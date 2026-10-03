@@ -8,7 +8,7 @@
 // store (an Explore setup, a Watch frame) through `loadScene`; switching mode
 // keeps the store alive and the new page loads its own scene.
 
-import { createContext, useCallback, useContext, useMemo, useRef, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { Outlet } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { createSceneStore } from "../../scene/store";
@@ -48,6 +48,23 @@ export function FieldViewApp() {
   const storeRef = useRef<SceneStore | null>(null);
   if (storeRef.current === null) storeRef.current = createSceneStore(getPreset(OPENING_PRESET));
   const store = storeRef.current;
+
+  // Phone-landscape hygiene, scoped to this app (the encyclopedia must not be
+  // affected): let the page extend under a notch so the safe-area insets the
+  // chrome pads by are real, and stop pull-to-refresh / overscroll from fighting
+  // a drag. Both are undone on unmount.
+  useEffect(() => {
+    const meta = document.querySelector('meta[name="viewport"]');
+    const original = meta?.getAttribute("content") ?? null;
+    if (meta && original && !original.includes("viewport-fit")) {
+      meta.setAttribute("content", `${original}, viewport-fit=cover`);
+    }
+    document.documentElement.classList.add("fv-active");
+    return () => {
+      if (meta && original !== null) meta.setAttribute("content", original);
+      document.documentElement.classList.remove("fv-active");
+    };
+  }, []);
 
   const [identity, setIdentity] = useState<PieceIdentity[]>(() => identityOf(store.getScene()));
 

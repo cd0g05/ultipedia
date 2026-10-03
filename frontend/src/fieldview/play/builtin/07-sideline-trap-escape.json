@@ -2,7 +2,7 @@
  "_placeholder": true,
  "formatVersion": 2,
  "name": "Sideline trap escape",
- "description": "PLACEHOLDER (toy play, replace with a real one): Get out of a sideline box.",
+ "description": "Get out of a sideline box.",
  "field": {
   "length": 110,
   "width": 40,
