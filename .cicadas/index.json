@@ -182,6 +182,13 @@
       "summary": "Animated disc flight timed by the space model's flightTime(); possession changes on arrival, not on click. 18 new tests.",
       "decisions": "",
       "modules": []
+    },
+    {
+      "timestamp": "2026-10-03T18:51:58.589889+00:00",
+      "branch": "fieldview-motion",
+      "summary": "Archived: motion model merged to main, canon synthesized (ADR-22..27)",
+      "decisions": "",
+      "modules": []
     }
   ]
 }
