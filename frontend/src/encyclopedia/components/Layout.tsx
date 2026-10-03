@@ -84,42 +84,50 @@ function MobileSearchLink() {
   );
 }
 
+/** The site header, shared by the encyclopedia Layout and the desktop frame of
+ * Field View (which is mounted outside Layout, fieldview-ui-rework ADR-29). */
+export function SiteHeader() {
+  return (
+    <header className="sticky top-0 z-50 border-b border-film-border bg-white">
+      <div className="mx-auto flex h-16 max-w-[1400px] items-center justify-between gap-4 px-4 sm:px-6 md:gap-6">
+        <div className="flex items-center gap-10">
+          <Wordmark />
+          <div className="hidden lg:block">
+            <SectionNav label="Encyclopedia sections" />
+          </div>
+        </div>
+        <div className="flex items-center gap-2 md:gap-6">
+          <SearchBar label="Header search" className="hidden md:flex md:max-w-sm lg:max-w-md" />
+          <MobileSearchLink />
+          <Link
+            to="/fieldview"
+            className="hidden whitespace-nowrap font-mono text-sm uppercase tracking-wider text-zinc-600 transition-colors hover:text-film-accentPink sm:inline"
+          >
+            Field View
+          </Link>
+          <Link
+            to="/contribute"
+            className="whitespace-nowrap border border-film-accentPink px-4 py-1.5 font-mono text-sm uppercase tracking-wider text-film-accentPink transition-colors hover:bg-film-accentPink hover:text-white"
+          >
+            Submit a Drill
+          </Link>
+        </div>
+      </div>
+      {/* Mobile/tablet section nav — the desktop nav is hidden below lg. */}
+      <div className="border-t border-zinc-200 px-4 sm:px-6 lg:hidden">
+        <SectionNav label="Encyclopedia sections (mobile)" />
+      </div>
+    </header>
+  );
+}
+
 export function Layout() {
   return (
     <HelmetProvider>
       {/* .film-room (index.css): Helvetica body voice + hard-corner rule,
           scoped here so /contribute keeps its own visual system. */}
       <div className="film-room flex min-h-screen flex-col bg-white text-zinc-900">
-        <header className="sticky top-0 z-50 border-b border-film-border bg-white">
-          <div className="mx-auto flex h-16 max-w-[1400px] items-center justify-between gap-4 px-4 sm:px-6 md:gap-6">
-            <div className="flex items-center gap-10">
-              <Wordmark />
-              <div className="hidden lg:block">
-                <SectionNav label="Encyclopedia sections" />
-              </div>
-            </div>
-            <div className="flex items-center gap-2 md:gap-6">
-              <SearchBar label="Header search" className="hidden md:flex md:max-w-sm lg:max-w-md" />
-              <MobileSearchLink />
-              <Link
-                to="/fieldview"
-                className="hidden whitespace-nowrap font-mono text-sm uppercase tracking-wider text-zinc-600 transition-colors hover:text-film-accentPink sm:inline"
-              >
-                Field View
-              </Link>
-              <Link
-                to="/contribute"
-                className="whitespace-nowrap border border-film-accentPink px-4 py-1.5 font-mono text-sm uppercase tracking-wider text-film-accentPink transition-colors hover:bg-film-accentPink hover:text-white"
-              >
-                Submit a Drill
-              </Link>
-            </div>
-          </div>
-          {/* Mobile/tablet section nav — the desktop nav is hidden below lg. */}
-          <div className="border-t border-zinc-200 px-4 sm:px-6 lg:hidden">
-            <SectionNav label="Encyclopedia sections (mobile)" />
-          </div>
-        </header>
+        <SiteHeader />
 
         <main className="flex-grow">
           <Outlet />

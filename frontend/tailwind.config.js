@@ -3,6 +3,13 @@ export default {
   content: ["./index.html", "./src/**/*.{ts,tsx}"],
   theme: {
     extend: {
+      screens: {
+        // Field View's desktop chrome (sidebar, dock, site header). One named
+        // switch so the rule lives in one place (fieldview-ui-rework ADR-30).
+        // PLACEHOLDER(fieldview-ui-rework): thresholds are first guesses; tune in
+        // the real-device pass (docs/fieldview-placeholders.md #14).
+        desktop: { raw: "(min-width: 1280px) and (min-height: 640px)" },
+      },
       colors: {
         // Intake palette (warm, vibrant-but-not-bold) — used by /contribute
         // only. Do not use in encyclopedia components.

@@ -39,6 +39,7 @@ import {
   yardToPixel,
 } from "../render/coords";
 import { createHeatmapPainter } from "../render/heatmap";
+import { colorizerFor } from "../space/palette";
 import type { HeatmapPainter } from "../render/heatmap";
 import { computeGrid } from "../space/score";
 import { explainCell } from "../space/explain";
@@ -51,6 +52,9 @@ export interface OverlaySettings {
   lens: Lens;
   layers: LayerFlags;
   params: SpaceParams;
+  // Colour-blind ramp (ADR-32). Optional so the legacy designer, which never
+  // sets it, keeps the default ramp.
+  colourBlind?: boolean;
 }
 
 // Which teams are drawn. Display-only, deliberately: the space model always
@@ -206,7 +210,9 @@ export function FieldCanvas({
   useLayoutEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const painter = createHeatmapPainter(canvas);
+    const painter = createHeatmapPainter(canvas, {
+      colorize: colorizerFor(overlayRef.current.colourBlind ?? false),
+    });
     painter.resize(FIELD_PX_WIDTH, FIELD_PX_HEIGHT);
     painterRef.current = painter;
     return () => {
@@ -396,6 +402,14 @@ export function FieldCanvas({
     paint();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [overlay.on, overlay.lens, overlay.layers, overlay.params]);
+
+  // The palette is a painter parameter (ADR-32), swapped in place rather than
+  // rebuilding the painter, then repainted.
+  useEffect(() => {
+    painterRef.current?.setColorize(colorizerFor(overlay.colourBlind ?? false));
+    paint();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [overlay.colourBlind]);
 
   // Pointer tracking is a native listener, not a React prop: a hover must
   // not cost a render, and a drag must not cost a readout recompute.

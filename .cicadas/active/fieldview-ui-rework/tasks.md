@@ -56,28 +56,38 @@ and record the number in the Reflect notes).
 
 ## Partition: feat/fieldview-ui-frame
 
-- [ ] Extract `SiteHeader` from `encyclopedia/components/Layout.tsx` (Layout renders it unchanged) <!-- id: 20 -->
-- [ ] `tailwind.config.js`: add `desktop` screen `(min-width:1280px) and (min-height:640px)` <!-- id: 21 -->
-- [ ] `ui/app/FieldViewApp.tsx`: layout route owning `SceneStore`, single `MotionDriverProvider`, selection/scene context; renders `<Outlet/>` <!-- id: 22 -->
-- [ ] `router.tsx`: `/fieldview/*` as a sibling of `Layout`; `/fieldview` → `/fieldview/explore`; `explore|watch|build`; keep `/field-view*` redirects and unlinked `/fieldview/designer` <!-- id: 23 -->
-- [ ] `ui/app/TopBar.tsx` + `ModeSwitcher` (tabs on desktop, hamburger on compact) <!-- id: 24 -->
-- [ ] `ui/app/CompactFrame.tsx`: 56/72 px top bar slots, field slot, drawer mounting <!-- id: 25 -->
-- [ ] `ui/app/DesktopFrame.tsx`: `SiteHeader` + app bar, right sidebar slot, dock slot <!-- id: 26 -->
-- [ ] `ui/app/MenuDrawer.tsx`: modes, Back to Ultipedia, How to read the colours, Colour-blind mode switch (no "More settings" — Advanced is deferred); desktop gear popover holds the same Colour-blind switch <!-- id: 27 -->
-- [ ] `ui/app/RotateNotice.tsx`: portrait + narrow viewport, dismissible <!-- id: 28 -->
-- [ ] `space/palette.ts`: colour-blind stop set (orange→neutral→blue) and ramp variant; shared stop arrays exported <!-- id: 29 -->
-- [ ] `ui/prefs.ts`: `colourBlind`, `defenseFollows`; v2 storage key with read-through that ignores old `on`; validation/clamping tests <!-- id: 30 -->
-- [ ] Wire palette to `createHeatmapPainter({ colorize })` from prefs; heat default on <!-- id: 31 -->
-- [ ] `ui/content/Legend.tsx` (Closed / Contested / Strong space, gradient from the shared stops) and `ColourGuide.tsx` popover (Escape/outside dismiss, focus return) <!-- id: 32 -->
-- [ ] `pages/Build.tsx`: placeholder (desktop dashed regions + card; compact card only); "Soon" badge on the tab <!-- id: 33 -->
-- [ ] Tests: routes and redirects <!-- id: 34 -->
-- [ ] Tests: frame switch classes; one `FieldCanvas`; one driver <!-- id: 35 -->
-- [ ] Tests: legend stops === palette stops; colour-blind toggle changes ramp and legend; stale `on:false` still shows heat <!-- id: 36 -->
-- [ ] Tests: rotate notice shows/dismisses; menu keyboard + focus return <!-- id: 37 -->
+- [x] Extract `SiteHeader` from `encyclopedia/components/Layout.tsx` (Layout renders it unchanged) <!-- id: 20 -->
+- [x] `tailwind.config.js`: add `desktop` screen `(min-width:1280px) and (min-height:640px)` <!-- id: 21 -->
+- [x] `ui/app/FieldViewApp.tsx`: layout route owning `SceneStore`, single `MotionDriverProvider`, selection/scene context; renders `<Outlet/>` <!-- id: 22 -->
+- [x] `router.tsx`: `/fieldview/*` as a sibling of `Layout`; `/fieldview` → `/fieldview/explore`; `explore|watch|build`; keep `/field-view*` redirects and unlinked `/fieldview/designer` <!-- id: 23 -->
+- [x] `ui/app/TopBar.tsx` + `ModeSwitcher` (tabs on desktop, hamburger on compact) <!-- id: 24 -->
+- [x] `ui/app/CompactFrame.tsx`: 56/72 px top bar slots, field slot, drawer mounting <!-- id: 25 -->
+- [x] `ui/app/DesktopFrame.tsx`: `SiteHeader` + app bar, right sidebar slot, dock slot <!-- id: 26 -->
+- [x] `ui/app/MenuDrawer.tsx`: modes, Back to Ultipedia, How to read the colours, Colour-blind mode switch (no "More settings" — Advanced is deferred); desktop gear popover holds the same Colour-blind switch <!-- id: 27 -->
+- [x] `ui/app/RotateNotice.tsx`: portrait + narrow viewport, dismissible <!-- id: 28 -->
+- [x] `space/palette.ts`: colour-blind stop set (orange→neutral→blue) and ramp variant; shared stop arrays exported <!-- id: 29 -->
+- [x] `ui/prefs.ts`: `colourBlind`, `defenseFollows`; v2 storage key with read-through that ignores old `on`; validation/clamping tests <!-- id: 30 -->
+- [x] Wire palette to `createHeatmapPainter({ colorize })` from prefs; heat default on <!-- id: 31 -->
+- [x] `ui/content/Legend.tsx` (Closed / Contested / Strong space, gradient from the shared stops) and `ColourGuide.tsx` popover (Escape/outside dismiss, focus return) <!-- id: 32 -->
+- [x] `pages/Build.tsx`: placeholder (desktop dashed regions + card; compact card only); "Soon" badge on the tab <!-- id: 33 -->
+- [x] Tests: routes and redirects <!-- id: 34 -->
+- [x] Tests: frame switch classes; one `FieldCanvas`; one driver <!-- id: 35 -->
+- [x] Tests: legend stops === palette stops; colour-blind toggle changes ramp and legend; stale `on:false` still shows heat <!-- id: 36 -->
+- [x] Tests: rotate notice shows/dismisses; menu keyboard + focus return <!-- id: 37 -->
 - [ ] No page scroll and no footer at 844×390, 1180×820, 1440×820 (by-eye in browser pane) <!-- NEEDS MANUAL REVIEW --> <!-- id: 38 -->
-- [ ] Footer assumption and dismissible rotate message confirmed with Builder <!-- NEEDS MANUAL REVIEW --> <!-- id: 39 -->
-- [ ] Register placeholders from this partition (legend/colour-guide copy, rotate message, Build copy, menu labels, route titles/meta, colour-blind hex values) with `PLACEHOLDER(fieldview-ui-rework):` markers and entries in `docs/fieldview-placeholders.md` <!-- id: 41 -->
-- [ ] Reflect: update specs; full suite green; `tsc -b` clean <!-- id: 40 -->
+- [x] Footer assumption and dismissible rotate message confirmed with Builder <!-- id: 39 -->
+- [x] Register placeholders from this partition (legend/colour-guide copy, rotate message, Build copy, menu labels, route titles/meta, colour-blind hex values) with `PLACEHOLDER(fieldview-ui-rework):` markers and entries in `docs/fieldview-placeholders.md` <!-- id: 41 -->
+- [x] Reflect: update specs; full suite green; `tsc -b` clean <!-- id: 40 -->
+
+**Reflect — P2 (2026-10-03):**
+- Suite: `npx vitest run src` **61 files / 810 tests** green (fieldview alone grew by `frame.test.tsx`: 21 new assertions + router rewrite); `tsc -b` clean.
+- **Deviations from the spec (both simplifications):** (1) ADR-30: the frame is **one** `FieldViewFrame` component with its compact and desktop parts both in the DOM and CSS-switched, not two sibling chrome components — pages supply slots (`barCenter`, `barRight`, `sidebar`, `dock`, `menuExtras`, `body`). (2) ADR-32 / task 30: **no v2 prefs key**. `FieldHost` simply forces `on: true`, so the old `on` pref (still used by the unlinked designer) is ignored and a stale `on:false` is harmless (test: "shows the heat even when the old Space View pref was stored off").
+- Palette: `space/constants.ts` gains `CB_RAMP_STOPS`; `space/palette.ts` gains `makeColorizer`, `scoreToRgbaColourBlind`, `colorizerFor`, `rampStopsFor`; the painter gets `setColorize()`. `scoreToRgba` is now `makeColorizer(RAMP_STOPS)` — identical output (tested at the end stops). `space/` otherwise untouched.
+- a11y catch: the app bar is a `div`, not `<header>` — on desktop the site header is already the one banner landmark.
+- `SiteHeader` extracted from `Layout.tsx` (Layout renders it unchanged); `/fieldview/designer` stays a Layout child.
+- Checked by eye in the browser pane (compact layout): hamburger drawer, colour guide trigger, colour-blind toggle swaps map + legend, focus returns to the opener. The desktop frame (≥1280×640) and 3-viewport no-scroll check (task 38) were not exercised there — the pane's media-query width stayed below the `desktop` screen — so task 38 stays open for the Builder.
+- Task 39: footer-omitted and dismissible-rotate assumptions were confirmed by the Builder at kickoff.
+- Placeholders registered in code and in `docs/fieldview-placeholders.md`: #1 opening setup, #6 colour-guide copy, #7 rotate notice, #8 Build copy, #9 menu labels, #11 route titles/meta, #14 desktop breakpoint (tailwind.config.js, index.css `--fv-chrome`), #15 colour-blind hex values.
 
 ## Partition: feat/fieldview-ui-explore
 
