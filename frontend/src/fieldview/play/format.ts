@@ -26,6 +26,9 @@ export interface PlayEntity {
 
 export interface PlayKeyframe {
   t: number; // seconds from play start; strictly increasing across the array
+  // Optional short name for this frame ("Cut under"), shown in Watch's
+  // filmstrip. Additive (ADR-7): older files simply lack it.
+  label?: string;
   positions: Record<string, Vec2>; // entity id -> position, yards
 }
 
@@ -78,6 +81,7 @@ export interface PlayFile {
 export const MAX_PLAY_NAME_LENGTH = 80;
 export const MAX_PLAY_DESCRIPTION_LENGTH = 500;
 export const MAX_ENTITY_LABEL_LENGTH = 10;
+export const MAX_KEYFRAME_LABEL_LENGTH = 24;
 
 export function currentPlayField(): PlayField {
   return { length: FIELD.length, width: FIELD.width, endzone: FIELD.endzone };

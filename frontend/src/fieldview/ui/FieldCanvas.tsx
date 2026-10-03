@@ -6,7 +6,7 @@
 // numbers) is written imperatively.
 
 import { useEffect, useLayoutEffect, useRef } from "react";
-import type { CSSProperties, MutableRefObject, RefObject } from "react";
+import type { CSSProperties, MutableRefObject, ReactNode, RefObject } from "react";
 import type { SceneStore } from "../scene/store";
 import type { Player, Vec2 } from "../scene/types";
 import { FIELD, clampToField } from "../scene/field";
@@ -108,6 +108,9 @@ interface FieldCanvasProps {
   // piece you cannot see must not be a piece you can accidentally drag.
   visible?: TeamVisibility;
   disabled?: boolean;
+  // Extra SVG drawn above the pieces and below the route markers (Watch's
+  // movement trails). Must be pointer-transparent: the stage owns the pointer.
+  overlayLayer?: ReactNode;
 }
 
 const viewBox = getStageViewBox(FIELD_PX_WIDTH, FIELD_PX_HEIGHT);
@@ -140,6 +143,7 @@ export function FieldCanvas({
   stageRef,
   visible = ALL_VISIBLE,
   disabled = false,
+  overlayLayer,
 }: FieldCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const painterRef = useRef<HeatmapPainter | null>(null);
@@ -867,6 +871,7 @@ export function FieldCanvas({
               completeThrow(id);
             }}
           />
+          {overlayLayer}
           {/* The selected player's pending route. Drawn above the pieces so a
               marker standing on a piece is still grabbable, and hidden during
               a run — the markers describe a plan, and while it is executing

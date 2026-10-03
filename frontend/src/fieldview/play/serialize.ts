@@ -41,7 +41,11 @@ export function toPlayFile(draft: PlayDraft): PlayFile {
     entities: draft.entities.map((e) => ({ ...e })),
     keyframes: [...draft.keyframes]
       .sort((a, b) => a.t - b.t)
-      .map((kf) => ({ t: kf.t, positions: { ...kf.positions } })),
+      .map((kf) => ({
+        t: kf.t,
+        positions: { ...kf.positions },
+        ...(kf.label ? { label: kf.label } : {}),
+      })),
     interpolation: "linear",
   };
   // Written only when the draft stated them, so a caller that knows nothing
@@ -57,7 +61,11 @@ export function fromPlayFile(file: PlayFile): PlayDraft {
     name: file.name,
     description: file.description,
     entities: file.entities.map((e) => ({ ...e })),
-    keyframes: file.keyframes.map((kf) => ({ t: kf.t, positions: { ...kf.positions } })),
+    keyframes: file.keyframes.map((kf) => ({
+      t: kf.t,
+      positions: { ...kf.positions },
+      ...(kf.label ? { label: kf.label } : {}),
+    })),
   };
   if (file.possession !== undefined) draft.possession = file.possession;
   if (file.matchups !== undefined) draft.matchups = { ...file.matchups };

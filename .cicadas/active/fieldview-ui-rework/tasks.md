@@ -117,20 +117,29 @@ and record the number in the Reflect notes).
 
 ## Partition: feat/fieldview-ui-watch
 
-- [ ] `play/format.ts` + `play/validate.ts`: optional `PlayKeyframe.label` (additive, length-capped, unknown keys still dropped); tests <!-- id: 80 -->
-- [ ] `play/plays.ts` registry + `play/builtin/*.json`; invalid files skipped and reported; ≥3 placeholder plays incl. one ≥5-frame play for development <!-- id: 81 -->
-- [ ] Toy plays (and frame labels) are placeholder content: mark with `"_placeholder": true` / `PLACEHOLDER(fieldview-ui-rework)` and register in `docs/fieldview-placeholders.md`; Builder later authors finals via the unlinked `/fieldview/designer` (exported JSON) <!-- NEEDS MANUAL REVIEW --> <!-- id: 82 -->
-- [ ] `ui/playback/playback.ts`: next/prev/goto/play/pause/speed/loop; animates between keyframes with `samplePositions`; fixed-timestep accumulator; imperative store writes; reduced motion jumps; never mutates play data <!-- id: 83 -->
-- [ ] Tests: stepping, play to end, loop, goto, speed, reduced motion, play data immutability; Profiler 0 commits per animation frame <!-- id: 84 -->
-- [ ] `ui/playback/usePlayback.ts` structural hook (frame index, status) <!-- id: 85 -->
-- [ ] `ui/content/Transport.tsx` + progress dots (jump on tap) <!-- id: 86 -->
-- [ ] `ui/content/Filmstrip.tsx`: 4-up, horizontal scroll, static thumbnails rendered once per play <!-- id: 87 -->
-- [ ] `ui/content/PlayList.tsx`: 5-up scrolling list; compact play selector (slide-over reuse) <!-- id: 88 -->
-- [ ] `ui/content/PlaybackOptions.tsx`: speed 0.5×/1×/2×, loop, trails (trails reuse `routeLayer` if feasible) <!-- id: 89 -->
-- [ ] `pages/Watch.tsx` composed in both frames per the mockups; Watch is read-only (drag disabled) <!-- id: 90 -->
-- [ ] Tests: invalid play does not crash; filmstrip/list overflow behaviour; keyboard operation of transport <!-- id: 91 -->
+- [x] `play/format.ts` + `play/validate.ts`: optional `PlayKeyframe.label` (additive, length-capped, unknown keys still dropped); tests <!-- id: 80 -->
+- [x] `play/plays.ts` registry + `play/builtin/*.json`; invalid files skipped and reported; ≥3 placeholder plays incl. one ≥5-frame play for development <!-- id: 81 -->
+- [x] Toy plays (and frame labels) are placeholder content: mark with `"_placeholder": true` / `PLACEHOLDER(fieldview-ui-rework)` and register in `docs/fieldview-placeholders.md`; Builder later authors finals via the unlinked `/fieldview/designer` (exported JSON) <!-- NEEDS MANUAL REVIEW --> <!-- id: 82 -->
+- [x] `ui/playback/playback.ts`: next/prev/goto/play/pause/speed/loop; animates between keyframes with `samplePositions`; fixed-timestep accumulator; imperative store writes; reduced motion jumps; never mutates play data <!-- id: 83 -->
+- [x] Tests: stepping, play to end, loop, goto, speed, reduced motion, play data immutability; Profiler 0 commits per animation frame <!-- id: 84 -->
+- [x] `ui/playback/usePlayback.ts` structural hook (frame index, status) <!-- id: 85 -->
+- [x] `ui/content/Transport.tsx` + progress dots (jump on tap) <!-- id: 86 -->
+- [x] `ui/content/Filmstrip.tsx`: 4-up, horizontal scroll, static thumbnails rendered once per play <!-- id: 87 -->
+- [x] `ui/content/PlayList.tsx`: 5-up scrolling list; compact play selector (slide-over reuse) <!-- id: 88 -->
+- [x] `ui/content/PlaybackOptions.tsx`: speed 0.5×/1×/2×, loop, trails (trails reuse `routeLayer` if feasible) <!-- id: 89 -->
+- [x] `pages/Watch.tsx` composed in both frames per the mockups; Watch is read-only (drag disabled) <!-- id: 90 -->
+- [x] Tests: invalid play does not crash; filmstrip/list overflow behaviour; keyboard operation of transport <!-- id: 91 -->
 - [ ] Watch feels right on a phone and a laptop with the curated plays <!-- NEEDS MANUAL REVIEW --> <!-- id: 92 -->
-- [ ] Reflect: update specs and backlog; full suite + `test:perf` green <!-- id: 93 -->
+- [x] Reflect: update specs and backlog; full suite + `test:perf` green <!-- id: 93 -->
+
+**Reflect — P4 (2026-10-03):**
+- Suite: `npx vitest run src` **65 files / 891 tests** green; `tsc -b` clean; perf: grid 9.24 ms, §8.9 frame 10.06 ms. New: `playback.test.ts` (15, hand-cranked clock), `plays.test.ts` (7), `watch.test.tsx` (15 incl. a Profiler 0-commit test across ~25 real animation frames).
+- Watch as built: seven toy plays (`play/builtin/01-…07-*.json`, generated from the presets by a throwaway script, each `"_placeholder": true`, labelled frames; Under cut has 6, Flow offense 8), `loadPlays()` (invalid file skipped + reported; deep-frozen), `createPlaybackController` (next/prev/goto/play/pause/speed/loop; transition 1.2 s, hold 0.4 s; reduced motion jumps; every stop lands on a keyframe), `Transport` + dots (collapse to the counter past 10 frames), 4-up scrolling `Filmstrip` (static thumbnails, current frame kept in view), 5-up `PlayList`, `PlaybackOptions`, `TrailLayer` (dashed arrows into the current frame), compact play selector via a new generic `SlideOver`. `FieldCanvas` gained an `overlayLayer` prop; `FieldHost`/`FieldViewFrame` gained `disabled`/`onTap`/`overlay` pass-throughs (tap the field = pause/resume).
+- **Bug the tests caught:** `tick()` rescheduled itself even when `beginMove → startClock` had already scheduled the next frame, leaving an untracked handle (uncancellable, double tick rate). Fixed (`handle === null` guard) and covered by the pause test.
+- **Format:** additive optional `PlayKeyframe.label` (validated, ≤24 chars, dropped if not a string); `serialize.ts` round-trips it.
+- **Limits worth knowing:** possession is play-level in the format, so a throw cannot be shown yet — the toy plays move people, the disc stays with the thrower. Linear tween between keyframes (the existing format's only interpolation).
+- Placeholders now in code: #3 plays, #4 names/descriptions, #5 frame labels, #17 playback feel values.
+- Task 92 (does Watch feel right on a phone and laptop with real plays) is the Builder's. Observed by eye at 844×390: transport, dots, legend and play chip match the mockup; Next glides the cutter with a trail and the heat follows.
 
 ## Partition: feat/fieldview-ui-touch-qa
 

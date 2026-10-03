@@ -20,6 +20,7 @@ import type { Role, Team, Vec2 } from "../scene/types";
 import { FIELD, clampToField } from "../scene/field";
 import {
   MAX_ENTITY_LABEL_LENGTH,
+  MAX_KEYFRAME_LABEL_LENGTH,
   MAX_PLAY_DESCRIPTION_LENGTH,
   MAX_PLAY_NAME_LENGTH,
   PLAY_FORMAT_VERSION,
@@ -79,7 +80,13 @@ function validateKeyframe(raw: unknown, entities: PlayEntity[]): PlayKeyframe {
   for (const entity of entities) {
     positions[entity.id] = validatePosition(raw.positions[entity.id], entity.id, raw.t);
   }
-  return { t: raw.t, positions };
+  // Optional and sanitised in place of rejected, like every other optional
+  // field: a bad label costs the label, never the keyframe.
+  const kf: PlayKeyframe = { t: raw.t, positions };
+  if (typeof raw.label === "string" && raw.label.length > 0) {
+    kf.label = raw.label.slice(0, MAX_KEYFRAME_LABEL_LENGTH);
+  }
+  return kf;
 }
 
 // `possession` when it names a declared entity, `null` when the file says the
