@@ -189,6 +189,13 @@
       "summary": "Archived: motion model merged to main, canon synthesized (ADR-22..27)",
       "decisions": "",
       "modules": []
+    },
+    {
+      "timestamp": "2026-10-03T19:25:59.393266+00:00",
+      "branch": "feat/fieldview-ui-render",
+      "summary": "P1 render: horizontal field, new piece tokens, corner-registration test",
+      "decisions": "",
+      "modules": []
     }
   ]
 }
