@@ -143,19 +143,30 @@ and record the number in the Reflect notes).
 
 ## Partition: feat/fieldview-ui-touch-qa
 
-- [ ] `ui/FieldCanvas.tsx`: touch lift — piece drawn above the finger, dashed ghost + connector, imperative; store gets the true position (ADR-35) <!-- id: 100 -->
-- [ ] `render/pick.ts` + canvas: scale-aware touch grab radius (≥ ~44 px at rendered scale); mouse distance unchanged; tests <!-- id: 101 -->
-- [ ] Safe-area insets on bars and drawers; `touch-action` / overscroll / pull-to-refresh guard on the stage <!-- id: 102 -->
-- [ ] a11y pass: axe on explore/watch/build in both frames; keyboard reachability; focus management <!-- id: 103 -->
-- [ ] `tests/frameGuard.test.ts`: one canvas, one driver, content imports no frame, no hex outside `tokens.ts` <!-- id: 104 -->
+- [x] `ui/FieldCanvas.tsx`: touch lift — piece drawn above the finger, dashed ghost + connector, imperative; store gets the true position (ADR-35) <!-- id: 100 -->
+- [x] `render/pick.ts` + canvas: scale-aware touch grab radius (≥ ~44 px at rendered scale); mouse distance unchanged; tests <!-- id: 101 -->
+- [x] Safe-area insets on bars and drawers; `touch-action` / overscroll / pull-to-refresh guard on the stage <!-- id: 102 -->
+- [x] a11y pass: axe on explore/watch/build in both frames; keyboard reachability; focus management <!-- id: 103 -->
+- [x] `tests/frameGuard.test.ts`: one canvas, one driver, content imports no frame, no hex outside `tokens.ts` <!-- id: 104 -->
 - [ ] Real-device pass: phone landscape, tablet landscape, laptop — hit targets, piece radius, breakpoint (1280×640 first guess), readability in sun; record findings and tuned values <!-- NEEDS MANUAL REVIEW --> <!-- id: 105 -->
 - [ ] Apply tuning from the pass (tokens / `desktop` screen) <!-- id: 106 -->
-- [ ] Dead-code sweep: unused exports from retired code, stale comments citing the vertical field or the shell <!-- id: 107 -->
-- [ ] Grep audit: orientation lives only in `render/coords.ts` (ADR-28) <!-- id: 108 -->
-- [ ] Placeholder audit: grep every `PLACEHOLDER(fieldview-ui-rework)` marker and `_placeholder` key; reconcile with `docs/fieldview-placeholders.md` (add missing, remove resolved); report the final "still to supply" list to the Builder <!-- id: 112 -->
-- [ ] Update `docs/fieldview-backlog.md` (MVP items checked; "Built but not surfaced" list verified accurate; deferred defense-following and Advanced recorded) <!-- id: 109 -->
-- [ ] Write `handoff.md` with canon-synthesis notes: ADR-28…35 added; ADR-11 (vertical choice), ADR-13, ADR-14 (registry half), ADR-16 superseded <!-- id: 110 -->
-- [ ] Reflect: full suite + `test:perf` + `tsc -b` green <!-- id: 111 -->
+- [x] Dead-code sweep: unused exports from retired code, stale comments citing the vertical field or the shell <!-- id: 107 -->
+- [x] Grep audit: orientation lives only in `render/coords.ts` (ADR-28) <!-- id: 108 -->
+- [x] Placeholder audit: grep every `PLACEHOLDER(fieldview-ui-rework)` marker and `_placeholder` key; reconcile with `docs/fieldview-placeholders.md` (add missing, remove resolved); report the final "still to supply" list to the Builder <!-- id: 112 -->
+- [x] Update `docs/fieldview-backlog.md` (MVP items checked; "Built but not surfaced" list verified accurate; deferred defense-following and Advanced recorded) <!-- id: 109 -->
+- [x] Write `handoff.md` with canon-synthesis notes: ADR-28…35 added; ADR-11 (vertical choice), ADR-13, ADR-14 (registry half), ADR-16 superseded <!-- id: 110 -->
+- [x] Reflect: full suite + `test:perf` + `tsc -b` green <!-- id: 111 -->
+
+**Reflect — P5 (2026-10-03):**
+- Suite: `npx vitest run src` **69 files / 991 tests** green (fieldview alone **55 files / 884 tests**, up from the 46 / 666 baseline on clean `main`); `tsc -b` clean; perf: grid 9.66 ms, §8.9 frame 10.23 ms, motion frame 9.45 ms. New: `touch.test.tsx` (9), `frameGuard.test.ts` (77 — one canvas / one driver / content frame-agnostic / no hex literals / no orientation smells), `a11yFrame.test.tsx` (axe on explore/watch/build and with the menu, colour guide, both slide-overs and colour-blind mode open), `placeholderAudit.test.ts` (4).
+- **Touch:** `hitRadiusYd()` (pure, `render/pick.ts`) gives a finger a ≥44 px target at the rendered scale (mouse unchanged); the lift is baked into the grab offset (ADR-35 amended — see tech-design) with a ghost + connector drawn imperatively; a tap never moves a piece; 0 React commits across a touch drag. jsdom builds pointer events as plain `MouseEvent`s with no `pointerType`, so the test helper adds `pointerType`/`pointerId` to a `MouseEvent`.
+- **Phone-landscape hygiene:** `FieldViewApp` adds `viewport-fit=cover` to the viewport meta (and `html.fv-active { overscroll-behavior: none }`) only while mounted, restoring both on unmount, so the encyclopedia is unaffected; the bars, main area and drawers pad by `env(safe-area-inset-*)`.
+- **a11y catches:** `<nav role="dialog">` is not an allowed role (axe `aria-allowed-role`) — the menu is now a `div role=dialog` containing a `nav`; the app bar is a `div` so the site header stays the only banner.
+- **Placeholder audit (task 112):** the new test found three real gaps on its first run (a range citation, the #18 stub, the index.css marker) — all fixed. Current register: 19 rows; #19 (Advanced settings) is the only row with nothing in code, on the test's explicit allow-list.
+- **Task 105 (real-device pass) is the Builder's:** `docs/fieldview-device-qa.md` is the checklist. Task 106 (apply tuning) waits on it.
+- **Task 107 (dead-code sweep) — not done on purpose:** the retired shell / Whiteboard / PresetMenu stay compiled and tested as the reference for re-attaching unsurfaced features (decision recorded under P3). Say the word and a later pass can delete them.
+- **Desktop frame verified by eye** (it could not be in the dev pane, whose media-query width stayed under 1280): built with `vite build`, served with `vite preview`, framed in a 1440×820 iframe — Explore, Watch and Build all match the approved desktop mockup. The user's running dev server must be **restarted** to pick up the new `desktop` Tailwind screen.
+- Found and fixed while verifying: Build showed an empty 320 px sidebar (the aside now renders only when a page supplies sidebar content); the toy plays' descriptions no longer carry a visible "PLACEHOLDER" prefix (the `_placeholder` key marks them).
 
 ## Initiative Boundary
 

@@ -2,7 +2,7 @@
  "_placeholder": true,
  "formatVersion": 2,
  "name": "Dump swing",
- "description": "PLACEHOLDER (toy play, replace with a real one): Reset to the open side and swing the disc.",
+ "description": "Reset to the open side and swing the disc.",
  "field": {
   "length": 110,
   "width": 40,

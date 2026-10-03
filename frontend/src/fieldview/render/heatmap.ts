@@ -29,6 +29,9 @@ export interface HeatmapPainterOptions {
 
 // The overlay sits under the pieces and must not bury the field markings;
 // the brief's prototype used a partly transparent map.
+// PLACEHOLDER(fieldview-ui-rework): the opacity is untouched from before the
+// rework but has never been judged in sunlight; confirm in the real-device pass
+// (docs/fieldview-placeholders.md #16).
 export const HEATMAP_ALPHA = 0.78;
 
 export function createHeatmapPainter(

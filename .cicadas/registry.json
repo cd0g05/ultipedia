@@ -61,6 +61,19 @@
       "owner": "unknown",
       "created_at": "2026-10-03T19:36:56.450338+00:00",
       "initiative": "fieldview-ui-rework"
+    },
+    "feat/fieldview-ui-touch-qa": {
+      "intent": "Touch lift + scale-aware grab radius, safe areas, overscroll guard, a11y pass, frame guard, placeholder audit, dead-code sweep",
+      "modules": [
+        "frontend/src/fieldview/render/pick.ts",
+        "docs",
+        "frontend/src/fieldview/ui/FieldCanvas.tsx",
+        "frontend/src/fieldview/ui/app",
+        "frontend/src/fieldview/tests"
+      ],
+      "owner": "unknown",
+      "created_at": "2026-10-03T19:44:36.691347+00:00",
+      "initiative": "fieldview-ui-rework"
     }
   }
 }

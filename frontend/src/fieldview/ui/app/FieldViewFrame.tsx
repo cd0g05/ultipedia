@@ -81,7 +81,7 @@ export function FieldViewFrame({
 
       {/* A div, not <header>: on desktop the site header is already the page's
           banner landmark, and a second one fails axe (landmark-no-duplicate-banner). */}
-      <div className="flex h-14 shrink-0 items-center gap-2 border-b border-film-border bg-white px-2 desktop:h-16 desktop:gap-4 desktop:px-6">
+      <div className="flex h-14 shrink-0 items-center gap-2 border-b border-film-border bg-white pl-[max(0.5rem,env(safe-area-inset-left))] pr-[max(0.5rem,env(safe-area-inset-right))] desktop:h-16 desktop:gap-4 desktop:px-6">
         <button
           type="button"
           aria-label="Menu"
@@ -145,7 +145,7 @@ export function FieldViewFrame({
       </div>
 
       <div className="flex min-h-0 flex-1">
-        <main className="relative flex min-h-0 min-w-0 flex-1 flex-col items-center overflow-auto px-2 desktop:p-6">
+        <main className="relative flex min-h-0 min-w-0 flex-1 flex-col items-center overflow-auto pl-[max(0.5rem,env(safe-area-inset-left))] pr-[max(0.5rem,env(safe-area-inset-right))] desktop:p-6">
           {body ??
             (showField && (
               <div
@@ -160,12 +160,14 @@ export function FieldViewFrame({
             ))}
           {dock && <div className="mt-4 hidden w-full desktop:block">{dock}</div>}
         </main>
-        <aside
-          aria-label="Sidebar"
-          className="hidden w-80 shrink-0 overflow-y-auto border-l border-film-border bg-white desktop:block"
-        >
-          {sidebar}
-        </aside>
+        {sidebar && (
+          <aside
+            aria-label="Sidebar"
+            className="hidden w-80 shrink-0 overflow-y-auto border-l border-film-border bg-white desktop:block"
+          >
+            {sidebar}
+          </aside>
+        )}
       </div>
 
       <MenuDrawer

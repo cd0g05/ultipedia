@@ -14,7 +14,7 @@ export function RotateNotice() {
     <div
       role="status"
       data-testid="rotate-notice"
-      className="fixed inset-x-0 bottom-0 z-[60] hidden items-center justify-between gap-4 border-t border-film-border bg-white px-4 py-3 [@media(orientation:portrait)_and_(max-width:640px)]:flex"
+      className="fixed inset-x-0 bottom-0 z-[60] hidden items-center justify-between gap-4 border-t border-film-border bg-white px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 [@media(orientation:portrait)_and_(max-width:640px)]:flex"
     >
       <p className="font-mono text-xs font-bold uppercase tracking-wider">
         Rotate your phone to landscape for the best view.

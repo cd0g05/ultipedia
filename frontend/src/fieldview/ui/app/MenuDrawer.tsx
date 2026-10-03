@@ -58,11 +58,11 @@ export function MenuDrawer({
         className="absolute inset-0 bg-zinc-900/50"
         onClick={onClose}
       />
-      <nav
+      <div
         aria-label="Field View menu"
         role="dialog"
         aria-modal="true"
-        className="absolute inset-y-0 left-0 w-[300px] max-w-[85vw] overflow-y-auto border-r border-film-border bg-white pb-4"
+        className="absolute inset-y-0 left-0 w-[300px] max-w-[85vw] overflow-y-auto border-r border-film-border bg-white pb-4 pl-[env(safe-area-inset-left)]"
       >
         <p className="border-b border-film-border px-4 py-4 font-heading text-lg uppercase">
           Field View
@@ -70,31 +70,33 @@ export function MenuDrawer({
         <p className="px-4 pb-1 pt-3 font-mono text-[10px] font-bold uppercase tracking-wider text-zinc-400">
           Mode
         </p>
-        <ul>
-          {MODES.map(({ mode, label, soon }, i) => (
-            <li key={mode}>
-              <NavLink
-                ref={i === 0 ? firstRef : undefined}
-                to={`/fieldview/${mode}`}
-                onClick={onClose}
-                className={({ isActive }) =>
-                  `flex items-center gap-3 border-l-[3px] px-4 py-2 font-mono text-xs font-bold uppercase tracking-wider ${
-                    isActive
-                      ? "border-film-accentPink bg-film-panel text-film-accentPink"
-                      : "border-transparent text-zinc-900 hover:bg-film-panel"
-                  }`
-                }
-              >
-                {label}
-                {soon && (
-                  <span className="ml-auto border border-zinc-300 px-1.5 text-[10px] font-normal text-zinc-500">
-                    Soon
-                  </span>
-                )}
-              </NavLink>
-            </li>
-          ))}
-        </ul>
+        <nav aria-label="Field View modes">
+          <ul>
+            {MODES.map(({ mode, label, soon }, i) => (
+              <li key={mode}>
+                <NavLink
+                  ref={i === 0 ? firstRef : undefined}
+                  to={`/fieldview/${mode}`}
+                  onClick={onClose}
+                  className={({ isActive }) =>
+                    `flex items-center gap-3 border-l-[3px] px-4 py-2 font-mono text-xs font-bold uppercase tracking-wider ${
+                      isActive
+                        ? "border-film-accentPink bg-film-panel text-film-accentPink"
+                        : "border-transparent text-zinc-900 hover:bg-film-panel"
+                    }`
+                  }
+                >
+                  {label}
+                  {soon && (
+                    <span className="ml-auto border border-zinc-300 px-1.5 text-[10px] font-normal text-zinc-500">
+                      Soon
+                    </span>
+                  )}
+                </NavLink>
+              </li>
+            ))}
+          </ul>
+        </nav>
         {extras && (
           <>
             <hr className="my-2 border-film-border" />
@@ -122,7 +124,7 @@ export function MenuDrawer({
         >
           ← Back to Ultipedia
         </Link>
-      </nav>
+      </div>
     </div>
   );
 }
