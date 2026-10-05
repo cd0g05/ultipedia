@@ -142,6 +142,16 @@ export const TRAIL_TOKENS = {
   minYards: 0.5,
 };
 
+// Build's change indicator: a faint ghost of where a player stood before the
+// current frame placed them.
+export const GHOST_TOKENS = {
+  fill: "#ffffff",
+  fillOpacity: 0.35,
+  strokeWidth: 1,
+  dash: "3 2",
+  opacity: 0.6,
+};
+
 // Touch dragging (fieldview-ui-rework ADR-35): the piece is held ABOVE the
 // finger so a thumb never hides it, and a dashed ghost marks where it came
 // from. All in SVG user units.
