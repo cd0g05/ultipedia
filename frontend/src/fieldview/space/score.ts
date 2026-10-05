@@ -4,7 +4,7 @@
 // precomputed once outside the cell loop, and the output Float32Array is
 // reused across calls so repeated grids allocate nothing.
 
-import type { Scene } from "../scene/types";
+import type { Player, Scene } from "../scene/types";
 import type { Vec2 } from "../scene/types";
 import { FIELD } from "../scene/field";
 import type { LayerFlags, Lens, ScoreGrid, SpaceParams } from "./types";
@@ -17,7 +17,6 @@ import {
   flightTime,
   laneFactorFast,
   markKernel,
-  requireRole,
   valueKernel,
 } from "./layers";
 
@@ -27,6 +26,8 @@ interface Roster {
   throwerX: number;
   throwerY: number;
   thetaShadow: number; // bearing(thrower → mark) — the force
+  hasThrower: boolean; // false = loose disc: nothing to score
+  hasMark: boolean; // false = nobody within 10 ft: no mark force (factor 1)
   defenderCount: number;
   defenderX: number[];
   defenderY: number[];
@@ -41,6 +42,8 @@ const rosterScratch: Roster = {
   throwerX: 0,
   throwerY: 0,
   thetaShadow: 0,
+  hasThrower: false,
+  hasMark: false,
   defenderCount: 0,
   defenderX: [],
   defenderY: [],
@@ -51,12 +54,19 @@ const rosterScratch: Roster = {
   cutterY: [],
 };
 
+function findRole(scene: Scene, role: Player["role"]): Player | undefined {
+  return scene.players.find((p) => p.role === role);
+}
+
 function extractRoster(scene: Scene, out: Roster): Roster {
-  const thrower = requireRole(scene, "thrower");
-  const marker = requireRole(scene, "mark");
-  out.throwerX = thrower.pos.x;
-  out.throwerY = thrower.pos.y;
-  out.thetaShadow = bearing(thrower.pos.x, thrower.pos.y, marker.pos.x, marker.pos.y);
+  const thrower = findRole(scene, "thrower");
+  const marker = findRole(scene, "mark");
+  out.hasThrower = thrower !== undefined;
+  out.hasMark = thrower !== undefined && marker !== undefined;
+  out.throwerX = thrower?.pos.x ?? 0;
+  out.throwerY = thrower?.pos.y ?? 0;
+  out.thetaShadow =
+    thrower && marker ? bearing(thrower.pos.x, thrower.pos.y, marker.pos.x, marker.pos.y) : 0;
   out.defenderCount = 0;
   out.cutterCount = 0;
   for (const player of scene.players) {
@@ -119,7 +129,7 @@ function scoreCellKernel(
 
   // FR-3.6 / ADR-5: a disabled layer is substituted with 1.0 HERE, at the
   // call site — never by branching inside a layer function.
-  const markF = layers.markForce
+  const markF = layers.markForce && roster.hasMark
     ? markKernel(cellX, cellY, roster.throwerX, roster.throwerY, roster.thetaShadow, d, p)
     : 1.0;
   const coverageF = layers.coverage ? coverageProduct : 1.0;
@@ -137,6 +147,7 @@ export function scoreCell(
   lens: Lens,
 ): number {
   const roster = extractRoster(scene, rosterScratch);
+  if (!roster.hasThrower) return 0;
   return scoreCellKernel(cell.x, cell.y, roster, params, layers, lens);
 }
 
@@ -158,6 +169,11 @@ export function computeGrid(
   }
   const roster = extractRoster(scene, rosterScratch);
   const values = cachedGrid.values;
+  if (!roster.hasThrower) {
+    // No holder (never in a valid play): a blank grid rather than an exception.
+    values.fill(0);
+    return cachedGrid;
+  }
   const half = GRID_STEP / 2;
   for (let row = 0; row < rows; row++) {
     const cellY = row * GRID_STEP + half;

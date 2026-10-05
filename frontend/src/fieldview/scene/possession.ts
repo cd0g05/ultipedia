@@ -15,6 +15,7 @@
 // store.mutate(), which owns notification and frame scheduling.
 
 import type { Player, Scene } from "./types";
+import { MARK_RADIUS_YD } from "../space/constants";
 
 function findPlayer(scene: Scene, id: string | null): Player | undefined {
   if (id === null) return undefined;
@@ -26,9 +27,8 @@ function findPlayer(scene: Scene, id: string | null): Player | undefined {
 // cutter must not make the derived mark depend on array order, or a scene
 // would render differently after a harmless reorder.
 //
-// This deliberately does NOT skip defenders who are already assigned
-// elsewhere: it answers "who is physically closest", and is only consulted
-// when the possessor has no assigned defender at all.
+// It answers "who is physically closest" and nothing more; whether that
+// defender counts as the mark is markFor's range check.
 export function nearestDefender(scene: Scene, targetId: string): string | null {
   const target = findPlayer(scene, targetId);
   if (!target) return null;
@@ -49,17 +49,16 @@ export function nearestDefender(scene: Scene, targetId: string): string | null {
   return bestId;
 }
 
-// Which defender is derived as the mark: the possessor's assigned defender if
-// there is one, else the nearest defender. The matchups map is scanned in
-// player order (not Object.keys order) so the answer does not depend on key
-// insertion history; matchups.ts keeps it a permutation, so at most one
-// defender can match anyway.
+// Which defender is derived as the mark (fieldview-build ADR-38): the defender
+// closest to the possessor, if within MARK_RADIUS_YD (10 ft); otherwise nobody.
+// Pure geometry — matchups play no part. Ties break on id (nearestDefender).
 function markFor(scene: Scene, possessorId: string): string | null {
-  for (const p of scene.players) {
-    if (p.team !== "defense") continue;
-    if (scene.matchups[p.id] === possessorId) return p.id;
-  }
-  return nearestDefender(scene, possessorId);
+  const possessor = findPlayer(scene, possessorId);
+  const nearestId = nearestDefender(scene, possessorId);
+  const nearest = findPlayer(scene, nearestId);
+  if (!possessor || !nearest) return null;
+  const dist = Math.hypot(nearest.pos.x - possessor.pos.x, nearest.pos.y - possessor.pos.y);
+  return dist <= MARK_RADIUS_YD ? nearest.id : null;
 }
 
 // Recompute every role from possession + matchups. Idempotent, and safe to

@@ -4,7 +4,9 @@
 // and clicking one jumps to it. The current frame is kept in view.
 
 import { useEffect, useMemo, useRef } from "react";
-import type { PlayFile } from "../../play/format";
+import type { Play } from "../../play/format";
+import { resolveAll } from "../../play/model";
+import type { ResolvedFrame } from "../../play/model";
 import { FIELD_PX_HEIGHT, FIELD_PX_WIDTH, FieldLayer } from "../../render/fieldLayer";
 import { getStageViewBox, viewBoxToString, yardToPixel } from "../../render/coords";
 import { PIECE_TOKENS } from "../../render/tokens";
@@ -13,12 +15,11 @@ import type { PlaybackView } from "../playback/usePlayback";
 const VIEW_BOX = viewBoxToString(getStageViewBox(FIELD_PX_WIDTH, FIELD_PX_HEIGHT));
 const THUMB_RADIUS = PIECE_TOKENS.offense.radius * 0.85;
 
-function FrameThumb({ play, index }: { play: PlayFile; index: number }) {
-  const frame = play.keyframes[index];
+function FrameThumb({ play, frame }: { play: Play; frame: ResolvedFrame }) {
   return (
     <svg viewBox={VIEW_BOX} aria-hidden="true" className="block h-auto w-full border border-film-border bg-white">
       <FieldLayer />
-      {play.entities.map((e) => {
+      {play.players.map((e) => {
         const at = frame.positions[e.id];
         if (!at) return null;
         const { x, y } = yardToPixel(at);
@@ -40,7 +41,7 @@ function FrameThumb({ play, index }: { play: PlayFile; index: number }) {
 }
 
 export interface FilmstripProps {
-  play: PlayFile;
+  play: Play;
   playback: PlaybackView;
 }
 
@@ -48,7 +49,7 @@ export function Filmstrip({ play, playback }: FilmstripProps) {
   const stripRef = useRef<HTMLDivElement | null>(null);
   const current = playback.frameIndex;
   const thumbs = useMemo(
-    () => play.keyframes.map((_, i) => <FrameThumb key={i} play={play} index={i} />),
+    () => resolveAll(play).map((frame, i) => <FrameThumb key={i} play={play} frame={frame} />),
     [play],
   );
 
@@ -65,7 +66,7 @@ export function Filmstrip({ play, playback }: FilmstripProps) {
       aria-label="Frames"
       className="flex gap-4 overflow-x-auto pb-3"
     >
-      {play.keyframes.map((kf, i) => {
+      {play.frames.map((kf, i) => {
         const active = i === current;
         return (
           <button

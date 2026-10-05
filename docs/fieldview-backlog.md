@@ -219,3 +219,4 @@ substance exists — the work is mostly UI entry points. Paths are under `fronte
 ## Decided against
 
 *(none yet)*
+- **Force presets and the 10 ft mark rule (2026-10-05, P1):** `flat/inside` moved to 3.25 yd so every force preset stays within `MARK_RADIUS_YD`; a force-picker UI must keep that invariant.

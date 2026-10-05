@@ -51,6 +51,7 @@ Status: `open` = Builder must supply/confirm · `toy` = a development stand-in e
 |---|---|---|---|---|
 | 18 | **Defense follows** | Toggle + persisted pref, labelled "coming soon", no behaviour — **in code** (`pages/Explore.tsx`, `ui/prefs.ts`) | Wire pursuit to dragging; design deliberately (ADR-33 reserved) | deferred (backlog) |
 | 19 | **Advanced settings** | Not shown at all | Space-model sliders etc.; intended home is the open space under the Explore field | deferred (backlog) |
+| 20 | **New-play defaults** | A new play is named "Untitled play" and starts as the vertical-stack setup with unnamed players | `play/model.ts` `newPlay()` (`PLACEHOLDER(fieldview-build)`) | Final default name and starting formation | fieldview-build P1 | open (toy in code) |
 
 ## Where the mockups differ from what will be built
 

@@ -3,13 +3,14 @@
 
 import { describe, expect, it } from "vitest";
 import { createSceneStore } from "../scene/store";
-import { sceneFrom } from "../play/tween";
+import { resolveAll, toScene } from "../play/model";
 import { BUILTIN_PLAYS } from "../play/plays";
 import { HOLD_SECONDS, TRANSITION_SECONDS, createPlaybackController } from "../ui/playback/playback";
 import type { PlaybackOptions } from "../ui/playback/playback";
-import type { PlayFile } from "../play/format";
+import type { Play } from "../play/format";
 
-const play = BUILTIN_PLAYS.find((p) => p.keyframes.length >= 5)!;
+const play = BUILTIN_PLAYS.find((p) => p.frames.length >= 5)!;
+const frames = resolveAll(play);
 
 function clock() {
   let t = 0;
@@ -43,11 +44,9 @@ function clock() {
   };
 }
 
-function setup(p: PlayFile = play, extra: Partial<PlaybackOptions> = {}) {
+function setup(p: Play = play, extra: Partial<PlaybackOptions> = {}) {
   const c = clock();
-  const store = createSceneStore(
-    sceneFrom(p.entities, p.keyframes[0].positions, { possession: p.possession, matchups: p.matchups }),
-  );
+  const store = createSceneStore(toScene(p, 0));
   const controller = createPlaybackController(store, p, { ...c.options, ...extra });
   const posOf = (id: string) => {
     const pl = store.getScene().players.find((q) => q.id === id)!;
@@ -57,10 +56,11 @@ function setup(p: PlayFile = play, extra: Partial<PlaybackOptions> = {}) {
 }
 
 // A player that actually moves between frame 0 and frame 1.
-function mover(p: PlayFile) {
-  return p.entities.find((e) => {
-    const a = p.keyframes[0].positions[e.id];
-    const b = p.keyframes[1].positions[e.id];
+function mover(p: Play) {
+  const f = resolveAll(p);
+  return p.players.find((e) => {
+    const a = f[0].positions[e.id];
+    const b = f[1].positions[e.id];
     return Math.hypot(a.x - b.x, a.y - b.y) > 1;
   })!.id;
 }
@@ -70,7 +70,7 @@ describe("playback controller", () => {
     const { controller } = setup();
     expect(controller.getState()).toMatchObject({
       frameIndex: 0,
-      frameCount: play.keyframes.length,
+      frameCount: frames.length,
       status: "idle",
       speed: 1,
       loop: false,
@@ -80,8 +80,8 @@ describe("playback controller", () => {
   it("next() moves the target index at once and glides the pieces to the next keyframe", () => {
     const { c, controller, posOf } = setup();
     const id = mover(play);
-    const from = play.keyframes[0].positions[id];
-    const to = play.keyframes[1].positions[id];
+    const from = frames[0].positions[id];
+    const to = frames[1].positions[id];
 
     controller.next();
     expect(controller.getState().frameIndex).toBe(1); // dots answer immediately
@@ -108,14 +108,14 @@ describe("playback controller", () => {
     controller.prev();
     c.run(TRANSITION_SECONDS + 0.2);
     expect(controller.getState().frameIndex).toBe(0);
-    expect(posOf(id)).toEqual(play.keyframes[0].positions[id]);
+    expect(posOf(id)).toEqual(frames[0].positions[id]);
   });
 
   it("next() is a no-op on the last frame", () => {
     const { controller } = setup();
-    controller.goto(play.keyframes.length - 1);
+    controller.goto(frames.length - 1);
     controller.next();
-    expect(controller.getState().frameIndex).toBe(play.keyframes.length - 1);
+    expect(controller.getState().frameIndex).toBe(frames.length - 1);
   });
 
   it("goto() jumps straight to a frame's pose", () => {
@@ -123,9 +123,9 @@ describe("playback controller", () => {
     const id = mover(play);
     controller.goto(3);
     expect(controller.getState().frameIndex).toBe(3);
-    expect(posOf(id)).toEqual(play.keyframes[3].positions[id]);
+    expect(posOf(id)).toEqual(frames[3].positions[id]);
     controller.goto(999); // clamps
-    expect(controller.getState().frameIndex).toBe(play.keyframes.length - 1);
+    expect(controller.getState().frameIndex).toBe(frames.length - 1);
   });
 
   it("an interrupting step glides on from where the pieces are, not from the old keyframe", () => {
@@ -146,19 +146,19 @@ describe("playback controller", () => {
     controller.play();
     expect(controller.getState().status).toBe("playing");
     const perFrame = TRANSITION_SECONDS + HOLD_SECONDS;
-    c.run(perFrame * play.keyframes.length + 2);
+    c.run(perFrame * frames.length + 2);
     expect(controller.getState()).toMatchObject({
-      frameIndex: play.keyframes.length - 1,
+      frameIndex: frames.length - 1,
       status: "paused",
     });
-    const last = play.keyframes[play.keyframes.length - 1].positions;
-    for (const e of play.entities) expect(posOf(e.id)).toEqual(last[e.id]);
+    const last = frames[frames.length - 1].positions;
+    for (const e of play.players) expect(posOf(e.id)).toEqual(last[e.id]);
     expect(c.pending()).toBe(0);
   });
 
   it("play() from the last frame restarts from the first", () => {
     const { controller } = setup();
-    controller.goto(play.keyframes.length - 1);
+    controller.goto(frames.length - 1);
     controller.play();
     expect(controller.getState().frameIndex).toBe(0);
     expect(controller.getState().status).toBe("playing");
@@ -169,9 +169,9 @@ describe("playback controller", () => {
     controller.setLoop(true);
     controller.play();
     const perFrame = TRANSITION_SECONDS + HOLD_SECONDS;
-    c.run(perFrame * (play.keyframes.length + 1));
+    c.run(perFrame * (frames.length + 1));
     expect(controller.getState().status).toBe("playing");
-    c.run(perFrame * play.keyframes.length);
+    c.run(perFrame * frames.length);
     expect(controller.getState().status).toBe("playing");
   });
 
@@ -185,7 +185,7 @@ describe("playback controller", () => {
     slow.c.run(TRANSITION_SECONDS / 2);
     fast.c.run(TRANSITION_SECONDS / 2);
     const id = mover(play);
-    const target = play.keyframes[1].positions[id];
+    const target = frames[1].positions[id];
     const dist = (p: { x: number; y: number }) => Math.hypot(p.x - target.x, p.y - target.y);
     expect(dist(fast.posOf(id))).toBeLessThan(dist(slow.posOf(id)));
   });
@@ -198,7 +198,7 @@ describe("playback controller", () => {
     const s = controller.getState();
     expect(s.status).toBe("paused");
     const id = mover(play);
-    expect(posOf(id)).toEqual(play.keyframes[s.frameIndex].positions[id]);
+    expect(posOf(id)).toEqual(frames[s.frameIndex].positions[id]);
     expect(c.pending()).toBe(0);
   });
 
@@ -206,18 +206,18 @@ describe("playback controller", () => {
     const { controller, posOf } = setup(play, { prefersReducedMotion: () => true });
     const id = mover(play);
     controller.next();
-    expect(posOf(id)).toEqual(play.keyframes[1].positions[id]);
+    expect(posOf(id)).toEqual(frames[1].positions[id]);
   });
 
   it("never mutates the play data (the plays are frozen, so a write would throw)", () => {
     expect(Object.isFrozen(play)).toBe(true);
-    expect(Object.isFrozen(play.keyframes[1].positions)).toBe(true);
+    expect(Object.isFrozen(play.frames[1].moved)).toBe(true);
     const { c, controller, store } = setup();
     controller.play();
-    c.run((TRANSITION_SECONDS + HOLD_SECONDS) * play.keyframes.length + 1);
+    c.run((TRANSITION_SECONDS + HOLD_SECONDS) * frames.length + 1);
     // The store owns its own position objects, not the play's.
     for (const p of store.getScene().players) {
-      expect(p.pos).not.toBe(play.keyframes[play.keyframes.length - 1].positions[p.id]);
+      expect(p.pos).not.toBe(frames[frames.length - 1].positions[p.id]);
     }
   });
 

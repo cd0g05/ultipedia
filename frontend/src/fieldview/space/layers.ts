@@ -96,7 +96,9 @@ export function markKernel(
 
 export function mark(cell: Vec2, scene: Scene, p: SpaceParams): number {
   const thrower = requireRole(scene, "thrower");
-  const marker = requireRole(scene, "mark");
+  const marker = scene.players.find((p) => p.role === "mark");
+  // Nobody within 10 ft of the holder: no force, the layer contributes 1.
+  if (!marker) return 1;
   const thetaShadow = bearing(thrower.pos.x, thrower.pos.y, marker.pos.x, marker.pos.y);
   const d = dist(thrower.pos.x, thrower.pos.y, cell.x, cell.y);
   return markKernel(cell.x, cell.y, thrower.pos.x, thrower.pos.y, thetaShadow, d, p);

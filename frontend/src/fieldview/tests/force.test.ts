@@ -15,7 +15,8 @@ import {
   type ForceSide,
 } from "../scene/force";
 import { getPreset } from "../scene/presets";
-import { movePlayer } from "../scene/scene";
+import { movePlayer, moveThrower } from "../scene/scene";
+import { MARK_RADIUS_YD } from "../space/constants";
 import { yardToPixel } from "../render/coords";
 import type { Scene, Vec2 } from "../scene/types";
 
@@ -176,7 +177,7 @@ describe("readForce round-trip", () => {
     ];
     for (const spot of spots) {
       const s = scene();
-      movePlayer(s, thrower(s).id, spot);
+      moveThrower(s, spot);
       snap(s, "backhand", "around");
       expect(readForce(s)).toEqual({ side: "backhand", angle: "around" });
     }
@@ -206,7 +207,13 @@ describe("the custom threshold", () => {
       const t = thrower(s).pos;
       const displaced = displacedOutward(offsetOf(side, angle), FORCE_TOLERANCE_YD);
       movePlayer(s, mark(s).id, { x: t.x + displaced.x, y: t.y + displaced.y });
-      expect(readForce(s)).toEqual({ side, angle });
+      // Past 10 ft the defender is no longer the mark at all (ADR-38), so
+      // there is no force to read.
+      if (Math.hypot(displaced.x, displaced.y) > MARK_RADIUS_YD) {
+        expect(readForce(s)).toBe("custom");
+      } else {
+        expect(readForce(s)).toEqual({ side, angle });
+      }
     }
   });
 

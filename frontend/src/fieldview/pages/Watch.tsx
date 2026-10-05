@@ -1,5 +1,5 @@
 // /fieldview/watch — step through curated plays. A play's frames are its
-// keyframes; Next/Previous animate between them, Play runs the lot. Watch is
+// frames; Next/Previous animate between them, Play runs the lot. Watch is
 // read-only: nothing on the field can be dragged, so a phone handed round the
 // huddle cannot be broken.
 //
@@ -8,7 +8,7 @@
 import { useEffect, useState } from "react";
 import { Seo } from "../../encyclopedia/seo/Seo";
 import { BUILTIN_PLAYS } from "../play/plays";
-import { sceneFrom } from "../play/tween";
+import { toScene } from "../play/model";
 import { FieldViewFrame } from "../ui/app/FieldViewFrame";
 import { useFieldViewApp } from "../ui/app/FieldViewApp";
 import { SlideOver } from "../ui/app/SlideOver";
@@ -18,9 +18,9 @@ import { PlaybackOptions } from "../ui/content/PlaybackOptions";
 import { TrailLayer } from "../ui/content/TrailLayer";
 import { Transport } from "../ui/content/Transport";
 import { usePlayback } from "../ui/playback/usePlayback";
-import type { PlayFile } from "../play/format";
+import type { Play } from "../play/format";
 
-function WatchPlay({ plays }: { plays: readonly PlayFile[] }) {
+function WatchPlay({ plays }: { plays: readonly Play[] }) {
   const { store, loadScene } = useFieldViewApp();
   const [index, setIndex] = useState(0);
   const [listOpen, setListOpen] = useState(false);
@@ -31,12 +31,7 @@ function WatchPlay({ plays }: { plays: readonly PlayFile[] }) {
 
   // A new play replaces the scene (same roster shape, new poses and model).
   useEffect(() => {
-    loadScene(
-      sceneFrom(play.entities, play.keyframes[0].positions, {
-        possession: play.possession,
-        matchups: play.matchups,
-      }),
-    );
+    loadScene(toScene(play, 0));
     controller.goto(0);
   }, [play, controller, loadScene]);
 
