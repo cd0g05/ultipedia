@@ -49,18 +49,19 @@ and see the field shading respond.
 
 ## Stretch goals
 
-- [ ] Build mode (frame-based designer; laptop-first, usable on tablet/phone) — layout deliberately
-      undecided; desktop mockup only sketches empty regions (tools / properties / frames timeline)
+- [x] Build mode (frame-based designer; laptop-first, usable on tablet/phone) — built in `fieldview-build`
+      (frames that inherit, ghosts + placed marks, undo/redo, preview, 2-char titles, Give disc); layout per
+      `design/fieldview-build-mockup.html`. Real-device pass still to do (`docs/fieldview-device-qa.md`).
 - [ ] Desktop Explore: ideas to fill the space under the field (currently only a selected-player
       stats card) — TBD
 - [ ] Optional "reading the field" hint sentence (cut from desktop Explore 2026-10-03; revisit if wanted)
 - [x] Watch (desktop): 4-up frame filmstrip that scrolls sideways for plays with more frames; plays
       list shows 5 and scrolls for more (also applies to setups list)
 - [x] Watch: playback speed (0.5×/1×/2×), loop, trails — shown in desktop sidebar
-- [ ] Save a play and share it by link (play encoded in the URL; no accounts)
-- [ ] Per-frame captions on plays (optional overlay in Watch)
-- [ ] Tap a player for detail (e.g. distance to nearest defender)
-- [ ] Coach-created presets
+- [x] Save a play and share it by link (play encoded in the URL; no accounts) — link, QR and file; saved on this device (`fieldview-build`)
+- [x] Per-frame captions on plays — the frame label shows under the field in Watch (`fieldview-build`)
+- [x] Tap a player for detail — the selected-player card (Explore desktop dock; Build card/bar)
+- [x] Coach-created presets — a one-frame play is a setup; saved ones appear in Explore's picker
 - [ ] Watch: speed, loop, show/hide trails
 - [ ] Tablet layout that makes use of spare vertical room (open question)
 - [x] Safe-area insets for notched phones
@@ -220,3 +221,19 @@ substance exists — the work is mostly UI entry points. Paths are under `fronte
 
 *(none yet)*
 - **Force presets and the 10 ft mark rule (2026-10-05, P1):** `flat/inside` moved to 3.25 yd so every force preset stays within `MARK_RADIUS_YD`; a force-picker UI must keep that invariant.
+
+## Status after fieldview-build (2026-10-05)
+
+Built and merged on `initiative/fieldview-build` (not yet on `main`): the whole Build functional spec — v3 play
+format (clean break), frames that inherit, geometric 10 ft mark, dynamic disc holder with a pass animation,
+unnamed players with 2-character titles, per-device piece sizes (85 / 70 / 50 %), the Build page, a local play
+library with autosave, and sharing by link / QR / file with Watch opening shared links.
+
+**Still deferred (unchanged):** automatic defense and defense-following; realistic animation timing; branching
+plays; frame reordering; Advanced settings; accounts / cross-device library; offline / PWA; faint 10 ft circle;
+force / matchup / throw / cut UIs (engines are still in the tree — see "Built but not surfaced"); the compact
+selected-player card in Explore (it lives only in the desktop dock today).
+
+**Known follow-ups from the build:** the share link has no expiry or revocation by design (it is a snapshot);
+a very long play near 30 frames with long labels may exceed QR capacity (the dialog says so and the link/file
+still work); Explore's card edits (title, Give disc) are live-only and are not saved to the library.

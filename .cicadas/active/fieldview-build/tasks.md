@@ -184,20 +184,27 @@ count in P0 task 1; it was **69 files / 991 tests**, Field View alone 55 / 884, 
 
 - [ ] Real-device pass on a phone, tablet and laptop (update `docs/fieldview-device-qa.md` for Build, titles, sizes, share) <!-- NEEDS MANUAL REVIEW --> <!-- id: 150 -->
 - [ ] Apply tuning from the pass (piece scale, title minimum, lift, breakpoints) <!-- id: 151 -->
-- [ ] Full axe/keyboard pass across Explore, Watch, Build and the dialogs <!-- id: 152 -->
-- [ ] Extend the placeholder audit and frame guard; grep audits (inheritance only in `play/model.ts`; orientation only in `render/coords.ts`) <!-- id: 153 -->
-- [ ] Update `docs/fieldview-backlog.md` (checked items, deferred items still listed) and `docs/fieldview-placeholders.md` <!-- id: 154 -->
-- [ ] Write the `handoff.md` with canon notes: ADR-36…43 added; what they supersede (matchup-driven mark, ADR-18/19; the single piece radius; the v1/v2 formats) <!-- id: 155 -->
-- [ ] Full suite + `test:perf` + `tsc -b` + `vite build` green <!-- id: 156 -->
-- [ ] Final placeholder report to the Builder (what content still has to be supplied) <!-- id: 157 -->
+- [x] Full axe/keyboard pass across Explore, Watch, Build and the dialogs <!-- id: 152 -->
+- [x] Extend the placeholder audit and frame guard; grep audits (inheritance only in `play/model.ts`; orientation only in `render/coords.ts`) <!-- id: 153 -->
+- [x] Update `docs/fieldview-backlog.md` (checked items, deferred items still listed) and `docs/fieldview-placeholders.md` <!-- id: 154 -->
+- [x] Write the `handoff.md` with canon notes: ADR-36…43 added; what they supersede (matchup-driven mark, ADR-18/19; the single piece radius; the v1/v2 formats) <!-- id: 155 -->
+- [x] Full suite + `test:perf` + `tsc -b` + `vite build` green <!-- id: 156 -->
+- [x] Final placeholder report to the Builder (what content still has to be supplied) <!-- id: 157 -->
+
+**Reflect notes (P5)**
+- Final automated state: tsc clean; 67 files / 1007 tests; `test:perf` 4 files / 27 tests; `vite build` OK. Guards extended: `frameGuard` now covers `ui/build` (hex literals, no direct storage access, no import of the frame, one session mount); `inheritanceGuard` (nothing reads `frame.moved`); `placeholderAudit` accepts both markers and lists #8 as resolved. Ghost and QR colours moved into `render/tokens.ts`.
+- a11y: new `a11yBuild.test.tsx` (Build menu + library, empty library, Watch with a shared and an invalid link, Watch list with library plays, Explore with a saved setup) plus the Build, Share-dialog and card audits from P2–P4; one finding fixed (duplicate region landmarks from the library list → `role="group"`).
+- **Not done (Builder, tasks 150/151):** the real-device pass and the tuning that follows. `docs/fieldview-device-qa.md` now has the Build / sizes / sharing checklist; every value to tune is a single number named there.
+- Placeholder report: rows 1–5 (toy setups/plays/names/labels), 20 (new-play defaults), 23 (copy) need content; 21 (holder colour), 22 (piece sizes), 17 (transition pace), 12–16 need device tuning; 18–19 are deferred stubs. See `docs/fieldview-placeholders.md`.
+
 
 ## Initiative Boundary
 
-- [ ] Merge `feat/fieldview-build-cleanup` → `initiative/fieldview-build` <!-- id: 200 -->
-- [ ] Merge `feat/fieldview-build-model` → `initiative/fieldview-build` <!-- id: 201 -->
-- [ ] Merge `feat/fieldview-build-disc-titles` → `initiative/fieldview-build` <!-- id: 202 -->
-- [ ] Merge `feat/fieldview-build-ui` → `initiative/fieldview-build` <!-- id: 203 -->
-- [ ] Merge `feat/fieldview-build-share` → `initiative/fieldview-build` <!-- id: 204 -->
-- [ ] Merge `feat/fieldview-build-qa` → `initiative/fieldview-build` <!-- id: 205 -->
-- [ ] Full suite green on the initiative branch, including `npm run test:perf` <!-- id: 206 -->
+- [x] Merge `feat/fieldview-build-cleanup` → `initiative/fieldview-build` <!-- id: 200 -->
+- [x] Merge `feat/fieldview-build-model` → `initiative/fieldview-build` <!-- id: 201 -->
+- [x] Merge `feat/fieldview-build-disc-titles` → `initiative/fieldview-build` <!-- id: 202 -->
+- [x] Merge `feat/fieldview-build-ui` → `initiative/fieldview-build` <!-- id: 203 -->
+- [x] Merge `feat/fieldview-build-share` → `initiative/fieldview-build` <!-- id: 204 -->
+- [x] Merge `feat/fieldview-build-qa` → `initiative/fieldview-build` <!-- id: 205 -->
+- [x] Full suite green on the initiative branch, including `npm run test:perf` <!-- id: 206 -->
 - [ ] Builder-approved merge to `main` (after the ui-rework PR), then canon synthesis and archive <!-- id: 207 -->
