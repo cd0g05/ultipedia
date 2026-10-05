@@ -20,6 +20,17 @@ import { Transport } from "../ui/content/Transport";
 import { usePlayback } from "../ui/playback/usePlayback";
 import type { Play } from "../play/format";
 
+// The frame's label as a one-line caption under the field (a frame's label is
+// short — 24 characters at most — so it never wraps the layout).
+function FrameCaption({ label }: { label?: string }) {
+  if (!label) return null;
+  return (
+    <p data-testid="frame-caption" className="font-mono text-xs font-bold uppercase tracking-wider text-zinc-600">
+      {label}
+    </p>
+  );
+}
+
 function WatchPlay({ plays }: { plays: readonly Play[] }) {
   const { store, loadScene } = useFieldViewApp();
   const [index, setIndex] = useState(0);
@@ -58,6 +69,7 @@ function WatchPlay({ plays }: { plays: readonly Play[] }) {
         fieldDisabled
         onFieldTap={() => (playing ? controller.pause() : controller.play())}
         fieldOverlay={trails ? <TrailLayer play={play} frameIndex={playback.frameIndex} /> : null}
+        caption={<FrameCaption label={play.frames[playback.frameIndex]?.label} />}
         barCenter={<Transport playback={playback} />}
         barRight={
           <button

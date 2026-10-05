@@ -2,13 +2,19 @@
 // takeaway under it, the active row marked with the pink rule. Five rows show
 // at a time (fixed row height) and the rest scroll.
 
-import type { CuratedSetup } from "../../scene/presets";
+// One row of the setup list: a one-frame play, shown by name with its one-line
+// takeaway (the play's description).
+export interface SetupItem {
+  id: string;
+  label: string;
+  takeaway: string;
+}
 
 const ROW_PX = 68;
 const VISIBLE_ROWS = 5;
 
 export interface SetupListProps {
-  setups: CuratedSetup[];
+  setups: SetupItem[];
   activeIndex: number;
   // Whether the live scene differs from the loaded setup (the ✎ marker).
   custom: boolean;
@@ -26,7 +32,7 @@ export function SetupList({ setups, activeIndex, custom, onSelect }: SetupListPr
       {setups.map((setup, i) => {
         const active = i === activeIndex;
         return (
-          <li key={setup.name}>
+          <li key={setup.id}>
             <button
               type="button"
               aria-current={active ? "true" : undefined}

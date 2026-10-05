@@ -89,25 +89,36 @@ count in P0 task 1; it was **69 files / 991 tests**, Field View alone 55 / 884, 
 
 ## Partition: feat/fieldview-build-disc-titles
 
-- [ ] Accessible-name fallback: pieces announce `Offense n` / `Defense n` (+ "has the disc", "is the mark"); helper for tests <!-- id: 50 -->
-- [ ] One mechanical pass over every test that looked pieces up by T/M/1–6 names <!-- id: 51 -->
-- [ ] `scene/presets.ts` and the generator: players unnamed (no `T`/`M`/`1–6`); regenerate content <!-- id: 52 -->
-- [ ] `pieceLayer`: title centred inside the piece (baseline offset follows the font size), uppercase, ≤ 2 chars <!-- id: 53 -->
-- [ ] Tokens + `pieceLayer`: green holder ring and disc icon (new token); mark keeps its heavy ring; selection stays pink <!-- id: 54 -->
-- [ ] Piece scale: `.fv-piece-body` scaled by `--fv-piece-scale` (0.85 / 0.7 from ~1000 px / 0.5 at `desktop`); title scale `max(scale, 0.65)`; strokes scale with the body; grab radius unchanged <!-- id: 55 -->
-- [ ] Piece-scale values and the 1000 px tablet boundary are placeholders: markers + register rows <!-- NEEDS MANUAL REVIEW --> <!-- id: 56 -->
-- [ ] `ui/playback/playback.ts` on `resolveAll` frames: per-frame holder; transitions over `TRANSITION_SECONDS` <!-- id: 57 -->
-- [ ] Disc flight in transitions: old holder's start → new holder's end via `setFlightPos`; possession flips on arrival; reduced motion jumps <!-- id: 58 -->
-- [ ] Watch on v3: library-less for now (built-in examples), frame label shown as the caption <!-- id: 59 -->
-- [ ] Explore: setups from built-in one-frame plays; the selected-player card gains title field and Give disc (live scene only, not persisted) <!-- id: 60 -->
-- [ ] Tests: titles, holder ring, names, scale variables/classes, a title never changes when the disc moves <!-- id: 61 -->
-- [ ] Tests: playback with a holder change (disc path, arrival flip, interrupted step, pause lands on a keyframe, reduced motion, 0 commits per frame) <!-- id: 62 -->
-- [ ] Tests: Explore Give disc + title; the mark appears/disappears as a defender crosses 10 ft; touch/grab tests unchanged <!-- id: 63 -->
-- [ ] Update `frameGuard`, `tokensGuard` (new tokens) and the placeholder audit for the new markers <!-- id: 64 -->
-- [ ] axe on Explore/Watch with a titled, holder-ringed scene <!-- id: 65 -->
-- [ ] Piece sizes and title legibility on real devices <!-- NEEDS MANUAL REVIEW --> <!-- id: 66 -->
-- [ ] Register new placeholders (names, ring colour, sizes) in `docs/fieldview-placeholders.md` <!-- id: 67 -->
-- [ ] Reflect: full suite + `test:perf` green; update specs <!-- id: 68 -->
+- [x] Accessible-name fallback: pieces announce `Offense n` / `Defense n` (+ "has the disc", "is the mark"); helper for tests <!-- id: 50 -->
+- [x] One mechanical pass over every test that looked pieces up by T/M/1–6 names <!-- id: 51 -->
+- [x] `scene/presets.ts` and the generator: players unnamed (no `T`/`M`/`1–6`); regenerate content <!-- id: 52 -->
+- [x] `pieceLayer`: title centred inside the piece (baseline offset follows the font size), uppercase, ≤ 2 chars <!-- id: 53 -->
+- [x] Tokens + `pieceLayer`: green holder ring and disc icon (new token); mark keeps its heavy ring; selection stays pink <!-- id: 54 -->
+- [x] Piece scale: `.fv-piece-body` scaled by `--fv-piece-scale` (0.85 / 0.7 from ~1000 px / 0.5 at `desktop`); title scale `max(scale, 0.65)`; strokes scale with the body; grab radius unchanged <!-- id: 55 -->
+- [x] Piece-scale values and the 1000 px tablet boundary are placeholders: markers + register rows <!-- NEEDS MANUAL REVIEW --> <!-- id: 56 -->
+- [x] `ui/playback/playback.ts` on `resolveAll` frames: per-frame holder; transitions over `TRANSITION_SECONDS` <!-- id: 57 -->
+- [x] Disc flight in transitions: old holder's start → new holder's end via `setFlightPos`; possession flips on arrival; reduced motion jumps <!-- id: 58 -->
+- [x] Watch on v3: library-less for now (built-in examples), frame label shown as the caption <!-- id: 59 -->
+- [x] Explore: setups from built-in one-frame plays; the selected-player card gains title field and Give disc (live scene only, not persisted) <!-- id: 60 -->
+- [x] Tests: titles, holder ring, names, scale variables/classes, a title never changes when the disc moves <!-- id: 61 -->
+- [x] Tests: playback with a holder change (disc path, arrival flip, interrupted step, pause lands on a keyframe, reduced motion, 0 commits per frame) <!-- id: 62 -->
+- [x] Tests: Explore Give disc + title; the mark appears/disappears as a defender crosses 10 ft; touch/grab tests unchanged <!-- id: 63 -->
+- [x] Update `frameGuard`, `tokensGuard` (new tokens) and the placeholder audit for the new markers <!-- id: 64 -->
+- [x] axe on Explore/Watch with a titled, holder-ringed scene <!-- id: 65 -->
+- [x] Piece sizes and title legibility on real devices <!-- NEEDS MANUAL REVIEW --> <!-- id: 66 -->
+- [x] Register new placeholders (names, ring colour, sizes) in `docs/fieldview-placeholders.md` <!-- id: 67 -->
+- [x] Reflect: full suite + `test:perf` green; update specs <!-- id: 68 -->
+
+**Reflect notes (P2)**
+- After P2: tsc clean; 61 files / 885 tests; `test:perf` 4 files / 27 tests green (§8.9 frame ≈ 10.5 ms, computeGrid best ≈ 9.8 ms). Checked in the browser: scaled pieces (`--fv-piece-scale` 0.85 on phone width), green holder ring, heavy mark ring, disc beside the holder.
+- **Accessible names (deviation):** the name is `Offense n` / `Defense n` only (ordinal within team in roster order); the state ("Has the disc", "Is the mark") is `aria-description`, not part of the name, so a name stays stable while the disc moves. Tests were remapped mechanically: cutter N → Offense N+1, defender N → Defense N+1, thrower T → Offense 1, mark M → Defense 1.
+- **Imperative piece state:** holder ring, mark stroke, title text and `aria-description` are written from the scene in `repaint()` (only when changed), because the mark is geometric and changes mid-drag, and the holder changes mid-playback. The disc and mark line are always rendered for a drawn team and hidden (`display`) when nobody holds / is the mark. `PieceIdentity.role` is no longer used for visuals.
+- **Sizes:** the whole body (rings, disc dock, title) sits in `.fv-piece-body`, scaled by `--fv-piece-scale` (`index.css`; 0.85 / 0.7 from 1000 px / 0.5 at the `desktop` query); `.fv-piece-title` counter-scales to `max(scale, 0.65)`. Grab radius is unchanged (yards). Register rows 21 (holder colour) and 22 (sizes) added.
+- **Playback:** `resolveAll` frames; `write()` re-normalizes each step so the mark follows; a changed holder triggers a pass (`setFlightPos` line from old holder's start to new holder's end), possession flips on arrival via `throwTo`; `snapTo`/`goto`/`pause`/reduced motion land on the frame's pose AND holder with no disc in the air; an interrupted step abandons the old pass (bug found by test: a stale flight position survived).
+- **Watch:** frame label shown as a caption (`FieldViewFrame` gained a `caption` slot, rendered on every layout); presets are unnamed; `CURATED_SETUPS` removed — Explore and the app's opening scene use `BUILTIN_SETUPS` (one-frame plays); `SetupItem` type replaces `CuratedSetup`.
+- **Explore card:** title box and Give disc, imperative, live-only; 0 React commits while typing or giving the disc. The card is still desktop-dock only (compact placement belongs to the Build UI work).
+- Decision needed from the Builder (tasks 56, 66): piece sizes and the green on real devices.
+
 
 ## Partition: feat/fieldview-build-ui
 

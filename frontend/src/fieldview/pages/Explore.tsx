@@ -1,6 +1,6 @@
 // /fieldview/explore — drag players, watch the space shift (the MVP's hero).
 //
-// Setups come from CURATED_SETUPS (toy content for now — placeholders
+// Setups are the built-in one-frame plays (toy content for now — placeholders
 // register #1/#2). Switching a setup replaces the scene at once; ✎ marks a
 // scene that has drifted from its setup and Reset restores it. "Defense
 // follows" is a persisted STUB: the switch works, the following does not yet
@@ -8,7 +8,9 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Seo } from "../../encyclopedia/seo/Seo";
-import { CURATED_SETUPS, getPreset } from "../scene/presets";
+import { BUILTIN_SETUPS } from "../play/plays";
+import { toScene } from "../play/model";
+import type { SetupItem } from "../ui/content/SetupList";
 import type { Scene } from "../scene/types";
 import { clearSelection } from "../scene/selection";
 import { FieldViewFrame } from "../ui/app/FieldViewFrame";
@@ -29,6 +31,13 @@ function cloneScene(scene: Scene): Scene {
   };
 }
 
+// The list rows: a setup's name and its one-line takeaway (its description).
+const SETUPS: SetupItem[] = BUILTIN_SETUPS.map((p, i) => ({
+  id: `${i}-${p.name}`,
+  label: p.name,
+  takeaway: p.description ?? "",
+}));
+
 export function Explore() {
   const { store, loadScene } = useFieldViewApp();
   const overlay = useOverlayState();
@@ -39,7 +48,7 @@ export function Explore() {
 
   const applySetup = useCallback(
     (i: number) => {
-      const scene = getPreset(CURATED_SETUPS[i].name);
+      const scene = toScene(BUILTIN_SETUPS[i], 0);
       baselineRef.current = cloneScene(scene);
       loadScene(scene);
       store.setSelection(clearSelection());
@@ -57,10 +66,10 @@ export function Explore() {
   }, []);
 
   const custom = useSceneChanged(store, baselineRef, loadCount);
-  const count = CURATED_SETUPS.length;
+  const count = SETUPS.length;
   const step = (delta: number) => applySetup((index + delta + count) % count);
   const reset = () => applySetup(index);
-  const current = CURATED_SETUPS[index];
+  const current = SETUPS[index];
 
   const defenseFollows = (
     <Switch
@@ -127,7 +136,7 @@ export function Explore() {
                 Setup <span>{count}</span>
               </h2>
               <SetupList
-                setups={CURATED_SETUPS}
+                setups={SETUPS}
                 activeIndex={index}
                 custom={custom}
                 onSelect={applySetup}
@@ -155,7 +164,7 @@ export function Explore() {
       <SetupSlideOver
         open={listOpen}
         onClose={() => setListOpen(false)}
-        setups={CURATED_SETUPS}
+        setups={SETUPS}
         activeIndex={index}
         custom={custom}
         onSelect={applySetup}

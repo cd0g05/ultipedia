@@ -11,6 +11,14 @@
 // (canon ADR-2). The play data is never mutated: positions are copied on the
 // way into the store.
 //
+// The disc (fieldview-build ADR-39): a frame may name a new holder. During the
+// transition into that frame the disc flies a straight line from the OLD
+// holder's start to the NEW holder's end — so it lands exactly as the receiver
+// arrives — using the same airborne-disc mechanism the (deferred) throw feature
+// uses (setFlightPos). The old holder keeps possession for the whole flight and
+// possession flips on arrival, so the disc never belongs to nobody. If the
+// holder does not change the disc just rides with them.
+//
 // Like the motion driver, time is injectable so tests drive frames by hand, and
 // a backgrounded tab's one enormous elapsed time is clamped rather than
 // integrated (it would teleport the pieces).
@@ -20,6 +28,8 @@ import type { Vec2 } from "../../scene/types";
 import type { Play } from "../../play/format";
 import { resolveAll } from "../../play/model";
 import { samplePositions } from "../../play/interpolate";
+import { normalize, throwTo } from "../../scene/possession";
+import { setFlightPos } from "../shell/throwMode";
 
 export type PlaybackStatus = "idle" | "playing" | "paused";
 export type PlaybackSpeed = 0.5 | 1 | 2;
@@ -100,6 +110,8 @@ export function createPlaybackController(
     fromPositions: Record<string, Vec2>;
     to: number;
     elapsed: number;
+    // The pass, when this transition changes the holder.
+    pass: { from: Vec2; to: Vec2; receiver: string } | null;
   } | null = null;
   // Seconds left to dwell on a frame while playing (counts down between moves).
   let hold = 0;
@@ -120,18 +132,34 @@ export function createPlaybackController(
     for (const cb of listeners) cb();
   }
 
-  // Copies positions in — never hands the play's own objects to the store.
+  // Copies positions in — never hands the play's own objects to the store. The
+  // roles are re-derived each time: the mark is whoever is within 10 ft of the
+  // holder, and that changes as the pieces move.
   function write(positions: Record<string, Vec2>) {
     store.mutate((draft) => {
       for (const p of draft.players) {
         const to = positions[p.id];
         if (to) p.pos = { x: to.x, y: to.y };
       }
+      normalize(draft);
     });
   }
 
+  function giveTo(holder: string) {
+    store.mutate((draft) => throwTo(draft, holder));
+  }
+
+  // Lands cleanly ON a frame: its pose, its holder, no disc in the air.
   function snapTo(index: number) {
-    write(frames[index].positions);
+    setFlightPos(null);
+    store.mutate((draft) => {
+      for (const p of draft.players) {
+        const to = frames[index].positions[p.id];
+        if (to) p.pos = { x: to.x, y: to.y };
+      }
+      draft.possession = frames[index].holder;
+      normalize(draft);
+    });
   }
 
   function stopClock() {
@@ -154,12 +182,24 @@ export function createPlaybackController(
   // `fromIndex` is the frame we are leaving (used to land cleanly if paused
   // before the halfway point).
   function beginMove(to: number, fromIndex: number) {
+    // An interrupted pass is abandoned: its holder never lost possession, and a
+    // disc left in the air by the move we are replacing must not stay there.
+    setFlightPos(null);
     if (reduced()) {
       motion = null;
       snapTo(to);
       return;
     }
-    motion = { fromIndex, fromPositions: currentPositions(), to, elapsed: 0 };
+    const fromPositions = currentPositions();
+    const receiver = frames[to].holder;
+    const giver = store.getScene().possession;
+    const pass =
+      giver !== null && giver !== receiver && fromPositions[giver] && frames[to].positions[receiver]
+        ? { from: { ...fromPositions[giver] }, to: { ...frames[to].positions[receiver] }, receiver }
+        : null;
+    // A holder who is unchanged simply keeps the disc (and the frame's holder
+    // is applied on arrival, so a stale one can never survive a step).
+    motion = { fromIndex, fromPositions, to, elapsed: 0, pass };
     startClock();
   }
 
@@ -190,10 +230,16 @@ export function createPlaybackController(
     if (motion) {
       motion.elapsed += dt;
       const u = Math.min(1, motion.elapsed / TRANSITION_SECONDS);
-      write(
-        samplePositions(motion.fromPositions, frames[motion.to].positions, u),
-      );
+      write(samplePositions(motion.fromPositions, frames[motion.to].positions, u));
+      if (motion.pass) {
+        const { from, to } = motion.pass;
+        setFlightPos({ x: from.x + (to.x - from.x) * u, y: from.y + (to.y - from.y) * u });
+      }
       if (u >= 1) {
+        if (motion.pass) {
+          setFlightPos(null);
+          giveTo(motion.pass.receiver);
+        }
         motion = null;
         hold = HOLD_SECONDS;
       }
@@ -278,6 +324,7 @@ export function createPlaybackController(
       stopClock();
       listeners.clear();
       motion = null;
+      setFlightPos(null);
     },
   };
 }

@@ -54,7 +54,7 @@ describe("piece drag", () => {
     render(<FieldHarness />);
     const svg = screen.getByRole("group", { name: /ultimate field/i }) as unknown as SVGSVGElement;
     mockSvgRect(svg);
-    const cutter = screen.getByRole("button", { name: "offense cutter 1" });
+    const cutter = screen.getByRole("button", { name: "Offense 2" });
 
     const start = clientFor({ x: 50, y: 20 });
     fireEvent.pointerDown(cutter, { pointerId: 1, ...start });
@@ -76,8 +76,8 @@ describe("piece drag", () => {
     const svg = screen.getByRole("group", { name: /ultimate field/i }) as unknown as SVGSVGElement;
     mockSvgRect(svg);
 
-    const thrower = screen.getByRole("button", { name: "offense thrower T" });
-    const mark = screen.getByRole("button", { name: "defense mark M" });
+    const thrower = screen.getByRole("button", { name: "Offense 1" });
+    const mark = screen.getByRole("button", { name: "Defense 1" });
     const markBeforeMatch = mark.getAttribute("transform")?.match(/translate\(([-\d.]+), ([-\d.]+)\)/);
     const markBeforeX = Number(markBeforeMatch?.[1]);
     const markBeforeY = Number(markBeforeMatch?.[2]);
@@ -101,7 +101,7 @@ describe("piece drag", () => {
     render(<FieldHarness />);
     const svg = screen.getByRole("group", { name: /ultimate field/i }) as unknown as SVGSVGElement;
     mockSvgRect(svg);
-    const cutter = screen.getByRole("button", { name: "offense cutter 1" });
+    const cutter = screen.getByRole("button", { name: "Offense 2" });
 
     const start = clientFor({ x: 50, y: 20 });
     fireEvent.pointerDown(cutter, { pointerId: 3, ...start });
@@ -125,8 +125,8 @@ describe("grabbing the right piece", () => {
     const svg = screen.getByRole("group", { name: /ultimate field/i }) as unknown as SVGSVGElement;
     mockSvgRect(svg);
 
-    const cutter = screen.getByRole("button", { name: "offense cutter 1" });
-    const defender = screen.getByRole("button", { name: "defense defender 2" });
+    const cutter = screen.getByRole("button", { name: "Offense 2" });
+    const defender = screen.getByRole("button", { name: "Defense 3" });
     const defenderBefore = defender.getAttribute("transform");
 
     fireEvent.pointerDown(svg, { pointerId: 10, ...clientFor({ x: 50.2, y: 20 }) });
@@ -141,7 +141,7 @@ describe("grabbing the right piece", () => {
     render(<FieldHarness />);
     const svg = screen.getByRole("group", { name: /ultimate field/i }) as unknown as SVGSVGElement;
     mockSvgRect(svg);
-    const cutter = screen.getByRole("button", { name: "offense cutter 1" });
+    const cutter = screen.getByRole("button", { name: "Offense 2" });
 
     // Grabbed 0.8 yd left of cutter 1's centre (still its nearest piece),
     // then moved 10 yd right: it should end at 60, following the pointer —
@@ -157,7 +157,7 @@ describe("grabbing the right piece", () => {
     render(<FieldHarness />);
     const svg = screen.getByRole("group", { name: /ultimate field/i }) as unknown as SVGSVGElement;
     mockSvgRect(svg);
-    const cutter = screen.getByRole("button", { name: "offense cutter 1" });
+    const cutter = screen.getByRole("button", { name: "Offense 2" });
     const before = cutter.getAttribute("transform");
 
     fireEvent.pointerDown(svg, { pointerId: 12, ...clientFor({ x: 5, y: 35 }) });
@@ -197,10 +197,10 @@ describe("marquee selection", () => {
     marquee(svg, { x: 75, y: 35 }, { x: 57, y: 18 });
 
     expect(selectedLabels(svg)).toEqual([
-      "defense defender 5",
-      "defense defender 6",
-      "offense cutter 5",
-      "offense cutter 6",
+      "Defense 6",
+      "Defense 7",
+      "Offense 6",
+      "Offense 7",
     ]);
   });
 
@@ -209,12 +209,12 @@ describe("marquee selection", () => {
     marquee(svg, { x: 75, y: 35 }, { x: 57, y: 18 });
 
     const members = [
-      screen.getByRole("button", { name: "offense cutter 5" }), // (58, 20)
-      screen.getByRole("button", { name: "offense cutter 6" }), // (60, 20)
-      screen.getByRole("button", { name: "defense defender 5" }), // (62, 23)
-      screen.getByRole("button", { name: "defense defender 6" }), // (70, 20)
+      screen.getByRole("button", { name: "Offense 6" }), // (58, 20)
+      screen.getByRole("button", { name: "Offense 7" }), // (60, 20)
+      screen.getByRole("button", { name: "Defense 6" }), // (62, 23)
+      screen.getByRole("button", { name: "Defense 7" }), // (70, 20)
     ];
-    const outsider = screen.getByRole("button", { name: "offense cutter 1" });
+    const outsider = screen.getByRole("button", { name: "Offense 2" });
     const outsiderBefore = outsider.getAttribute("transform");
 
     // Grab cutter 6 and pull the group 5 yd downfield, 2 yd across.
@@ -236,7 +236,7 @@ describe("marquee selection", () => {
     const svg = setup();
     // Thrower (40, 20) and mark (41, 23) — 3 yd apart across the field.
     marquee(svg, { x: 38, y: 25 }, { x: 43, y: 18 });
-    expect(selectedLabels(svg)).toEqual(["defense mark M", "offense thrower T"]);
+    expect(selectedLabels(svg)).toEqual(["Defense 1", "Offense 1"]);
 
     // Pull 30 yd toward the near sideline. Only 20 yd of that is available,
     // so the delta is clamped once, for the group — not per piece, which
@@ -245,10 +245,10 @@ describe("marquee selection", () => {
     fireEvent.pointerMove(svg, { pointerId: 22, ...clientFor({ x: 40, y: -10 }) });
     await nextFrame();
 
-    expect(screen.getByRole("button", { name: "offense thrower T" }).getAttribute("transform")).toBe(
+    expect(screen.getByRole("button", { name: "Offense 1" }).getAttribute("transform")).toBe(
       tf({ x: 40, y: 0 }),
     );
-    expect(screen.getByRole("button", { name: "defense mark M" }).getAttribute("transform")).toBe(
+    expect(screen.getByRole("button", { name: "Defense 1" }).getAttribute("transform")).toBe(
       tf({ x: 41, y: 3 }), // still 3 yd off the thrower
     );
   });
@@ -264,7 +264,7 @@ describe("marquee selection", () => {
     fireEvent.pointerMove(svg, { pointerId: 23, ...clientFor({ x: 45, y: 20 }) });
     await nextFrame();
 
-    expect(screen.getByRole("button", { name: "defense mark M" }).getAttribute("transform")).toBe(
+    expect(screen.getByRole("button", { name: "Defense 1" }).getAttribute("transform")).toBe(
       tf({ x: 46, y: 23 }), // not (51, 23)
     );
   });
@@ -285,7 +285,7 @@ describe("marquee selection", () => {
     const svg = setup();
     marquee(svg, { x: 75, y: 35 }, { x: 57, y: 18 });
 
-    const cutter5 = screen.getByRole("button", { name: "offense cutter 5" });
+    const cutter5 = screen.getByRole("button", { name: "Offense 6" });
     const before = cutter5.getAttribute("transform");
 
     fireEvent.pointerDown(svg, { pointerId: 25, ...clientFor({ x: 50, y: 20 }) });
@@ -293,7 +293,7 @@ describe("marquee selection", () => {
     await nextFrame();
 
     expect(selectedLabels(svg)).toEqual([]);
-    expect(screen.getByRole("button", { name: "offense cutter 1" }).getAttribute("transform")).toBe(
+    expect(screen.getByRole("button", { name: "Offense 2" }).getAttribute("transform")).toBe(
       tf({ x: 45, y: 20 }),
     );
     expect(cutter5.getAttribute("transform")).toBe(before);
@@ -303,7 +303,7 @@ describe("marquee selection", () => {
 describe("keyboard nudge", () => {
   it("moves a focused piece 1 yd per arrow key, 5 yd with Shift", async () => {
     render(<FieldHarness />);
-    const cutter = screen.getByRole("button", { name: "offense cutter 1" });
+    const cutter = screen.getByRole("button", { name: "Offense 2" });
     const beforeMatch = cutter.getAttribute("transform")?.match(/translate\(([-\d.]+), ([-\d.]+)\)/);
     const beforeX = Number(beforeMatch?.[1]);
     const beforeY = beforeMatch?.[2];

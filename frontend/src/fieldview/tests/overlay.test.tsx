@@ -154,7 +154,7 @@ describe("ADR-2: React is not in the drag path", () => {
           </Profiler>,
       );
 
-      const cutter = screen.getByRole("button", { name: "offense cutter 1" });
+      const cutter = screen.getByRole("button", { name: "Offense 2" });
       const grab = grabPointFor(cutter);
       const atRest = cutter.getAttribute("transform");
       fireEvent.pointerDown(cutter, { pointerId: 1, ...grab });
@@ -198,7 +198,7 @@ describe("ADR-2: React is not in the drag path", () => {
       );
 
       const stage = screen.getByRole("group", { name: /Ultimate field/i });
-      const cutter = screen.getByRole("button", { name: "offense cutter 6" });
+      const cutter = screen.getByRole("button", { name: "Offense 7" });
       const atRest = cutter.getAttribute("transform");
 
       commits = 0; // count the marquee and the group drag, nothing before them
@@ -241,7 +241,7 @@ describe("ADR-2: React is not in the drag path", () => {
     try {
       renderField(true);
 
-      const mark = screen.getByRole("button", { name: "defense mark M" });
+      const mark = screen.getByRole("button", { name: "Defense 1" });
       const atRest = mark.getAttribute("transform");
       const grab = grabPointFor(mark);
 
@@ -288,8 +288,8 @@ describe("ADR-2: React is not in the drag path", () => {
           </Profiler>,
       );
 
-      const cutter1 = screen.getByRole("button", { name: "offense cutter 1" });
-      const cutter2 = screen.getByRole("button", { name: "offense cutter 2" });
+      const cutter1 = screen.getByRole("button", { name: "Offense 2" });
+      const cutter2 = screen.getByRole("button", { name: "Offense 3" });
       const grab1 = grabPointFor(cutter1);
       const rest1 = cutter1.getAttribute("transform");
 
