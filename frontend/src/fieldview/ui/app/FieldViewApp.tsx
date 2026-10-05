@@ -14,7 +14,8 @@ import { HelmetProvider } from "react-helmet-async";
 import { createSceneStore } from "../../scene/store";
 import type { SceneStore } from "../../scene/store";
 import type { Scene } from "../../scene/types";
-import { CURATED_SETUPS, getPreset } from "../../scene/presets";
+import { BUILTIN_SETUPS } from "../../play/plays";
+import { toScene } from "../../play/model";
 import type { PieceIdentity } from "../../render/pieceLayer";
 import { MotionDriverProvider } from "../motion/driverContext";
 import { SceneStoreProvider } from "../shell/sceneStore";
@@ -39,14 +40,14 @@ export function useFieldViewApp(): FieldViewAppValue {
   return value;
 }
 
-// The setup the app opens on until a mode page loads its own: the first
-// curated setup. PLACEHOLDER(fieldview-ui-rework): whichever setup the Builder
-// puts first (docs/fieldview-placeholders.md #1).
-const OPENING_PRESET = CURATED_SETUPS[0].name;
+// The scene the app opens on until a mode page loads its own: the first
+// built-in setup. PLACEHOLDER(fieldview-build): whichever setup the Builder puts
+// first (docs/fieldview-placeholders.md #1).
+const openingScene = () => toScene(BUILTIN_SETUPS[0], 0);
 
 export function FieldViewApp() {
   const storeRef = useRef<SceneStore | null>(null);
-  if (storeRef.current === null) storeRef.current = createSceneStore(getPreset(OPENING_PRESET));
+  if (storeRef.current === null) storeRef.current = createSceneStore(openingScene());
   const store = storeRef.current;
 
   // Phone-landscape hygiene, scoped to this app (the encyclopedia must not be

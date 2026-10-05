@@ -115,6 +115,13 @@ interface FieldCanvasProps {
   // Extra SVG drawn above the pieces and below the route markers (Watch's
   // movement trails). Must be pointer-transparent: the stage owns the pointer.
   overlayLayer?: ReactNode;
+  // Build: ids of the players placed in the current frame (a corner mark each).
+  placed?: ReadonlySet<string>;
+  // Build: called once when a drag (single piece, group, or a burst of keyboard
+  // nudges) ends having moved something — never per pointer move (ADR-2). The
+  // ids are every player whose position the gesture changed or that the user
+  // dragged, including a mark carried along by a dragged holder.
+  onGestureEnd?: (info: { movedIds: string[] }) => void;
 }
 
 const viewBox = getStageViewBox(FIELD_PX_WIDTH, FIELD_PX_HEIGHT);
@@ -148,6 +155,8 @@ export function FieldCanvas({
   visible = ALL_VISIBLE,
   disabled = false,
   overlayLayer,
+  placed,
+  onGestureEnd,
 }: FieldCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const painterRef = useRef<HeatmapPainter | null>(null);
@@ -181,6 +190,49 @@ export function FieldCanvas({
   disabledRef.current = disabled;
   const visibleRef = useRef(visible);
   visibleRef.current = visible;
+  const onGestureEndRef = useRef(onGestureEnd);
+  onGestureEndRef.current = onGestureEnd;
+
+  // The gesture being tracked for onGestureEnd: a snapshot of every position at
+  // the start, the ids the user dragged, and whether anything actually moved (a
+  // tap that selects must not count as placing a player).
+  const gestureRef = useRef<{ snapshot: Map<string, Vec2>; ids: Set<string>; travelled: boolean } | null>(null);
+  const nudgeTimerRef = useRef<number | null>(null);
+
+  function beginGesture(ids: Iterable<string>) {
+    if (!onGestureEndRef.current || gestureRef.current) return;
+    const snapshot = new Map<string, Vec2>();
+    for (const p of store.getScene().players) snapshot.set(p.id, { x: p.pos.x, y: p.pos.y });
+    gestureRef.current = { snapshot, ids: new Set(ids), travelled: false };
+  }
+
+  function endGesture() {
+    const g = gestureRef.current;
+    gestureRef.current = null;
+    if (!g || !g.travelled) return;
+    const movedIds = new Set(g.ids);
+    for (const p of store.getScene().players) {
+      const before = g.snapshot.get(p.id);
+      if (before && (before.x !== p.pos.x || before.y !== p.pos.y)) movedIds.add(p.id);
+    }
+    onGestureEndRef.current?.({ movedIds: [...movedIds] });
+  }
+
+  // Keyboard nudges arrive one key at a time; a burst is one gesture, closed
+  // after a short quiet.
+  function nudged(id: string) {
+    if (!onGestureEndRef.current) return;
+    beginGesture([id]);
+    if (gestureRef.current) {
+      gestureRef.current.ids.add(id);
+      gestureRef.current.travelled = true;
+    }
+    if (nudgeTimerRef.current !== null) window.clearTimeout(nudgeTimerRef.current);
+    nudgeTimerRef.current = window.setTimeout(() => {
+      nudgeTimerRef.current = null;
+      endGesture();
+    }, 450);
+  }
 
   // Throwing mode (tech-design ADR-5). Subscribed for RENDERING only — the
   // hint banner and the receiver emphasis. The pointer handlers never read
@@ -238,7 +290,9 @@ export function FieldCanvas({
     const settings = overlayRef.current;
     const scene = store.getScene();
 
-    if (!settings.on) {
+    // No holder (never in a valid play) means there is nothing to score: show
+    // no heat rather than a stale map.
+    if (!settings.on || scene.possession === null) {
       canvas.getContext("2d")?.clearRect(0, 0, canvas.width, canvas.height);
       // Still reaches the readout: switching the overlay off mid-hover must
       // return it to idle, not freeze the last sampled cell on screen.
@@ -269,7 +323,7 @@ export function FieldCanvas({
     const settings = overlayRef.current;
     const hover = hoverRef.current;
 
-    if (!settings.on || !hover) {
+    if (!settings.on || !hover || scene.possession === null) {
       readout.update(null, settings.lens);
       if (reticleRef.current) reticleRef.current.setAttribute("opacity", "0");
       return;
@@ -531,7 +585,9 @@ export function FieldCanvas({
       }
 
       if (selectionRef.current.has(piece.id)) {
-        dragRef.current = { kind: "group", origin: pos, start: groupStartPositions() };
+        const start = groupStartPositions();
+        dragRef.current = { kind: "group", origin: pos, start };
+        beginGesture(start.keys());
       } else {
         // Grabbing an unselected piece is the old single-piece drag, and
         // abandons whatever was selected — the same way it would in any editor.
@@ -562,6 +618,7 @@ export function FieldCanvas({
           grabOffset: { x: piece.pos.x - pos.x + liftYd.x, y: piece.pos.y - pos.y + liftYd.y },
           lift: touch ? { ...piece.pos } : undefined,
         };
+        beginGesture([piece.id]);
         // Nothing moves on the press itself: a TAP (select, no travel) must not
         // nudge the piece. The lift appears with the first move.
       }
@@ -612,6 +669,7 @@ export function FieldCanvas({
 
       hideLift();
       dragRef.current = null;
+      endGesture();
       svg!.releasePointerCapture?.(event.pointerId);
       svg!.style.cursor = "";
     }
@@ -643,6 +701,9 @@ export function FieldCanvas({
           pendingThrowRef.current = null;
         }
         // The readout stands still while the scene is being rearranged.
+        if ((drag.kind === "piece" || drag.kind === "group") && gestureRef.current) {
+          gestureRef.current.travelled = true;
+        }
         if (drag.kind === "piece") {
           moveTo(drag.id, { x: pos.x + drag.grabOffset.x, y: pos.y + drag.grabOffset.y });
           if (drag.lift) drawLift(drag.lift, drag.id);
@@ -685,6 +746,7 @@ export function FieldCanvas({
       hideMarquee();
       hideLift();
       dragRef.current = null;
+      endGesture();
       svg!.releasePointerCapture?.(event.pointerId);
       svg!.style.cursor = "";
     }
@@ -936,6 +998,8 @@ export function FieldCanvas({
             players={livePlayers}
             store={store}
             disabled={disabled}
+            placed={placed}
+            onNudge={nudged}
             throwArmed={throwMode.armed}
             onThrowTo={(id) => {
               // Keyboard completion (Enter/Space on a focused receiver): the

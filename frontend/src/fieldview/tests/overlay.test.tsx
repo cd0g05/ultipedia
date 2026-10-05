@@ -5,9 +5,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Profiler } from "react";
 import { fireEvent, render, screen } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
-import { Whiteboard } from "../pages/Whiteboard";
-import { Designer } from "../pages/Designer";
+import { FieldHarness } from "./fieldHarness";
 import { createHeatmapPainter } from "../render/heatmap";
 import { getStageViewBox, yardToPixel } from "../render/coords";
 import { FIELD_PX_HEIGHT, FIELD_PX_WIDTH } from "../render/fieldLayer";
@@ -27,34 +25,8 @@ beforeEach(() => {
   sessionStorage.clear();
 });
 
-function renderWhiteboard() {
-  return render(
-    <MemoryRouter>
-      <Whiteboard />
-    </MemoryRouter>,
-  );
-}
-
-// Integration note: `Whiteboard.tsx` now composes `ShellLayout`, so the
-// "Space" toggle and the "Advanced settings" disclosure that used to live
-// directly in `OverlayRail` are the shell's `ToolRibbon`/`LeftSidebar`
-// equivalents — "Space View" and "⚙ Advanced Settings" respectively. Unlike
-// the old OverlayRail (which hid Advanced Settings entirely until the
-// overlay was on), the shell's "⚙ Advanced Settings" bottom-menu button is
-// always reachable regardless of the Space toggle's state.
-function turnOverlayOn() {
-  fireEvent.click(screen.getByRole("button", { name: "Space View" }));
-}
-
-// The lens, the layer flags, and the six sliders all live behind the
-// sidebar's Advanced Settings override now — reaching any of them means
-// opening it first.
-function openAdvanced() {
-  fireEvent.click(screen.getByRole("button", { name: "⚙ Advanced Settings" }));
-}
-
-function lensCheckbox() {
-  return screen.getByRole("checkbox", { name: /Include offense in space calculations/ });
+function renderField(overlayOn = false) {
+  return render(<FieldHarness overlayOn={overlayOn} />);
 }
 
 // The SVG has no layout in jsdom; give it the stage's real aspect so
@@ -89,166 +61,14 @@ function clientForYard(yard: { x: number; y: number }) {
   return { clientX: px.x - viewBox.x, clientY: px.y - viewBox.y };
 }
 
-describe("overlay rail", () => {
-  it("shows only the visibility toggles until Advanced Settings is opened", () => {
-    renderWhiteboard();
-    expect(screen.getByRole("button", { name: "Space View" })).not.toHaveAttribute("aria-pressed", "true");
-    expect(
-      screen.queryByRole("checkbox", { name: /Include offense in space calculations/ }),
-    ).not.toBeInTheDocument();
-    expect(screen.queryByRole("checkbox", { name: "Coverage" })).not.toBeInTheDocument();
-
-    // ...but the two show/hide checkboxes are diagram controls, not overlay
-    // controls, so they are reachable with the map off.
-    expect(screen.getByRole("checkbox", { name: "Offense" })).toBeChecked();
-    expect(screen.getByRole("checkbox", { name: "Defense" })).toBeChecked();
-  });
-
-  it("turning on Space View persists it and reveals the lens/layers once Advanced Settings is opened", () => {
-    renderWhiteboard();
-    turnOverlayOn();
-
-    expect(screen.getByRole("button", { name: "Space View" })).toHaveAttribute("aria-pressed", "true");
-
-    // Unlike the old OverlayRail (which hid Advanced Settings until Space was
-    // on), the shell's bottom-menu button is always reachable — but its
-    // content is still stowed behind the "← Back" override until opened.
-    expect(screen.queryByRole("checkbox", { name: "Coverage" })).not.toBeInTheDocument();
-
-    openAdvanced();
-    expect(lensCheckbox()).toBeChecked();
-    expect(screen.getByText("Counts whether a cutter could get there first.")).toBeInTheDocument();
-    for (const layer of ["Mark / force", "Coverage", "Throwing lanes", "Field value"]) {
-      expect(screen.getByRole("checkbox", { name: layer })).toBeChecked();
-    }
-  });
-
-  it("switches the lens", () => {
-    renderWhiteboard();
-    turnOverlayOn();
-    openAdvanced();
-    fireEvent.click(lensCheckbox());
-    expect(lensCheckbox()).not.toBeChecked();
-    expect(screen.getByText("Ignores the cutters — pure defensive shape.")).toBeInTheDocument();
-  });
-
-  it("toggles a layer off", () => {
-    renderWhiteboard();
-    turnOverlayOn();
-    openAdvanced();
-    fireEvent.click(screen.getByRole("checkbox", { name: "Coverage" }));
-    expect(screen.getByRole("checkbox", { name: "Coverage" })).not.toBeChecked();
-  });
-});
-
-describe("team visibility", () => {
-  it("hides a team's pieces from the diagram without touching the model", () => {
-    renderWhiteboard();
-    expect(screen.getByRole("button", { name: "defense mark M" })).toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole("checkbox", { name: "Defense" }));
-
-    expect(screen.queryByRole("button", { name: "defense mark M" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "defense defender 1" })).not.toBeInTheDocument();
-    // The offense is untouched...
-    expect(screen.getByRole("button", { name: "offense thrower T" })).toBeInTheDocument();
-    // ...and so is the scene the model reads. Hiding is a display choice; the
-    // separate lens toggle is what changes what the map counts.
-    expect(screen.getByRole("checkbox", { name: "Defense" })).not.toBeChecked();
-
-    // The mark's force indicator goes with it — an arrow left hanging in
-    // space under a mark that is not there reads as a rendering bug. The
-    // disc belongs to the thrower, so it stays.
-    expect(screen.queryByTestId("mark-direction")).not.toBeInTheDocument();
-    expect(screen.getByTestId("disc")).toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole("checkbox", { name: "Offense" }));
-    expect(screen.queryByTestId("disc")).not.toBeInTheDocument();
-  });
-
-  it("will not let a hidden piece be grabbed", () => {
-    const rect = stubStageRect();
-    try {
-      renderWhiteboard();
-      const mark = screen.getByRole("button", { name: "defense mark M" });
-      const at = grabPointFor(mark);
-      fireEvent.click(screen.getByRole("checkbox", { name: "Defense" }));
-
-      const stage = screen.getByRole("group", { name: /Ultimate field/i });
-      const thrower = screen.getByRole("button", { name: "offense thrower T" });
-      const before = thrower.getAttribute("transform");
-
-      // Press exactly where the mark used to be. Nothing there is grabbable,
-      // so this begins a marquee rather than dragging the invisible piece.
-      fireEvent.pointerDown(stage, { ...at, pointerId: 1 });
-      fireEvent.pointerMove(stage, { clientX: at.clientX + 200, clientY: at.clientY, pointerId: 1 });
-      fireEvent.pointerUp(stage, { pointerId: 1 });
-
-      expect(thrower.getAttribute("transform")).toBe(before);
-    } finally {
-      rect.mockRestore();
-    }
-  });
-});
-
-describe("advanced settings panel", () => {
-  it("expands to six sliders with live numeric values and a reset", () => {
-    renderWhiteboard();
-    turnOverlayOn();
-    openAdvanced();
-
-    for (const label of [
-      "Top speed",
-      "Reaction time",
-      "Cutter head start",
-      "Huck hang",
-      "Mark strength",
-      "Mark width",
-    ]) {
-      expect(screen.getByRole("slider", { name: label })).toBeInTheDocument();
-    }
-    expect(screen.getByRole("button", { name: "Reset to defaults" })).toBeInTheDocument();
-    expect(screen.getByText("7.0yd/s")).toBeInTheDocument();
-  });
-
-  it("marks the header as modified when a slider leaves its default, and clears it on reset", () => {
-    renderWhiteboard();
-    turnOverlayOn();
-    openAdvanced();
-
-    expect(screen.queryByText("• modified")).not.toBeInTheDocument();
-    fireEvent.change(screen.getByRole("slider", { name: "Mark strength" }), { target: { value: "0.4" } });
-    expect(screen.getByText("• modified")).toBeInTheDocument();
-    expect(screen.getByText("0.40")).toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole("button", { name: "Reset to defaults" }));
-    expect(screen.queryByText("• modified")).not.toBeInTheDocument();
-  });
-
-  it("converts mark width between stored radians and displayed degrees", () => {
-    renderWhiteboard();
-    turnOverlayOn();
-    openAdvanced();
-
-    const slider = screen.getByRole("slider", { name: "Mark width" });
-    // Stored in radians, shown in degrees — the round trip is what matters,
-    // not the exact float that degToRad produced.
-    expect(screen.getByText("38°")).toBeInTheDocument();
-    fireEvent.change(slider, { target: { value: "50" } });
-    expect(screen.getByText("50°")).toBeInTheDocument();
-    fireEvent.change(slider, { target: { value: "15" } });
-    expect(screen.getByText("15°")).toBeInTheDocument();
-  });
-});
-
 describe("hover readout", () => {
   it("starts idle and populates on hover with the overlay on", () => {
     const rect = stubStageRect();
     try {
-      renderWhiteboard();
+      const { rerender } = renderField();
       expect(screen.getByText(/Hover the field to see why/)).toBeVisible();
 
-      turnOverlayOn();
+      rerender(<FieldHarness overlayOn />);
       const stage = screen.getByRole("group", { name: /Ultimate field/i });
       fireEvent.pointerMove(stage, clientForYard({ x: 60, y: 20 }));
 
@@ -267,7 +87,7 @@ describe("hover readout", () => {
     // Flight time —, ...") stayed on screen in a real browser while jsdom's
     // toBeVisible(), which only reads the attribute, called it hidden.
     // Asserting the inline style is what makes this test able to fail.
-    renderWhiteboard();
+    renderField();
     const body = screen.getByText("Distance").closest("dl")!;
     expect(body.style.display).toBe("none");
     expect(body.hasAttribute("hidden")).toBe(false);
@@ -276,10 +96,7 @@ describe("hover readout", () => {
   it("drops the cutter row under the defense-only lens, so its absence reads as the lens", () => {
     const rect = stubStageRect();
     try {
-      renderWhiteboard();
-      turnOverlayOn();
-      openAdvanced();
-      fireEvent.click(lensCheckbox());
+      render(<FieldHarness overlayOn lens="defense-only" />);
 
       const stage = screen.getByRole("group", { name: /Ultimate field/i });
       fireEvent.pointerMove(stage, clientForYard({ x: 60, y: 20 }));
@@ -294,15 +111,14 @@ describe("hover readout", () => {
   it("returns to idle when the overlay is switched off mid-hover", () => {
     const rect = stubStageRect();
     try {
-      renderWhiteboard();
-      turnOverlayOn();
+      const { rerender } = renderField(true);
       const stage = screen.getByRole("group", { name: /Ultimate field/i });
       fireEvent.pointerMove(stage, clientForYard({ x: 60, y: 20 }));
       expect(screen.getByText("Distance")).toBeVisible();
 
       // Otherwise the last sampled cell freezes on screen, describing a map
       // that is no longer painted.
-      turnOverlayOn();
+      rerender(<FieldHarness overlayOn={false} />);
       expect(screen.getByText(/Hover the field to see why/)).toBeVisible();
       expect(screen.getByText("Distance")).not.toBeVisible();
     } finally {
@@ -313,8 +129,7 @@ describe("hover readout", () => {
   it("returns to idle when the pointer leaves the field", () => {
     const rect = stubStageRect();
     try {
-      renderWhiteboard();
-      turnOverlayOn();
+      renderField(true);
       const stage = screen.getByRole("group", { name: /Ultimate field/i });
       fireEvent.pointerMove(stage, clientForYard({ x: 60, y: 20 }));
       expect(screen.getByText("Distance")).toBeVisible();
@@ -334,15 +149,12 @@ describe("ADR-2: React is not in the drag path", () => {
     try {
       let commits = 0;
       render(
-        <MemoryRouter>
-          <Profiler id="whiteboard" onRender={() => (commits += 1)}>
-            <Whiteboard />
-          </Profiler>
-        </MemoryRouter>,
+        <Profiler id="field" onRender={() => (commits += 1)}>
+            <FieldHarness overlayOn />
+          </Profiler>,
       );
-      turnOverlayOn();
 
-      const cutter = screen.getByRole("button", { name: "offense cutter 1" });
+      const cutter = screen.getByRole("button", { name: "Offense 2" });
       const grab = grabPointFor(cutter);
       const atRest = cutter.getAttribute("transform");
       fireEvent.pointerDown(cutter, { pointerId: 1, ...grab });
@@ -380,15 +192,13 @@ describe("ADR-2: React is not in the drag path", () => {
     try {
       let commits = 0;
       render(
-        <MemoryRouter>
-          <Profiler id="whiteboard" onRender={() => (commits += 1)}>
-            <Whiteboard />
-          </Profiler>
-        </MemoryRouter>,
+        <Profiler id="field" onRender={() => (commits += 1)}>
+            <FieldHarness overlayOn />
+          </Profiler>,
       );
 
       const stage = screen.getByRole("group", { name: /Ultimate field/i });
-      const cutter = screen.getByRole("button", { name: "offense cutter 6" });
+      const cutter = screen.getByRole("button", { name: "Offense 7" });
       const atRest = cutter.getAttribute("transform");
 
       commits = 0; // count the marquee and the group drag, nothing before them
@@ -429,10 +239,9 @@ describe("ADR-2: React is not in the drag path", () => {
   it("repaints during the drag, not on release (FR-2.1)", async () => {
     const rect = stubStageRect();
     try {
-      renderWhiteboard();
-      turnOverlayOn();
+      renderField(true);
 
-      const mark = screen.getByRole("button", { name: "defense mark M" });
+      const mark = screen.getByRole("button", { name: "Defense 1" });
       const atRest = mark.getAttribute("transform");
       const grab = grabPointFor(mark);
 
@@ -474,15 +283,13 @@ describe("ADR-2: React is not in the drag path", () => {
     try {
       let commits = 0;
       render(
-        <MemoryRouter>
-          <Profiler id="whiteboard" onRender={() => (commits += 1)}>
-            <Whiteboard />
-          </Profiler>
-        </MemoryRouter>,
+        <Profiler id="field" onRender={() => (commits += 1)}>
+            <FieldHarness overlayOn />
+          </Profiler>,
       );
 
-      const cutter1 = screen.getByRole("button", { name: "offense cutter 1" });
-      const cutter2 = screen.getByRole("button", { name: "offense cutter 2" });
+      const cutter1 = screen.getByRole("button", { name: "Offense 2" });
+      const cutter2 = screen.getByRole("button", { name: "Offense 3" });
       const grab1 = grabPointFor(cutter1);
       const rest1 = cutter1.getAttribute("transform");
 
@@ -660,39 +467,6 @@ describe("§8.9 — frame budget", () => {
 });
 
 describe("preferences", () => {
-  it("persists the rail state across a remount but never the scene", async () => {
-    const { unmount } = renderWhiteboard();
-    turnOverlayOn();
-    openAdvanced();
-    fireEvent.click(lensCheckbox());
-    fireEvent.change(screen.getByRole("slider", { name: "Mark strength" }), { target: { value: "0.3" } });
-
-    // Move a piece — scene state that must NOT come back.
-    const cutter = screen.getByRole("button", { name: "offense cutter 1" });
-    const restingTransform = cutter.getAttribute("transform");
-    fireEvent.keyDown(cutter, { key: "ArrowRight", shiftKey: true });
-    await new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
-    const movedTransform = cutter.getAttribute("transform");
-    expect(movedTransform).not.toBe(restingTransform);
-    unmount();
-
-    renderWhiteboard();
-    expect(screen.getByRole("button", { name: "Space View" })).toHaveAttribute("aria-pressed", "true");
-    // The sidebar's Advanced-Settings *view* is local, ephemeral UI state
-    // (LeftSidebar's own `view` toggle, not an overlay pref) — unlike the old
-    // OverlayRail's `advancedExpanded` disclosure, it does not itself persist
-    // across a remount. The lens/param values it displays do persist (the
-    // shared `overlayPrefs` store), so re-opening the panel shows them.
-    openAdvanced();
-    expect(lensCheckbox()).not.toBeChecked();
-    expect(screen.getByText("0.30")).toBeInTheDocument();
-
-    expect(localStorage.getItem("fieldview.overlayPrefs")).not.toContain("players");
-    expect(screen.getByRole("button", { name: "offense cutter 1" }).getAttribute("transform")).not.toBe(
-      movedTransform,
-    );
-  });
-
   it("falls back to defaults on a corrupt or hand-edited entry", () => {
     expect(parsePrefs(null)).toEqual(DEFAULT_PREFS);
     expect(parsePrefs("nonsense")).toEqual(DEFAULT_PREFS);
@@ -727,7 +501,7 @@ describe("preferences", () => {
 
 describe("prefers-reduced-motion", () => {
   it("gates the overlay fade behind motion-safe but never the repaint itself", () => {
-    renderWhiteboard();
+    renderField(true);
     const canvas = screen.getByTestId("heatmap-canvas");
     const className = canvas.className;
 
@@ -739,22 +513,7 @@ describe("prefers-reduced-motion", () => {
 
     // The live repaint is a canvas draw, not a CSS animation — nothing about
     // it is suppressible by a motion preference, which is the point.
-    turnOverlayOn();
     expect(canvas).toHaveStyle({ opacity: "1" });
   });
 });
 
-describe("the overlay is a toggle, not a route", () => {
-  it("mounts in the Designer too", () => {
-    render(
-      <MemoryRouter>
-        <Designer />
-      </MemoryRouter>,
-    );
-    expect(screen.getByRole("button", { name: "Space" })).toBeInTheDocument();
-    expect(screen.getByTestId("heatmap-canvas")).toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole("button", { name: "Space" }));
-    expect(screen.getByRole("button", { name: /Advanced settings/ })).toBeInTheDocument();
-  });
-});

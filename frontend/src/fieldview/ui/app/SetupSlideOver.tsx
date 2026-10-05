@@ -1,13 +1,13 @@
 // Compact only: the setup list as a right-hand slide-over.
 
-import type { CuratedSetup } from "../../scene/presets";
 import { SetupList } from "../content/SetupList";
+import type { SetupItem } from "../content/SetupList";
 import { SlideOver } from "./SlideOver";
 
 export interface SetupSlideOverProps {
   open: boolean;
   onClose: () => void;
-  setups: CuratedSetup[];
+  setups: SetupItem[];
   activeIndex: number;
   custom: boolean;
   onSelect: (index: number) => void;

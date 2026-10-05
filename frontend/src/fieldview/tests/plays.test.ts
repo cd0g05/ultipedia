@@ -1,32 +1,40 @@
-// The curated plays registry (FR-5.1, ADR-34): the toy plays load and validate,
-// an invalid file is skipped and reported rather than crashing, and the optional
-// keyframe label is additive.
+// The curated content (FR-5.1, ADR-43): the toy plays and setups load and
+// validate, an invalid file is skipped and reported rather than crashing, and
+// the lists split cleanly into one-frame setups and multi-frame plays.
 
 import { describe, expect, it } from "vitest";
-import { BUILTIN_PLAYS, BUILTIN_PLAY_PROBLEMS, loadPlays } from "../play/plays";
-import { validatePlayFile } from "../play/validate";
-import { MAX_KEYFRAME_LABEL_LENGTH } from "../play/format";
+import { BUILTIN_PLAYS, BUILTIN_PLAY_PROBLEMS, BUILTIN_SETUPS, isSetup, loadPlays } from "../play/plays";
 
 describe("built-in plays", () => {
   it("loads at least three, one of them with five or more frames", () => {
     expect(BUILTIN_PLAYS.length).toBeGreaterThanOrEqual(3);
-    expect(BUILTIN_PLAYS.some((p) => p.keyframes.length >= 5)).toBe(true);
+    expect(BUILTIN_PLAYS.some((p) => p.frames.length >= 5)).toBe(true);
     expect(BUILTIN_PLAY_PROBLEMS).toEqual([]);
   });
 
-  it("gives every play a name, a description and labelled frames", () => {
+  it("gives every play a name and labelled frames, and none is a setup", () => {
     for (const play of BUILTIN_PLAYS) {
       expect(play.name.length).toBeGreaterThan(0);
-      expect(play.keyframes.length).toBeGreaterThan(1);
-      for (const kf of play.keyframes) expect(kf.label).toBeTruthy();
+      expect(isSetup(play)).toBe(false);
+      for (const f of play.frames) expect(f.label).toBeTruthy();
     }
   });
 
   it("is deep-frozen", () => {
     const p = BUILTIN_PLAYS[0];
     expect(() => {
-      (p.keyframes[0].positions.o1 as { x: number }).x = 5;
+      (p.frames[0].moved.o1 as { x: number }).x = 5;
     }).toThrow();
+  });
+});
+
+describe("built-in setups", () => {
+  it("are one-frame plays, unnamed by default", () => {
+    expect(BUILTIN_SETUPS.length).toBeGreaterThanOrEqual(4);
+    for (const s of BUILTIN_SETUPS) {
+      expect(isSetup(s)).toBe(true);
+      expect(s.players.every((p) => p.title === undefined)).toBe(true);
+    }
   });
 });
 
@@ -49,24 +57,5 @@ describe("loadPlays", () => {
     const b = { ...good, name: "B" };
     const { plays } = loadPlays({ "./builtin/02-b.json": b, "./builtin/01-a.json": a });
     expect(plays.map((p) => p.name)).toEqual(["A", "B"]);
-  });
-});
-
-describe("keyframe label (additive)", () => {
-  const base = JSON.parse(JSON.stringify(BUILTIN_PLAYS[0]));
-
-  it("is kept, length-capped when valid", () => {
-    base.keyframes[0].label = "x".repeat(MAX_KEYFRAME_LABEL_LENGTH + 10);
-    const file = validatePlayFile(base);
-    expect(file.keyframes[0].label).toHaveLength(MAX_KEYFRAME_LABEL_LENGTH);
-  });
-
-  it("is dropped, not rejected, when it is not a string; a file without labels still validates", () => {
-    const copy = JSON.parse(JSON.stringify(BUILTIN_PLAYS[0]));
-    copy.keyframes[0].label = 7;
-    delete copy.keyframes[1].label;
-    const file = validatePlayFile(copy);
-    expect(file.keyframes[0].label).toBeUndefined();
-    expect(file.keyframes[1].label).toBeUndefined();
   });
 });

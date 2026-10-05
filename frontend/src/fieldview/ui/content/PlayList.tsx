@@ -2,13 +2,13 @@
 // and the rest scroll. Same visual pattern as the setup list so the two modes
 // feel like one tool.
 
-import type { PlayFile } from "../../play/format";
+import type { Play } from "../../play/format";
 
 const ROW_PX = 56;
 const VISIBLE_ROWS = 5;
 
 export interface PlayListProps {
-  plays: readonly PlayFile[];
+  plays: readonly Play[];
   activeIndex: number;
   onSelect: (index: number) => void;
 }
@@ -23,7 +23,7 @@ export function PlayList({ plays, activeIndex, onSelect }: PlayListProps) {
     >
       {plays.map((play, i) => {
         const active = i === activeIndex;
-        const frames = play.keyframes.length;
+        const frames = play.frames.length;
         return (
           <li key={`${play.name}-${i}`}>
             <button

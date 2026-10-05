@@ -224,6 +224,48 @@
       "summary": "P5 touch/QA: lift, grab radius, safe areas, audits",
       "decisions": "",
       "modules": []
+    },
+    {
+      "timestamp": "2026-10-05T21:46:05.505077+00:00",
+      "branch": "feat/fieldview-build-cleanup",
+      "summary": "P0: deleted dormant legacy Field View UI and user-preset code; ported field tests to fieldHarness",
+      "decisions": "",
+      "modules": []
+    },
+    {
+      "timestamp": "2026-10-05T22:03:52.925204+00:00",
+      "branch": "feat/fieldview-build-model",
+      "summary": "P1: v3 Play/Frame model, resolve+ops+history, v3 validator, geometric 10 ft mark, space model tolerates no mark/holder, regenerated v3 toy content, v1/v2 code removed",
+      "decisions": "",
+      "modules": []
+    },
+    {
+      "timestamp": "2026-10-05T22:12:42.620479+00:00",
+      "branch": "feat/fieldview-build-disc-titles",
+      "summary": "P2: Offense/Defense n names, imperative holder/mark rings and titles, per-device piece scale, v3 playback with per-frame holder and disc pass, Watch caption, Explore on built-in setups with title + Give disc",
+      "decisions": "",
+      "modules": []
+    },
+    {
+      "timestamp": "2026-10-05T22:20:55.617591+00:00",
+      "branch": "feat/fieldview-build-ui",
+      "summary": "P3: BuildSession, gesture commit, frame strip/cards/ghost layer, preview, undo/redo, compact layout, real Build page",
+      "decisions": "",
+      "modules": []
+    },
+    {
+      "timestamp": "2026-10-05T22:29:45.687791+00:00",
+      "branch": "feat/fieldview-build-share",
+      "summary": "P4: share codec (fflate base64url, bounded inflate), QR, LocalPlayStore + My plays + autosave, build/:playId route, Share dialog + files, Watch shared links, Explore saved setups",
+      "decisions": "",
+      "modules": []
+    },
+    {
+      "timestamp": "2026-10-05T22:33:28.997393+00:00",
+      "branch": "feat/fieldview-build-qa",
+      "summary": "P5: guards extended to ui/build, axe pass for new surfaces, device-QA checklist for Build, backlog/placeholder docs, initiative handoff with canon notes",
+      "decisions": "",
+      "modules": []
     }
   ]
 }

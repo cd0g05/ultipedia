@@ -1,68 +1,383 @@
-// /fieldview/build — the play designer's placeholder. Desktop shows the card
-// over dashed regions that only suggest there will be room for tools, a frame
-// timeline and properties (layout deliberately undecided); compact shows the
-// card alone. No field, no state.
+// /fieldview/build — the play designer. A play is a list of frames; the field
+// shows the selected frame and Explore's drag engine edits it. Each finished
+// gesture becomes one placement (and one undo step) in the document; players
+// not placed in a frame inherit from the one before. All animation is automatic
+// (the same transitions as Watch).
 //
-// PLACEHOLDER(fieldview-ui-rework): the copy is a stand-in (#8).
+// The document lives in a BuildSession; the SceneStore is only a view of the
+// current frame (ADR-40). Nothing here runs per pointer move.
 
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { Seo } from "../../encyclopedia/seo/Seo";
+import type { Play } from "../play/format";
+import { library, newPlayId, useLibrary } from "../play/library";
+import { addFrame, deleteFrame, duplicateFrame, newPlay, placedIds, renamePlay, resetFrame } from "../play/model";
+import { BUILTIN_PLAYS, BUILTIN_SETUPS } from "../play/plays";
+import { playFromFileText } from "../play/share";
+import { PlayValidationError } from "../play/validate";
 import { FieldViewFrame } from "../ui/app/FieldViewFrame";
+import { useFieldViewApp } from "../ui/app/FieldViewApp";
+import { BuildPlayerCard, FrameCard, PlayMeta, PreviewCard } from "../ui/build/cards";
+import { BTN, BTN_PRIMARY, FrameChip, SavePill, UndoRedo } from "../ui/build/controls";
+import { FrameStrip } from "../ui/build/FrameStrip";
+import { LibraryList } from "../ui/build/LibraryList";
+import { ShareDialog } from "../ui/build/ShareDialog";
+import { GhostLayer } from "../ui/build/GhostLayer";
+import { useBuildSession } from "../ui/build/useBuildSession";
+import { usePlayback } from "../ui/playback/usePlayback";
 
-const GHOSTS = [
-  { label: "Tools", className: "left-6 top-6 h-[46%] w-[16%]" },
-  { label: "Field", className: "left-[19%] top-6 h-[46%] w-[52%]" },
-  { label: "Properties", className: "left-[73%] top-6 h-[46%] w-[24%]" },
-  { label: "Frames timeline", className: "left-6 top-[52%] h-[40%] w-[calc(100%-3rem)]" },
-];
+// While a preview runs, editing is switched off. `inert` removes the subtree
+// from the tab order and from pointer input in one attribute.
+const inertWhen = (on: boolean) => (on ? ({ inert: "" } as Record<string, string>) : {});
 
-function PlaceholderCard() {
-  return (
-    <div className="relative z-10 w-full max-w-lg border border-zinc-900 bg-white p-6 sm:p-8">
-      <span className="inline-block border border-film-accentPink px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-film-accentPink">
-        Next update
-      </span>
-      <h1 className="mb-3 mt-2 font-heading text-2xl uppercase">Play designer</h1>
-      <p className="mb-2 text-zinc-600">
-        This is where coaches will build plays on a laptop and then show them on a phone.
-      </p>
-      <ul className="mb-4 list-disc pl-5 text-sm text-zinc-600">
-        <li>Add frames and move players between them</li>
-        <li>Add captions</li>
-        <li>Save and send a play to the team</li>
-      </ul>
-      <p className="text-sm text-zinc-600">
-        Until then, use <strong>Explore</strong> to rearrange the field and <strong>Watch</strong> to
-        run the included plays.
-      </p>
-    </div>
-  );
+const SAVE_DELAY_MS = 500;
+
+// FileReader rather than File.text(): the same result, older browsers included.
+function readFileText(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result ?? ""));
+    reader.onerror = () => reject(reader.error ?? new Error("read failed"));
+    reader.readAsText(file);
+  });
 }
+const EXAMPLES: readonly Play[] = [...BUILTIN_PLAYS, ...BUILTIN_SETUPS];
 
 export function Build() {
+  const { store, loadScene } = useFieldViewApp();
+  const { playId } = useParams();
+  const navigate = useNavigate();
+  const entries = useLibrary();
+
+  // The id of the play in the session: null until it has been saved once.
+  const currentIdRef = useRef<string | null>(playId && library.get(playId) ? playId : null);
+  const view = useBuildSession(
+    store,
+    loadScene,
+    () => (currentIdRef.current ? library.get(currentIdRef.current)!.play : newPlay()),
+    currentIdRef.current ? "saved" : "new",
+  );
+  const { session, play, frameIndex } = view;
+  const playback = usePlayback(store, play);
+  const { controller } = playback;
+  const [previewing, setPreviewing] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
+  const [notice, setNotice] = useState<{ text: string; undo?: () => void } | null>(null);
+
+  // ── autosave ────────────────────────────────────────────────────────────────
+
+  const pendingRef = useRef<{ timer: number; play: Play } | null>(null);
+  // Writes the last edit now. `address` gives a first-saved play its URL; it is
+  // off when the caller is about to navigate somewhere else itself.
+  const flush = useCallback(
+    (address = true) => {
+    const pending = pendingRef.current;
+    if (!pending) return;
+    window.clearTimeout(pending.timer);
+    pendingRef.current = null;
+    const isNew = currentIdRef.current === null;
+    const id = currentIdRef.current ?? newPlayId();
+    const result = library.save(id, pending.play);
+    currentIdRef.current = id;
+    session.setSaveStatus(result.ok ? "saved" : "error");
+    // A play's first save gives it its address, without reloading anything.
+    if (isNew && address) navigate(`/fieldview/build/${id}`, { replace: true });
+    },
+    [session, navigate],
+  );
+
+  useEffect(() => {
+    const off = session.subscribeDocument((next) => {
+      if (pendingRef.current) window.clearTimeout(pendingRef.current.timer);
+      session.setSaveStatus("saving");
+      pendingRef.current = { play: next, timer: window.setTimeout(() => flush(), SAVE_DELAY_MS) };
+    });
+    return () => {
+      off();
+      flush(false); // leaving Build must not lose the last edit (and must not navigate back)
+    };
+  }, [session, flush]);
+
+  // ── library: open, new, duplicate, delete ───────────────────────────────────
+
+  // A different play was asked for through the route (a click in the list, a
+  // back button): load it. Only a CHANGE of address counts — a re-render while
+  // the router catches up with our own navigation must not reload anything.
+  const seenPlayId = useRef(playId);
+  useEffect(() => {
+    if (playId !== undefined && !library.get(playId)) {
+      navigate("/fieldview/build", { replace: true });
+    }
+    // Once, on arrival: an address for a play that no longer exists.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  useEffect(() => {
+    if (playId === seenPlayId.current) return;
+    seenPlayId.current = playId;
+    if (playId === undefined || playId === currentIdRef.current) return;
+    const entry = library.get(playId);
+    if (!entry) {
+      navigate("/fieldview/build", { replace: true });
+      return;
+    }
+    flush(false); // the play being left keeps its last edit
+    currentIdRef.current = playId;
+    session.loadPlay(entry.play);
+  }, [playId, session, navigate, flush]);
+
+  const startNew = useCallback(() => {
+    flush(false);
+    currentIdRef.current = null;
+    session.loadPlay(newPlay());
+    session.setSaveStatus("new");
+    navigate("/fieldview/build");
+  }, [session, navigate, flush]);
+
+  const openCopy = useCallback(
+    (source: Play, name?: string) => {
+      flush(false);
+      const id = newPlayId();
+      library.save(id, name ? renamePlay(source, name) : source);
+      navigate(`/fieldview/build/${id}`);
+    },
+    [navigate, flush],
+  );
+
+  // ── files ───────────────────────────────────────────────────────────────────
+
+  const importFile = useCallback(
+    async (file: File): Promise<string | null> => {
+      try {
+        const opened = playFromFileText(await readFileText(file));
+        openCopy(opened);
+        return null;
+      } catch (error) {
+        return error instanceof PlayValidationError ? error.message : "That file couldn't be read.";
+      }
+    },
+    [openCopy],
+  );
+
+  const libraryPanel = (
+    <LibraryList
+      entries={entries}
+      currentId={currentIdRef.current}
+      examples={EXAMPLES}
+      onNew={startNew}
+      onOpen={(id) => {
+        flush(false);
+        navigate(`/fieldview/build/${id}`);
+      }}
+      onDuplicate={(id) => {
+        const entry = library.get(id);
+        if (entry) openCopy(entry.play, `${entry.play.name} copy`);
+      }}
+      onDelete={(id) => {
+        const entry = library.get(id);
+        if (!entry) return;
+        library.remove(id);
+        setNotice({ text: `Deleted “${entry.play.name}”.`, undo: () => library.restore(entry) });
+        if (id === currentIdRef.current) startNew();
+      }}
+      onDuplicateExample={(example) => openCopy(example, example.frames.length === 1 ? example.name : `${example.name} copy`)}
+    />
+  );
+
+  const placed = useMemo(() => new Set(placedIds(play, frameIndex)), [play, frameIndex]);
+
+  const startPreview = (from: number) => {
+    setPreviewing(true);
+    controller.goto(from);
+    controller.play();
+  };
+  const stopPreview = () => {
+    controller.pause();
+    setPreviewing(false);
+    session.resync();
+  };
+  // The preview ends by itself at the last frame; the field then returns to the
+  // frame being edited.
+  useEffect(() => {
+    if (previewing && playback.status !== "playing") {
+      setPreviewing(false);
+      session.resync();
+    }
+  }, [previewing, playback.status, session]);
+
+  // Undo / redo from the keyboard, except while typing in a field.
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (!(e.metaKey || e.ctrlKey) || e.key.toLowerCase() !== "z") return;
+      const el = document.activeElement as HTMLElement | null;
+      if (el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.isContentEditable)) return;
+      e.preventDefault();
+      if (previewing) return;
+      if (e.shiftKey) session.redo();
+      else session.undo();
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [session, previewing]);
+
+  const label = play.frames[frameIndex]?.label;
+  const shareButton = (
+    <button type="button" className={BTN_PRIMARY} onClick={() => setShareOpen(true)}>
+      Share
+    </button>
+  );
+  const history = (
+    <UndoRedo canUndo={view.canUndo && !previewing} canRedo={view.canRedo && !previewing} onUndo={() => session.undo()} onRedo={() => session.redo()} />
+  );
+
+  const strip = (
+    <div {...inertWhen(previewing)}>
+      <FrameStrip
+        play={play}
+        version={view.version}
+        frameIndex={frameIndex}
+        onSelect={(i) => session.selectFrame(i)}
+        onAdd={() => {
+          session.apply((p, i) => addFrame(p, i), { sync: false });
+          session.selectFrame(frameIndex + 1);
+        }}
+        onDelete={(i) => {
+          session.selectFrame(i);
+          session.apply((p, at) => deleteFrame(p, at));
+        }}
+      />
+    </div>
+  );
+
+  const playerCard = (bar: boolean) => (
+    <div {...inertWhen(previewing)}>
+      <BuildPlayerCard store={store} play={play} frameIndex={frameIndex} session={session} bar={bar} />
+    </div>
+  );
+
   return (
     <>
       <Seo
         title="Build — Field View — Ultipedia"
-        description="The Field View play designer is coming in the next update."
+        description="Build an ultimate play frame by frame and show it on a phone."
       />
       <FieldViewFrame
         mode="build"
-        showField={false}
-        body={
-          <div className="relative flex min-h-0 w-full flex-1 items-center justify-center py-4">
-            {GHOSTS.map((g) => (
-              <div
-                key={g.label}
-                aria-hidden="true"
-                className={`absolute hidden border border-dashed border-zinc-400 bg-white/70 px-3 py-2 font-mono text-[11px] font-bold uppercase tracking-wider text-zinc-400 desktop:block ${g.className}`}
-              >
-                {g.label}
+        fieldDisabled={previewing}
+        fieldOverlay={previewing ? null : <GhostLayer play={play} frameIndex={frameIndex} />}
+        fieldPlaced={previewing ? undefined : placed}
+        onFieldGestureEnd={({ movedIds }) => session.commitGesture(movedIds)}
+        barCenter={
+          <FrameChip
+            index={frameIndex}
+            count={play.frames.length}
+            label={label}
+            onPrev={() => session.selectFrame(frameIndex - 1)}
+            onNext={() => session.selectFrame(frameIndex + 1)}
+          />
+        }
+        barRight={
+          <>
+            {history}
+            {shareButton}
+          </>
+        }
+        barDesktop={
+          <>
+            {history}
+            <SavePill status={view.save} />
+            {shareButton}
+          </>
+        }
+        menuExtras={
+          <>
+            <p className="px-4 pb-2 pt-2 font-mono text-[10px] font-bold uppercase tracking-wider text-zinc-400">Play</p>
+            <PlayMeta play={play} session={session} />
+            {libraryPanel}
+          </>
+        }
+        sidebar={
+          <div className="flex min-h-full flex-col">
+            <section aria-label="Play" className="border-b border-film-border">
+              <h2 className="px-4 pb-2 pt-4 font-mono text-[10px] font-bold uppercase tracking-wider text-zinc-400">Play</h2>
+              <PlayMeta play={play} session={session} />
+            </section>
+            {libraryPanel}
+          </div>
+        }
+        dock={
+          <div className="flex flex-col gap-4">
+            <div className="grid grid-cols-3 gap-4">
+              <div {...inertWhen(previewing)}>
+                <FrameCard play={play} frameIndex={frameIndex} session={session} />
               </div>
-            ))}
-            <PlaceholderCard />
+              {playerCard(false)}
+              <PreviewCard
+                frameIndex={frameIndex}
+                frameCount={play.frames.length}
+                previewing={previewing}
+                onPlayAll={() => startPreview(0)}
+                onFromHere={() => startPreview(frameIndex)}
+                onStop={stopPreview}
+              />
+            </div>
+            {strip}
+          </div>
+        }
+        compactDock={
+          <div className="flex flex-col gap-2 px-1">
+            {strip}
+            <div className="flex flex-wrap gap-2" {...inertWhen(previewing)}>
+              <button type="button" className={BTN} disabled={play.frames.length >= 30} onClick={() => { session.apply((p, i) => addFrame(p, i), { sync: false }); session.selectFrame(frameIndex + 1); }}>
+                Add frame
+              </button>
+              <button type="button" className={BTN} onClick={() => session.apply((p, i) => duplicateFrame(p, i))}>
+                Duplicate
+              </button>
+              <button type="button" className={BTN} disabled={play.frames.length <= 1} onClick={() => session.apply((p, i) => deleteFrame(p, i))}>
+                Delete
+              </button>
+              <button type="button" className={BTN} disabled={frameIndex === 0} onClick={() => session.apply((p, i) => resetFrame(p, i))}>
+                Reset frame
+              </button>
+            </div>
+            <div className="flex">
+              {previewing ? (
+                <button type="button" className={`${BTN_PRIMARY} ml-auto`} onClick={stopPreview}>
+                  Stop
+                </button>
+              ) : (
+                <button type="button" className={`${BTN_PRIMARY} ml-auto`} disabled={play.frames.length < 2} onClick={() => startPreview(frameIndex)}>
+                  Preview
+                </button>
+              )}
+            </div>
+            {playerCard(true)}
           </div>
         }
       />
+      <ShareDialog open={shareOpen} onClose={() => setShareOpen(false)} play={play} onImportFile={importFile} />
+      {notice && (
+        <div role="status" className="fixed bottom-4 left-1/2 z-[65] flex -translate-x-1/2 items-center gap-3 border border-film-border bg-white px-4 py-2 text-sm shadow">
+          {notice.text}
+          {notice.undo && (
+            <button
+              type="button"
+              aria-label="Undo delete"
+              className="font-mono text-xs font-bold uppercase text-film-accentPink underline"
+              onClick={() => {
+                notice.undo?.();
+                setNotice(null);
+              }}
+            >
+              Undo
+            </button>
+          )}
+          <button type="button" aria-label="Dismiss" className="px-1 text-zinc-500" onClick={() => setNotice(null)}>
+            ✕
+          </button>
+        </div>
+      )}
     </>
   );
 }

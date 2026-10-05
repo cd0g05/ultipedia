@@ -20,6 +20,10 @@ export function degToRad(deg: number): number {
 // | W markW | 38°      | 15–60°  | mark shadow half-width
 export const DEFAULT_MARK_W_DEG = 38;
 
+// The mark is geometry (fieldview-build ADR-38): the defender closest to the
+// disc holder, if within 10 ft; nobody within range means no mark. One source.
+export const MARK_RADIUS_YD = 10 / 3;
+
 export const DEFAULT_PARAMS: SpaceParams = {
   vmax: 7.0,
   react: 0.4,

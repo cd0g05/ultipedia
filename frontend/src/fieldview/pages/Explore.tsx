@@ -1,14 +1,18 @@
 // /fieldview/explore — drag players, watch the space shift (the MVP's hero).
 //
-// Setups come from CURATED_SETUPS (toy content for now — placeholders
+// Setups are the built-in one-frame plays (toy content for now — placeholders
 // register #1/#2). Switching a setup replaces the scene at once; ✎ marks a
 // scene that has drifted from its setup and Reset restores it. "Defense
 // follows" is a persisted STUB: the switch works, the following does not yet
 // (behaviour deferred, ADR-33 reserved) — and it says so.
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Seo } from "../../encyclopedia/seo/Seo";
-import { CURATED_SETUPS, getPreset } from "../scene/presets";
+import { BUILTIN_SETUPS, isSetup } from "../play/plays";
+import { useLibrary } from "../play/library";
+import type { Play } from "../play/format";
+import { toScene } from "../play/model";
+import type { SetupItem } from "../ui/content/SetupList";
 import type { Scene } from "../scene/types";
 import { clearSelection } from "../scene/selection";
 import { FieldViewFrame } from "../ui/app/FieldViewFrame";
@@ -29,9 +33,21 @@ function cloneScene(scene: Scene): Scene {
   };
 }
 
+// The list rows: a setup's name and its one-line takeaway (its description).
+function itemsOf(plays: readonly Play[]): SetupItem[] {
+  return plays.map((p, i) => ({ id: `${i}-${p.name}`, label: p.name, takeaway: p.description ?? "" }));
+}
+
 export function Explore() {
   const { store, loadScene } = useFieldViewApp();
   const overlay = useOverlayState();
+  // The built-in setups, then the one-frame plays saved on this device.
+  const entries = useLibrary();
+  const setupPlays = useMemo<readonly Play[]>(
+    () => [...BUILTIN_SETUPS, ...entries.map((e) => e.play).filter(isSetup)],
+    [entries],
+  );
+  const SETUPS = useMemo(() => itemsOf(setupPlays), [setupPlays]);
   const [index, setIndex] = useState(0);
   const [loadCount, setLoadCount] = useState(0);
   const [listOpen, setListOpen] = useState(false);
@@ -39,14 +55,14 @@ export function Explore() {
 
   const applySetup = useCallback(
     (i: number) => {
-      const scene = getPreset(CURATED_SETUPS[i].name);
+      const scene = toScene(setupPlays[Math.min(i, setupPlays.length - 1)], 0);
       baselineRef.current = cloneScene(scene);
       loadScene(scene);
       store.setSelection(clearSelection());
       setIndex(i);
       setLoadCount((n) => n + 1);
     },
-    [loadScene, store],
+    [loadScene, store, setupPlays],
   );
 
   // Entering Explore always starts from the first setup: the shared store may
@@ -57,10 +73,10 @@ export function Explore() {
   }, []);
 
   const custom = useSceneChanged(store, baselineRef, loadCount);
-  const count = CURATED_SETUPS.length;
+  const count = SETUPS.length;
   const step = (delta: number) => applySetup((index + delta + count) % count);
   const reset = () => applySetup(index);
-  const current = CURATED_SETUPS[index];
+  const current = SETUPS[index];
 
   const defenseFollows = (
     <Switch
@@ -127,7 +143,7 @@ export function Explore() {
                 Setup <span>{count}</span>
               </h2>
               <SetupList
-                setups={CURATED_SETUPS}
+                setups={SETUPS}
                 activeIndex={index}
                 custom={custom}
                 onSelect={applySetup}
@@ -155,7 +171,7 @@ export function Explore() {
       <SetupSlideOver
         open={listOpen}
         onClose={() => setListOpen(false)}
-        setups={CURATED_SETUPS}
+        setups={SETUPS}
         activeIndex={index}
         custom={custom}
         onSelect={applySetup}

@@ -1,6 +1,6 @@
-// Router-level regression: /fieldview/{explore,watch,build} and the unlinked
-// /fieldview/designer resolve to their pages, the shipped /field-view URLs still land there via redirect,
-// and none of the four shadow the /:section dynamic route or any other
+// Router-level regression: /fieldview/{explore,watch,build} resolve to their pages, the shipped
+// /field-view URL still lands there via redirect, the retired /fieldview/designer is gone,
+// and none of them shadow the /:section dynamic route or any other
 // existing static route.
 
 import { describe, expect, it, vi } from "vitest";
@@ -39,10 +39,11 @@ describe("fieldview routes", () => {
     expect(screen.getByRole("group", { name: /ultimate field/i })).toBeInTheDocument();
   });
 
-  it("/fieldview/build renders the placeholder and no field", () => {
+  it("/fieldview/build renders the designer: the field, the frame strip and the cards", () => {
     renderAt("/fieldview/build");
-    expect(screen.getByRole("heading", { name: /play designer/i })).toBeInTheDocument();
-    expect(screen.queryByRole("group", { name: /ultimate field/i })).not.toBeInTheDocument();
+    expect(screen.getByTestId("mode-label")).toHaveTextContent("Build");
+    expect(screen.getByRole("group", { name: /ultimate field/i })).toBeInTheDocument();
+    expect(screen.getAllByTestId("frame-strip").length).toBeGreaterThan(0);
   });
 
   it("Field View is outside the site Layout: no site footer", () => {
@@ -50,10 +51,10 @@ describe("fieldview routes", () => {
     expect(screen.queryByRole("contentinfo")).not.toBeInTheDocument();
   });
 
-  it("/fieldview/designer renders the Designer shell", () => {
+  it("/fieldview/designer no longer exists", () => {
     renderAt("/fieldview/designer");
-    expect(screen.getByRole("heading", { name: /field view.*designer/i })).toBeInTheDocument();
-    expect(screen.getByRole("group", { name: /ultimate field/i })).toBeInTheDocument();
+    expect(screen.queryByTestId("mode-label")).not.toBeInTheDocument();
+    expect(screen.queryByRole("group", { name: /ultimate field/i })).not.toBeInTheDocument();
   });
 
   // The client has the old URLs. Losing them to the /:section 404 would be a
@@ -64,9 +65,10 @@ describe("fieldview routes", () => {
     expect(screen.getByRole("group", { name: /ultimate field/i })).toBeInTheDocument();
   });
 
-  it("/field-view/designer redirects to the Designer", () => {
+  it("/field-view/designer no longer redirects anywhere useful", () => {
     renderAt("/field-view/designer");
-    expect(screen.getByRole("heading", { name: /field view.*designer/i })).toBeInTheDocument();
+    expect(screen.queryByTestId("mode-label")).not.toBeInTheDocument();
+    expect(screen.queryByRole("group", { name: /ultimate field/i })).not.toBeInTheDocument();
   });
 
   it("does not shadow the /:section dynamic route", async () => {

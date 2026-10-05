@@ -65,13 +65,27 @@ export const PIECE_TOKENS = {
     radius: 11.5,
   },
   special: {
-    // thrower + mark are the same size as everyone else — a bigger dot read as
-    // "more important" rather than "different". The thrower is also marked by
-    // the disc beside it, the mark by its direction line; the heavier ring is
-    // what shows on the mark's white disc.
+    // The MARK is the same size as everyone else — a bigger dot read as "more
+    // important" rather than "different". Its heavier ring is what shows on
+    // the white disc (the mark is geometric: the closest defender within 10 ft
+    // of the holder — fieldview-build ADR-38).
     radius: 11.5,
     stroke: "#18181b", // zinc-900
     strokeWidth: 4,
+  },
+  // Build: a small corner mark on a piece that was placed in the current frame
+  // (the others inherit their spot). Pink = "an edit", like selection.
+  placed: {
+    fill: "#be185d",
+    size: 7,
+  },
+  // The disc holder: a ring outside the piece, plus the disc beside it.
+  // PLACEHOLDER(fieldview-build): the colour is a first pass the Builder
+  // confirms (docs/fieldview-placeholders.md #21). Selection stays pink.
+  holder: {
+    stroke: "#047857", // emerald-700
+    strokeWidth: 3,
+    gap: 4,
   },
   disc: {
     fill: "#ffffff",
@@ -126,6 +140,16 @@ export const TRAIL_TOKENS = {
   opacity: 0.7,
   // A piece that moved less than this (yards) draws no trail — noise, not a move.
   minYards: 0.5,
+};
+
+// Build's change indicator: a faint ghost of where a player stood before the
+// current frame placed them.
+export const GHOST_TOKENS = {
+  fill: "#ffffff",
+  fillOpacity: 0.35,
+  strokeWidth: 1,
+  dash: "3 2",
+  opacity: 0.6,
 };
 
 // Touch dragging (fieldview-ui-rework ADR-35): the piece is held ABOVE the
@@ -218,3 +242,10 @@ export const ROUTE_TOKENS = {
     fontSize: 1.6,
   },
 } as const;
+
+// The QR code for a shared link: ink on white, so it scans from a phone held up
+// to a laptop whatever the surrounding theme is.
+export const QR_TOKENS = {
+  dark: "#18181b", // zinc-900
+  light: "#ffffff",
+};

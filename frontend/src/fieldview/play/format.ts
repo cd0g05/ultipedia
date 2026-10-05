@@ -1,88 +1,41 @@
-// The site-wide play contract (tech-design.md "Play file", ADR-7). The
-// encyclopedia's drill visualizer and the AI-animation pipeline will both
-// write against this shape, so identity (entities) is stated once and
-// position is stated per keyframe — cheap to diff, sane to generate.
+// The play document (fieldview-build ADR-36/37). A play is a list of frames;
+// a frame is a still state of the field that INHERITS from the frame before it.
+// Identity (who the 14 players are, their titles) is stated once at play level;
+// each frame states only the players it explicitly placed and, optionally, who
+// holds the disc. Resolving a frame into a full set of positions is the one job
+// of play/model.ts — nothing else walks frames.
 //
-// A preset (scene/presetFormat.ts) is deliberately this format with one
-// frame, so `PlayEntity` is owned here and re-exported there rather than
-// declared twice.
+// v3 is a clean break: the validator accepts this version only (no v1/v2
+// readers, no backfill).
 
-import type { Role, Team, Vec2 } from "../scene/types";
-import { FIELD } from "../scene/field";
+import type { Team, Vec2 } from "../scene/types";
 
-// v2 adds `possession` and `matchups` ADDITIVELY (tech-design ADR-4): both
-// are optional, a v1 file is still valid input, and anything missing is
-// backfilled at load time rather than migrated on disk. The version number is
-// documentation — forward compatibility is guaranteed by validate.ts dropping
-// unknown keys (ADR-7), not by this integer.
-export const PLAY_FORMAT_VERSION = 2;
-
-export interface PlayEntity {
-  id: string; // stable across keyframes — tweening pairs by id, never array index
-  team: Team;
-  role: Role;
-  label?: string;
-}
-
-export interface PlayKeyframe {
-  t: number; // seconds from play start; strictly increasing across the array
-  // Optional short name for this frame ("Cut under"), shown in Watch's
-  // filmstrip. Additive (ADR-7): older files simply lack it.
-  label?: string;
-  positions: Record<string, Vec2>; // entity id -> position, yards
-}
-
-export interface PlayField {
-  length: number;
-  width: number;
-  endzone: number;
-}
-
-export interface PlayFile {
-  formatVersion: number; // PLAY_FORMAT_VERSION
-  name: string;
-  description?: string;
-  // Written explicitly rather than assumed, so a future non-regulation field
-  // is not a breaking change for a reader.
-  field: PlayField;
-  entities: PlayEntity[];
-  keyframes: PlayKeyframe[]; // >= 1, sorted by t
-  // Enumerated with one member today: adding "ease-in-out" later is additive
-  // rather than a format version bump.
-  interpolation: "linear";
-
-  // v2 (ADR-4). Both optional: absent means "this file predates the play
-  // model", and the reader backfills rather than the writer migrating.
-  //
-  // Who holds the disc — an id from `entities`, or null for a loose disc.
-  // Stated once for the whole play, not per keyframe: a keyframe is a POSE,
-  // and a throw is a change of play, not a change of pose. (Recording
-  // possession over time is Initiative D's job and will be a keyframe-level
-  // addition, which this leaves room for.) Absent → backfilled from whichever
-  // entity carries the stored `thrower` role, which is where the fact lived
-  // in v1.
-  possession?: string | null;
-  // defenderId -> offensiveId, or null for explicit free roam. A permutation
-  // (ADR-2): no two defenders share a target. Absent → backfilled by
-  // autoAssign() from the first keyframe's geometry.
-  matchups?: Record<string, string | null>;
-
-  // RESERVED — `annotations` (arrows, text, cone markers) is a confirmed
-  // future need whose *shape* is deliberately not designed yet. The key name
-  // is reserved here so nothing else claims it, and forward-compatibility is
-  // secured by validate.ts dropping unknown keys rather than rejecting them:
-  // a v1.x file carrying annotations still imports cleanly into a reader
-  // that predates them, minus the annotations. Adding the field later is
-  // therefore additive, not a formatVersion bump.
-}
-
-// Length caps applied at the boundary (play/validate.ts) so an imported file
-// cannot carry an unbounded string into the DOM.
+export const PLAY_FORMAT_VERSION = 3;
+export const MAX_FRAMES = 30;
+export const MAX_TITLE_LENGTH = 2;
+export const MAX_LABEL_LENGTH = 24;
 export const MAX_PLAY_NAME_LENGTH = 80;
 export const MAX_PLAY_DESCRIPTION_LENGTH = 500;
-export const MAX_ENTITY_LABEL_LENGTH = 10;
-export const MAX_KEYFRAME_LABEL_LENGTH = 24;
+export const PLAYER_COUNT = 14;
 
-export function currentPlayField(): PlayField {
-  return { length: FIELD.length, width: FIELD.width, endzone: FIELD.endzone };
+export interface PlayerRef {
+  id: string; // stable across frames; identity is never the title
+  team: Team;
+  title?: string; // ≤ MAX_TITLE_LENGTH, uppercase, drawn inside the piece
+}
+
+export interface Frame {
+  label?: string;
+  // ONLY the players placed in this frame. Anyone absent inherits.
+  moved: Record<string, Vec2>;
+  // Set when "Give disc" was used in this frame; absent = inherit.
+  holder?: string;
+}
+
+export interface Play {
+  formatVersion: typeof PLAY_FORMAT_VERSION;
+  name: string;
+  description?: string;
+  players: PlayerRef[]; // exactly PLAYER_COUNT
+  frames: Frame[]; // 1..MAX_FRAMES; frame 0 places everyone and names a holder
 }

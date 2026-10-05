@@ -16,6 +16,8 @@ const sources = import.meta.glob(
     "../ui/content/*.tsx",
     "../ui/content/*.ts",
     "../ui/playback/*.ts",
+    "../ui/build/*.tsx",
+    "../ui/build/*.ts",
     "../pages/Explore.tsx",
     "../pages/Watch.tsx",
     "../pages/Build.tsx",
@@ -55,7 +57,13 @@ describe("content stays frame-agnostic", () => {
 });
 
 describe("no visual literal in the new UI", () => {
-  const files = [...under("../ui/app/"), ...under("../ui/content/"), ...under("../ui/playback/"), ...under("../pages/")];
+  const files = [
+    ...under("../ui/app/"),
+    ...under("../ui/content/"),
+    ...under("../ui/playback/"),
+    ...under("../ui/build/"),
+    ...under("../pages/"),
+  ];
   for (const [path, src] of files) {
     it(`${path} has no hex colour literal`, () => {
       expect(src).not.toMatch(/#[0-9a-fA-F]{3,8}\b/);
@@ -71,4 +79,25 @@ describe("orientation lives only in render/coords.ts (ADR-28)", () => {
       for (const smell of SMELLS) expect(src).not.toMatch(smell);
     });
   }
+});
+
+describe("Build stays inside its lane", () => {
+  it("nothing in ui/build or the pages touches localStorage directly (the library owns persistence)", () => {
+    const hits = [...under("../ui/build/"), ...under("../pages/")]
+      .filter(([, src]) => /\blocalStorage\b|\bsessionStorage\b/.test(src))
+      .map(([p]) => p);
+    expect(hits).toEqual([]);
+  });
+
+  it("ui/build never imports a frame component (it is slotted into the frame, not the other way round)", () => {
+    for (const [path, src] of under("../ui/build/")) {
+      expect(src, path).not.toMatch(/from\s+["']\.\.\/app\/FieldViewFrame["']/);
+    }
+  });
+
+  it("only pages/Build.tsx mounts the Build session", () => {
+    const hits = entries.filter(([, src]) => /useBuildSession\(/.test(src)).map(([p]) => p);
+    expect(hits).toEqual(["../pages/Build.tsx", "../ui/build/useBuildSession.ts"].filter((p) => hits.includes(p)));
+    expect(hits).toContain("../pages/Build.tsx");
+  });
 });

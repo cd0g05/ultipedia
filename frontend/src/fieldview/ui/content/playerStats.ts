@@ -20,9 +20,13 @@ export interface PlayerStats {
   rows: StatRow[];
 }
 
-function nameOf(p: Player | undefined): string {
+// "Offense 3" — the same stable name the piece announces; a title, when the
+// player has one, leads it ("AB · Offense 3").
+function nameOf(scene: Scene, p: Player | undefined): string {
   if (!p) return "Nobody";
-  return p.label ? `#${p.label}` : p.id;
+  const ordinal = scene.players.filter((q) => q.team === p.team).findIndex((q) => q.id === p.id) + 1;
+  const base = `${p.team === "offense" ? "Offense" : "Defense"} ${ordinal}`;
+  return p.label ? `${p.label} · ${base}` : base;
 }
 
 function distance(a: Player, b: Player): number {
@@ -61,11 +65,11 @@ export function playerStats(scene: Scene, id: string, baseline: Scene | null): P
 
   const isOffense = player.team === "offense";
   const relation: StatRow = isOffense
-    ? { label: "Marked by", value: nameOf(byId(guardedBy(scene, id))) }
-    : { label: "Marking", value: nameOf(byId(scene.matchups[id])) };
+    ? { label: "Marked by", value: nameOf(scene, byId(guardedBy(scene, id))) }
+    : { label: "Marking", value: nameOf(scene, byId(scene.matchups[id])) };
 
   return {
-    title: `${nameOf(player)} · ${isOffense ? "offense" : "defense"}`,
+    title: nameOf(scene, player),
     rows: [
       relation,
       {

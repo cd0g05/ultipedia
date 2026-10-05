@@ -33,7 +33,7 @@ describe("transport and progress", () => {
   it("opens on frame 1 of the first play", () => {
     renderWatch();
     expect(screen.getByTestId("mode-label")).toHaveTextContent("Watch");
-    expect(counters()[0]).toHaveTextContent(`1 / ${first.keyframes.length}`);
+    expect(counters()[0]).toHaveTextContent(`1 / ${first.frames.length}`);
     expect(screen.getByRole("button", { name: "Choose a play" })).toHaveTextContent(first.name);
   });
 
@@ -43,18 +43,18 @@ describe("transport and progress", () => {
       expect(prev).toBeDisabled();
     }
     fireEvent.click(screen.getAllByRole("button", { name: "Next frame", hidden: true })[0]);
-    expect(counters()[0]).toHaveTextContent(`2 / ${first.keyframes.length}`);
+    expect(counters()[0]).toHaveTextContent(`2 / ${first.frames.length}`);
     const dots = within(screen.getAllByRole("list", { name: "Frames", hidden: true })[0]).getAllByRole("button", {
       hidden: true,
     });
-    expect(dots).toHaveLength(first.keyframes.length);
+    expect(dots).toHaveLength(first.frames.length);
     expect(dots[1]).toHaveAttribute("aria-current", "step");
   });
 
   it("a dot jumps straight to its frame", () => {
     renderWatch();
     fireEvent.click(screen.getAllByRole("button", { name: "Go to frame 4", hidden: true })[0]);
-    expect(counters()[0]).toHaveTextContent(`4 / ${first.keyframes.length}`);
+    expect(counters()[0]).toHaveTextContent(`4 / ${first.frames.length}`);
   });
 
   it("Play toggles to Pause and back", () => {
@@ -73,8 +73,8 @@ describe("filmstrip (desktop)", () => {
     const strip = screen.getByTestId("filmstrip");
     expect(strip.className).toMatch(/overflow-x-auto/);
     const frames = within(strip).getAllByRole("button", { hidden: true });
-    expect(frames).toHaveLength(first.keyframes.length);
-    expect(first.keyframes.length).toBeGreaterThan(4); // so there is something to scroll to
+    expect(frames).toHaveLength(first.frames.length);
+    expect(first.frames.length).toBeGreaterThan(4); // so there is something to scroll to
     // Four across: a quarter of the strip less three 1rem gaps (jsdom may
     // normalise the calc() spelling, so match its parts).
     for (const f of frames) {
@@ -90,7 +90,7 @@ describe("filmstrip (desktop)", () => {
     renderWatch();
     const strip = screen.getByTestId("filmstrip");
     fireEvent.click(within(strip).getByRole("button", { name: /frame 3/i, hidden: true }));
-    expect(counters()[0]).toHaveTextContent(`3 / ${first.keyframes.length}`);
+    expect(counters()[0]).toHaveTextContent(`3 / ${first.frames.length}`);
     expect(within(strip).getByRole("button", { name: /frame 3/i, hidden: true })).toHaveAttribute(
       "aria-current",
       "step",
@@ -116,7 +116,7 @@ describe("play list", () => {
     fireEvent.click(
       within(within(sidebar()).getByTestId("play-list")).getByRole("button", { name: new RegExp(second.name, "i"), hidden: true }),
     );
-    expect(counters()[0]).toHaveTextContent(`1 / ${second.keyframes.length}`);
+    expect(counters()[0]).toHaveTextContent(`1 / ${second.frames.length}`);
     expect(screen.getByRole("button", { name: "Choose a play" })).toHaveTextContent(second.name);
   });
 
@@ -170,13 +170,13 @@ describe("playback options", () => {
 describe("Watch is read-only", () => {
   it("disables every piece", () => {
     renderWatch();
-    const piece = screen.getByRole("button", { name: "offense cutter 1" });
+    const piece = screen.getByRole("button", { name: "Offense 2" });
     expect(piece).toHaveAttribute("aria-disabled", "true");
   });
 
   it("a nudge key cannot move a piece", () => {
     renderWatch();
-    const piece = screen.getByRole("button", { name: "offense cutter 1" });
+    const piece = screen.getByRole("button", { name: "Offense 2" });
     const before = piece.getAttribute("transform");
     fireEvent.keyDown(piece, { key: "ArrowRight" });
     expect(piece.getAttribute("transform")).toBe(before);
@@ -193,13 +193,13 @@ describe("ADR-2: playback keeps React out of the animation frame", () => {
         </Profiler>
       </MemoryRouter>,
     );
-    const cutterBefore = screen.getByRole("button", { name: "offense cutter 1" }).getAttribute("transform");
+    const cutterBefore = screen.getByRole("button", { name: "Offense 2" }).getAttribute("transform");
     fireEvent.click(screen.getAllByRole("button", { name: "Next frame", hidden: true })[0]); // one structural commit
     commits = 0;
     // ~25 real animation frames, well inside the 1.2 s transition.
     await new Promise((resolve) => setTimeout(resolve, 400));
     await waitFor(() =>
-      expect(screen.getByRole("button", { name: "offense cutter 1" }).getAttribute("transform")).not.toBe(cutterBefore),
+      expect(screen.getByRole("button", { name: "Offense 2" }).getAttribute("transform")).not.toBe(cutterBefore),
     );
     expect(commits).toBe(0);
   });

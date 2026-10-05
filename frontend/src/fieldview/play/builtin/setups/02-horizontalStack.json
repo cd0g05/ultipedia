@@ -1,0 +1,127 @@
+{
+ "_placeholder": true,
+ "formatVersion": 3,
+ "name": "Horizontal stack",
+ "description": "Wide and flat: the middle opens up.",
+ "players": [
+  {
+   "id": "o1",
+   "team": "offense"
+  },
+  {
+   "id": "d1",
+   "team": "defense"
+  },
+  {
+   "id": "o2",
+   "team": "offense"
+  },
+  {
+   "id": "d2",
+   "team": "defense"
+  },
+  {
+   "id": "o3",
+   "team": "offense"
+  },
+  {
+   "id": "d3",
+   "team": "defense"
+  },
+  {
+   "id": "o4",
+   "team": "offense"
+  },
+  {
+   "id": "d4",
+   "team": "defense"
+  },
+  {
+   "id": "o5",
+   "team": "offense"
+  },
+  {
+   "id": "d5",
+   "team": "defense"
+  },
+  {
+   "id": "o6",
+   "team": "offense"
+  },
+  {
+   "id": "d6",
+   "team": "defense"
+  },
+  {
+   "id": "o7",
+   "team": "offense"
+  },
+  {
+   "id": "d7",
+   "team": "defense"
+  }
+ ],
+ "frames": [
+  {
+   "moved": {
+    "o1": {
+     "x": 40,
+     "y": 20
+    },
+    "d1": {
+     "x": 39,
+     "y": 20
+    },
+    "o2": {
+     "x": 55,
+     "y": 4
+    },
+    "d2": {
+     "x": 53,
+     "y": 5
+    },
+    "o3": {
+     "x": 55,
+     "y": 10
+    },
+    "d3": {
+     "x": 53,
+     "y": 11
+    },
+    "o4": {
+     "x": 55,
+     "y": 16
+    },
+    "d4": {
+     "x": 53,
+     "y": 17
+    },
+    "o5": {
+     "x": 55,
+     "y": 24
+    },
+    "d5": {
+     "x": 53,
+     "y": 23
+    },
+    "o6": {
+     "x": 55,
+     "y": 30
+    },
+    "d6": {
+     "x": 53,
+     "y": 29
+    },
+    "o7": {
+     "x": 55,
+     "y": 36
+    },
+    "d7": {
+     "x": 53,
+     "y": 35
+    }
+   },
+   "holder": "o1"
+  }
+ ]
+}

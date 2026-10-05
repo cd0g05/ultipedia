@@ -49,25 +49,48 @@ and see the field shading respond.
 
 ## Stretch goals
 
-- [ ] Build mode (frame-based designer; laptop-first, usable on tablet/phone) — layout deliberately
-      undecided; desktop mockup only sketches empty regions (tools / properties / frames timeline)
+- [x] Build mode (frame-based designer; laptop-first, usable on tablet/phone) — built in `fieldview-build`
+      (frames that inherit, ghosts + placed marks, undo/redo, preview, 2-char titles, Give disc); layout per
+      `design/fieldview-build-mockup.html`. Real-device pass still to do (`docs/fieldview-device-qa.md`).
 - [ ] Desktop Explore: ideas to fill the space under the field (currently only a selected-player
       stats card) — TBD
 - [ ] Optional "reading the field" hint sentence (cut from desktop Explore 2026-10-03; revisit if wanted)
 - [x] Watch (desktop): 4-up frame filmstrip that scrolls sideways for plays with more frames; plays
       list shows 5 and scrolls for more (also applies to setups list)
 - [x] Watch: playback speed (0.5×/1×/2×), loop, trails — shown in desktop sidebar
-- [ ] Save a play and share it by link (play encoded in the URL; no accounts)
-- [ ] Per-frame captions on plays (optional overlay in Watch)
-- [ ] Tap a player for detail (e.g. distance to nearest defender)
-- [ ] Coach-created presets
+- [x] Save a play and share it by link (play encoded in the URL; no accounts) — link, QR and file; saved on this device (`fieldview-build`)
+- [x] Per-frame captions on plays — the frame label shows under the field in Watch (`fieldview-build`)
+- [x] Tap a player for detail — the selected-player card (Explore desktop dock; Build card/bar)
+- [x] Coach-created presets — a one-frame play is a setup; saved ones appear in Explore's picker
 - [ ] Watch: speed, loop, show/hide trails
 - [ ] Tablet layout that makes use of spare vertical room (open question)
 - [x] Safe-area insets for notched phones
 
+## Build (play designer) — functional model, drafted 2026-10-05
+
+Builder's proposal, before any UI design. Decisions are in "Decided"; what is still open is in "Open questions".
+
+- **Frames:** a frame is a full still state of the field (positions + who holds the disc). Build =
+  Explore's drag surface plus controls to add / duplicate / delete / reorder / save frames. A new
+  frame starts as a copy of the previous one.
+- **Playback = automatic transitions** between consecutive frames (the same engine as Watch). A
+  cutter glides A→B; a thrown disc flies holder→receiver; they should arrive together. Defense is
+  authored by hand, exactly like offense, and animates the same way.
+- **Presets are single frames.** "Save this frame as a setup" reuses the same save path.
+- **Dynamic possession:** no permanent thrower. Select a player → **Give disc**. The holder is shown
+  with the disc icon (maybe a ring/designator — undecided). Possession changes do not change anyone's
+  title.
+- **Player titles replace T / M / 1–6:** every player starts **unnamed**; selecting one lets you set
+  a title (**max 5 chars**, e.g. "H" for handlers, "C" for cutters). Titles are identity — they
+  persist across frames and throws. The selected-player panel (one of the boxes under the field on
+  desktop) is where naming and Give disc live.
+- **Reuse, don't rebuild:** `play/` format (a preset is already a one-keyframe play), the Watch
+  playback controller, the unsurfaced throw engine (`scene/possession.ts`, `motion/disc.ts`
+  flight timing), selection + marquee, trails layer, filmstrip.
+
 ## Built but not surfaced (re-attach later)
 
-> **Reference implementation kept alive:** `pages/Whiteboard.tsx` + `ui/shell/*` + `ui/PresetMenu.tsx` are now *unrouted* but still compile and are still tested (decided during P3 of fieldview-ui-rework). They compose every feature below together — start there when re-attaching one.
+> **Reference implementation removed (fieldview-build P0):** the old `pages/Whiteboard.tsx`, `pages/Designer.tsx`, `ui/shell/*` (ribbon, sidebar, bottom sheet, panels), `ui/PresetMenu.tsx`, `ui/Timeline.tsx`, `ui/PlayMeta.tsx`, `ui/OverlayRail.tsx` and `scene/preset*.ts` were deleted. They are all in git history at commit `085621f` (e.g. `git show 085621f:frontend/src/fieldview/pages/Whiteboard.tsx`); start there when re-attaching a feature. The engines below are still in the tree.
 
 Already implemented in some form, with code and tests in the repo, but **deliberately not in the new
 UI's MVP** (rework decision D2 and friends, 2026-10-03). Each should be quick to add back because the
@@ -75,7 +98,7 @@ substance exists — the work is mostly UI entry points. Paths are under `fronte
 
 - **Throw to player** — possession moves to a chosen receiver; the new thrower gets a mark; the disc
   flies as an animation and lands before possession changes. `scene/possession.ts`, `motion/disc.ts`,
-  `ui/shell/throwMode.ts`, ribbon button in `ui/shell/ToolRibbon.tsx`, throw-click in `ui/FieldCanvas.tsx`.
+  `ui/shell/throwMode.ts`, ribbon button (at `085621f:…/ui/shell/ToolRibbon.tsx`), throw-click in `ui/FieldCanvas.tsx`.
 - **Cuts / routes** — click a destination (multi-waypoint, so two-part cuts) and run it with real
   accel/decel physics; stop, rewind, drag waypoint markers to reshape. `motion/route.ts`,
   `motion/kinematics.ts`, `motion/simulate.ts`, `ui/motion/*`, `render/routeLayer.tsx`.
@@ -83,16 +106,16 @@ substance exists — the work is mostly UI entry points. Paths are under `fronte
   `motion/pursuit.ts`, `motion/step.ts`. (The new "Defense follows" toggle reuses this on drag.)
 - **Advanced settings panel** — space-model sliders, lens/layers, and the motion tunables `accel`,
   `decel`, `cushion`, `lead`. `ui/AdvancedPanel.tsx`, `motion/constants.ts`, `space/constants.ts`.
-  Deferred (see Future); the old panel stays for the unlinked designer.
+  Deferred (see Future); the panel component stays in the tree, unmounted.
 - **Force controls** — flat / flick / backhand × default / inside / around, plus a "custom" reading.
-  `scene/force.ts`, `ui/shell/panels/MarkPanel.tsx`.
+  `scene/force.ts`, panel at `085621f:…/ui/shell/panels/MarkPanel.tsx`.
 - **Matchups** — auto-assign and manual reassign of who guards whom. `scene/matchups.ts`,
-  `ui/shell/panels/DefensePlayerPanel.tsx`.
+  panel at `085621f:…/ui/shell/panels/DefensePlayerPanel.tsx`.
 - **Marquee multi-select + group drag** — draw a box on empty grass, move the group rigidly.
   `scene/selection.ts`, marquee code in `ui/FieldCanvas.tsx`.
 - **Keyboard nudge** of the selected player(s). `ui/FieldCanvas.tsx`.
 - **User presets** — save / rename / delete (with undo) / import / export JSON, persisted to
-  localStorage. `scene/presetRegistry.ts`, `scene/presetFormat.ts`, `ui/PresetMenu.tsx`. *(Also listed
+  localStorage. Removed in P0 (see `085621f`); superseded by the one play library in fieldview-build. *(Also listed
   under Future: coach-made presets.)*
 - **PNG export** of the field with the painted heatmap. `render/exportImage.ts`.
 - **Present / fullscreen mode** — field alone fullscreen for showing a team. `ui/useFullscreen.ts`,
@@ -115,6 +138,12 @@ substance exists — the work is mostly UI entry points. Paths are under `fronte
   deliberately.* While an offensive player is dragged, the assigned defender trails using the existing
   pursuit model (`motion/pursuit.ts`, `motion/step.ts`, driver in `ui/motion/driver.ts`). The toggle and
   its pref ship in the MVP as a "coming soon" stub. ADR-33 is reserved for it.
+- **Realistic animation** — *future.* Transitions currently start and finish together over one fixed time. Later:
+  duration derived from the longest move, per-frame speed override, easing, and physically plausible paths
+  (acceleration/deceleration from the motion model; a disc that leads the receiver).
+- **Automatic defense** — *future.* Let the system place the defense (pursuit, cushion, shading) instead of
+  the user dragging every defender, e.g. a "suggest defense" action in Build. Builds on the deferred
+  defense-following work (`motion/pursuit.ts`, `motion/step.ts`).
 - **Advanced settings** — *do later.* The old panel exists (`ui/AdvancedPanel.tsx`: space-model sliders,
   lens, layers, motion tunables). Intended eventual home: the open space under the Explore field on
   desktop. Not in the MVP UI.
@@ -129,6 +158,10 @@ substance exists — the work is mostly UI entry points. Paths are under `fronte
 - Accounts / a saved library of plays and teams
 
 ## Open questions
+
+- **Build — still open (small):** reordering frames (assumed out of v1); max frames (suggest 30); which characters a title may use; whether the faint 10 ft circle around the holder ships. See `docs/fieldview-build-functional-spec.md` §9.
+- **Piece size per device (being evaluated 2026-10-05):** proposal is phone 85% / tablet 70% / desktop 50% of today's size (≈ 19 / 21 / 14 px across vs 22 / 30 / 28 today). Needs a way to set it per breakpoint in `PIECE_TOKENS` (today one radius for everything). Mockup: `design/fieldview-build-mockup.html` (Current/Proposed switch).
+- **Space model must accept "no mark":** today `requireRole(scene, "mark")` throws. See Decided (mark rule).
 
 
 - Sharing: URL-only (long links, can't update after sending) vs. accounts + saved library
@@ -165,6 +198,42 @@ substance exists — the work is mostly UI entry points. Paths are under `fronte
   moved to do-later; placeholders (toy setups/plays/copy) are allowed and tracked in
   `docs/fieldview-placeholders.md`. `fieldview-motion` archived; all five ui-rework specs approved.
 
+- 2026-10-05 · **Build model.** Frames are full field states; **always 14 players; no turnovers; straight-line
+  transitions; titles ≤ 2 characters, drawn inside the piece; defense is hand-placed** (automatic defense is a
+  Future item). Saving/sharing: encode the play in a link (+ QR, + file export as backup); links are snapshots.
+- 2026-10-05 · **The mark is geometry, not an assignment.** The mark is the *closest* defender to the disc holder
+  **within 10 ft (10/3 yd)**; if none is that close there is **no mark**; any other defender is a standard
+  defender (double-team rule deliberately not modelled). Matchups stop determining the mark.
+- 2026-10-05 · **Frames inherit.** Per player, per frame: either an explicit ("moved") position or inherit the
+  previous frame's resolved position; the first frame is fully explicit. Editing an earlier frame moves everyone
+  who inherits from it. The disc holder inherits the same way. Reset = drop this frame's explicit positions.
+- 2026-10-05 · Undo/redo wanted (snapshots of the small play document, one step per completed gesture).
+- 2026-10-05 · **Timing (v1):** every piece starts and arrives together over one fixed transition time; the
+  disc flies in the same time. Realistic timing is a Future item. **Plays are single paths** (no branching).
+- 2026-10-05 · **Deleting a frame resets the defaults:** later frames simply inherit from what is now before them
+  (no "locking in" positions). Frame reordering is out of v1.
+- 2026-10-05 · **No legacy support.** Nothing from before the rework is relevant: the play format becomes a clean
+  v3 (no v1/v2 readers or backfill), the toy plays are regenerated, and the dormant old shell / Whiteboard /
+  PresetMenu / old Designer are deleted as the first step of the Build work.
+- 2026-10-05 · One saved list of plays (a one-frame play is a setup); disc holder drawn with a green ring for now.
+
 ## Decided against
 
 *(none yet)*
+- **Force presets and the 10 ft mark rule (2026-10-05, P1):** `flat/inside` moved to 3.25 yd so every force preset stays within `MARK_RADIUS_YD`; a force-picker UI must keep that invariant.
+
+## Status after fieldview-build (2026-10-05)
+
+Built and merged on `initiative/fieldview-build` (not yet on `main`): the whole Build functional spec — v3 play
+format (clean break), frames that inherit, geometric 10 ft mark, dynamic disc holder with a pass animation,
+unnamed players with 2-character titles, per-device piece sizes (85 / 70 / 50 %), the Build page, a local play
+library with autosave, and sharing by link / QR / file with Watch opening shared links.
+
+**Still deferred (unchanged):** automatic defense and defense-following; realistic animation timing; branching
+plays; frame reordering; Advanced settings; accounts / cross-device library; offline / PWA; faint 10 ft circle;
+force / matchup / throw / cut UIs (engines are still in the tree — see "Built but not surfaced"); the compact
+selected-player card in Explore (it lives only in the desktop dock today).
+
+**Known follow-ups from the build:** the share link has no expiry or revocation by design (it is a snapshot);
+a very long play near 30 frames with long labels may exceed QR capacity (the dialog says so and the link/file
+still work); Explore's card edits (title, Give disc) are live-only and are not saved to the library.

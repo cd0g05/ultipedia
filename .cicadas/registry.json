@@ -6,6 +6,12 @@
       "owner": "unknown",
       "signals": [],
       "created_at": "2026-10-03T18:53:58.407350+00:00"
+    },
+    "fieldview-build": {
+      "intent": "Implement the Build (play designer): frames-with-inheritance play model + clean v3 format, geometric 10 ft mark, dynamic disc holder + 2-char titles, per-device piece sizing, Build page UI, local library + link/QR/file sharing",
+      "owner": "unknown",
+      "signals": [],
+      "created_at": "2026-10-05T21:35:46.701046+00:00"
     }
   },
   "branches": {
@@ -74,6 +80,48 @@
       "owner": "unknown",
       "created_at": "2026-10-03T19:44:36.691347+00:00",
       "initiative": "fieldview-ui-rework"
+    },
+    "feat/fieldview-build-cleanup": {
+      "intent": "Delete dormant legacy Field View UI and user-preset code; port worthwhile field tests to a small harness",
+      "modules": [],
+      "owner": "unknown",
+      "created_at": "2026-10-05T21:41:55.457870+00:00",
+      "initiative": "fieldview-build"
+    },
+    "feat/fieldview-build-model": {
+      "intent": "Build play model: v3 format, resolve/ops/history, validator, geometric mark, space model tolerates no mark, regenerated v3 content",
+      "modules": [],
+      "owner": "unknown",
+      "created_at": "2026-10-05T21:46:36.539284+00:00",
+      "initiative": "fieldview-build"
+    },
+    "feat/fieldview-build-disc-titles": {
+      "intent": "Disc and titles: accessible names, centred titles, green holder ring, per-device piece scale, v3 playback with per-frame holder and disc flight, Explore Give disc + title",
+      "modules": [],
+      "owner": "unknown",
+      "created_at": "2026-10-05T22:04:05.725376+00:00",
+      "initiative": "fieldview-build"
+    },
+    "feat/fieldview-build-ui": {
+      "intent": "Build page: BuildSession, frame strip/cards, selected-player card, preview, ghost layer, undo/redo, compact layout",
+      "modules": [],
+      "owner": "unknown",
+      "created_at": "2026-10-05T22:12:55.099026+00:00",
+      "initiative": "fieldview-build"
+    },
+    "feat/fieldview-build-share": {
+      "intent": "Library and sharing: LocalPlayStore + library list, autosave, share codec (fflate, base64url), QR, share dialog, file import/export, Watch opens shared links",
+      "modules": [],
+      "owner": "unknown",
+      "created_at": "2026-10-05T22:21:08.162985+00:00",
+      "initiative": "fieldview-build"
+    },
+    "feat/fieldview-build-qa": {
+      "intent": "QA and cleanup: extended guards and audits, a11y pass, device-QA checklist for Build, docs, handoff and placeholder report",
+      "modules": [],
+      "owner": "unknown",
+      "created_at": "2026-10-05T22:30:29.043839+00:00",
+      "initiative": "fieldview-build"
     }
   }
 }

@@ -5,16 +5,18 @@
 
 import { yardToPixel } from "../../render/coords";
 import { PIECE_TOKENS, TRAIL_TOKENS } from "../../render/tokens";
-import type { PlayFile } from "../../play/format";
+import type { Play } from "../../play/format";
+import { resolveAll } from "../../play/model";
 
 const MARKER_ID = "fv-trail-arrow";
 
-export function TrailLayer({ play, frameIndex }: { play: PlayFile; frameIndex: number }) {
+export function TrailLayer({ play, frameIndex }: { play: Play; frameIndex: number }) {
   if (frameIndex <= 0) return null;
-  const from = play.keyframes[frameIndex - 1].positions;
-  const to = play.keyframes[frameIndex].positions;
+  const frames = resolveAll(play);
+  const from = frames[frameIndex - 1].positions;
+  const to = frames[frameIndex].positions;
 
-  const arrows = play.entities.flatMap((e) => {
+  const arrows = play.players.flatMap((e) => {
     const a = from[e.id];
     const b = to[e.id];
     if (!a || !b) return [];

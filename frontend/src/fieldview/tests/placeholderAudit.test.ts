@@ -24,7 +24,8 @@ function walk(dir: string, out: string[] = []): string[] {
 
 // Rows that are deliberately not a marker in code: a deferred feature with no
 // code behind it yet (#19 Advanced settings).
-const NOT_IN_CODE = new Set([19]);
+// #8 (the Build placeholder card) was resolved by the real Build page.
+const NOT_IN_CODE = new Set([8, 19]);
 
 const files = [...walk(SRC), TAILWIND].filter(
   (f) => !f.includes("/tests/") && !f.endsWith("placeholderAudit.test.ts"),
@@ -34,7 +35,7 @@ const markers: { file: string; text: string; cites: number[] }[] = [];
 for (const file of files) {
   const lines = readFileSync(file, "utf8").split("\n");
   lines.forEach((line, i) => {
-    if (!line.includes("PLACEHOLDER(fieldview-ui-rework)")) return;
+    if (!/PLACEHOLDER\(fieldview-(ui-rework|build)\)/.test(line)) return;
     // A marker may wrap onto the following comment lines; look there for #N or
     // a range like #3–#5.
     const window = lines.slice(i, i + 6).join(" ");
