@@ -203,22 +203,12 @@ export interface OverlayState extends OverlayPrefs {
 
 // A single module-level store rather than one `useState` per call site.
 //
-// Integration discovery: once the shell composes `Whiteboard.tsx` (which
-// needs `overlay.on`/`overlay.visible`/etc. to actually drive `FieldCanvas`)
-// alongside `ToolRibbon`/`DefaultVisibilityPanel`/`AdvancedSettingsPanel`
-// (which the Panels and Desktop partitions' own notes flagged as *each*
-// calling `useOverlayState()` independently — "redundant-but-consistent,
-// since they share one localStorage key"), those hook calls are no longer
-// consistent: they are all mounted *at the same time* on the same page, not
-// sequentially across a reload. A plain `useState(loadPrefs)` per call site
-// only reads localStorage once, at that instance's own mount — so toggling
-// "Space" in the shell ribbon updated the ribbon's own copy and localStorage,
-// but `Whiteboard.tsx`'s separate copy (the one actually threaded into
-// `FieldCanvas`) never re-rendered, and the heatmap never turned on. Sharing
-// one external store, read via `useSyncExternalStore` exactly like
-// `SceneStore`'s selection field (scene/store.ts, ADR-1), is what makes every
-// simultaneously-mounted consumer see the same live value instead of a
-// snapshot from its own mount time.
+// Several components are mounted at the same time and all need the same live
+// overlay value. A plain `useState(loadPrefs)` per call site reads localStorage
+// once, at that instance's own mount, so a toggle in one component would never
+// reach another. Sharing one external store, read via `useSyncExternalStore`
+// exactly like `SceneStore`'s selection field (scene/store.ts, ADR-1), makes
+// every simultaneously-mounted consumer see the same value.
 let prefsState: OverlayPrefs = loadPrefs();
 const listeners = new Set<() => void>();
 

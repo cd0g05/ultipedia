@@ -19,7 +19,7 @@ Status: `open` = Builder must supply/confirm · `toy` = a development stand-in e
 |---|---|---|---|---|---|---|
 | 1 | Curated **setups** | Names, player coordinates (first-pass yards), order. Toy presets `vertStack`, `hoStack`, `sideStack`, `clumped` + the order in `CURATED_SETUPS`. Note: stacks need ≥3 yd spacing at the new piece size. | `scene/presets.ts` (`CURATED_SETUPS`) | Final set of setups and their positions (≥5; mockup placeholders: Vertical stack, Horizontal stack, Ho stack, Side stack, Clumped) | P3 | open (toy in code) |
 | 2 | Setup **takeaways** | One-line "what to notice" per setup | `scene/presets.ts` (`PRESET_TAKEAWAYS`) | Final one-sentence copy per setup | P3 | open (toy in code) |
-| 3 | Curated **plays** | Entire play content — seven toy plays (`play/builtin/01…07-*.json`), generated from presets; possession cannot change within a play yet | `play/builtin/*.json` (`"_placeholder": true`) | Real plays, authored with the unlinked `/fieldview/designer` and exported | P4 | open (toy in code) |
+| 3 | Curated **plays** | Entire play content — seven toy plays (`play/builtin/01…07-*.json`), generated from presets; possession cannot change within a play yet | `play/builtin/*.json` (`"_placeholder": true`) | Real plays, authored in the new Build page once it ships and exported | P4 | open (toy in code) |
 | 4 | Play **names / descriptions** | Play list titles and one-liners | `play/builtin/*.json` | Final names and descriptions | P4 | open (toy in code) |
 | 5 | Frame **labels** | Optional per-keyframe labels shown in the filmstrip ("Cut under", "Clear"…) | `play/builtin/*.json` (`label`) | Final labels (or decide to omit) | P4 | open (toy in code) |
 

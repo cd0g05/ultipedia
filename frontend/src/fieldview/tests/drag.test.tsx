@@ -1,7 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
-import { Whiteboard } from "../pages/Whiteboard";
+import { FieldHarness } from "./fieldHarness";
 import { getStageViewBox, yardToPixel } from "../render/coords";
 import { FIELD_PX_HEIGHT, FIELD_PX_WIDTH } from "../render/fieldLayer";
 
@@ -52,7 +51,7 @@ beforeEach(() => {
 
 describe("piece drag", () => {
   it("moves a cutter continuously under the pointer, not on release", async () => {
-    render(<MemoryRouter><Whiteboard /></MemoryRouter>);
+    render(<FieldHarness />);
     const svg = screen.getByRole("group", { name: /ultimate field/i }) as unknown as SVGSVGElement;
     mockSvgRect(svg);
     const cutter = screen.getByRole("button", { name: "offense cutter 1" });
@@ -73,7 +72,7 @@ describe("piece drag", () => {
   });
 
   it("carries the mark by the same delta when the thrower is dragged", async () => {
-    render(<MemoryRouter><Whiteboard /></MemoryRouter>);
+    render(<FieldHarness />);
     const svg = screen.getByRole("group", { name: /ultimate field/i }) as unknown as SVGSVGElement;
     mockSvgRect(svg);
 
@@ -99,7 +98,7 @@ describe("piece drag", () => {
   });
 
   it("clamps a piece dragged past the field boundary", async () => {
-    render(<MemoryRouter><Whiteboard /></MemoryRouter>);
+    render(<FieldHarness />);
     const svg = screen.getByRole("group", { name: /ultimate field/i }) as unknown as SVGSVGElement;
     mockSvgRect(svg);
     const cutter = screen.getByRole("button", { name: "offense cutter 1" });
@@ -122,7 +121,7 @@ describe("grabbing the right piece", () => {
   // resolved by document order, so a press just right of cutter 1 used to
   // pick up the defender behind it. Distance settles it (render/pick.ts).
   it("picks the nearest piece, not the one rendered last", async () => {
-    render(<MemoryRouter><Whiteboard /></MemoryRouter>);
+    render(<FieldHarness />);
     const svg = screen.getByRole("group", { name: /ultimate field/i }) as unknown as SVGSVGElement;
     mockSvgRect(svg);
 
@@ -139,7 +138,7 @@ describe("grabbing the right piece", () => {
   });
 
   it("preserves the grab offset so an off-centre grab does not snap", async () => {
-    render(<MemoryRouter><Whiteboard /></MemoryRouter>);
+    render(<FieldHarness />);
     const svg = screen.getByRole("group", { name: /ultimate field/i }) as unknown as SVGSVGElement;
     mockSvgRect(svg);
     const cutter = screen.getByRole("button", { name: "offense cutter 1" });
@@ -155,7 +154,7 @@ describe("grabbing the right piece", () => {
   });
 
   it("moves nothing when the press lands in open space", async () => {
-    render(<MemoryRouter><Whiteboard /></MemoryRouter>);
+    render(<FieldHarness />);
     const svg = screen.getByRole("group", { name: /ultimate field/i }) as unknown as SVGSVGElement;
     mockSvgRect(svg);
     const cutter = screen.getByRole("button", { name: "offense cutter 1" });
@@ -186,7 +185,7 @@ describe("marquee selection", () => {
   }
 
   function setup() {
-    render(<MemoryRouter><Whiteboard /></MemoryRouter>);
+    render(<FieldHarness />);
     const svg = screen.getByRole("group", { name: /ultimate field/i }) as unknown as SVGSVGElement;
     mockSvgRect(svg);
     return svg;
@@ -303,7 +302,7 @@ describe("marquee selection", () => {
 
 describe("keyboard nudge", () => {
   it("moves a focused piece 1 yd per arrow key, 5 yd with Shift", async () => {
-    render(<MemoryRouter><Whiteboard /></MemoryRouter>);
+    render(<FieldHarness />);
     const cutter = screen.getByRole("button", { name: "offense cutter 1" });
     const beforeMatch = cutter.getAttribute("transform")?.match(/translate\(([-\d.]+), ([-\d.]+)\)/);
     const beforeX = Number(beforeMatch?.[1]);

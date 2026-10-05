@@ -16,7 +16,6 @@ import { FieldViewApp } from "./fieldview/ui/app/FieldViewApp";
 import { Explore } from "./fieldview/pages/Explore";
 import { Watch } from "./fieldview/pages/Watch";
 import { Build } from "./fieldview/pages/Build";
-import { Designer } from "./fieldview/pages/Designer";
 
 export const routes: RouteObject[] = [
   {
@@ -27,12 +26,10 @@ export const routes: RouteObject[] = [
       { path: "/about", element: <About /> },
       { path: "/contact", element: <Contact /> },
       { path: "/privacy", element: <Privacy /> },
-      { path: "/fieldview/designer", element: <Designer /> },
       // The product was shipped at /field-view and the client has that URL.
       // Redirect rather than drop it: `replace` keeps the old path out of
-      // history, so Back from the whiteboard does not bounce through it.
+      // history, so Back from Field View does not bounce through it.
       { path: "/field-view", element: <Navigate to="/fieldview" replace /> },
-      { path: "/field-view/designer", element: <Navigate to="/fieldview/designer" replace /> },
       // One Section/EntryDetail component serves all five sections (Template
       // Method); Section itself 404s unknown segments. Explicit static routes
       // (/search, /fieldview above) outrank these dynamic segments.
@@ -43,9 +40,7 @@ export const routes: RouteObject[] = [
   },
   // Field View is a full-viewport app: a SIBLING of Layout, not a child
   // (fieldview-ui-rework ADR-29), so the site header/footer do not wrap it —
-  // its desktop frame renders the header itself. /fieldview/designer stays a
-  // Layout child above (the unlinked authoring tool); the more specific
-  // static path wins over this subtree.
+  // its desktop frame renders the header itself.
   {
     path: "/fieldview",
     element: <FieldViewApp />,
