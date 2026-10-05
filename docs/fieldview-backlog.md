@@ -65,6 +65,28 @@ and see the field shading respond.
 - [ ] Tablet layout that makes use of spare vertical room (open question)
 - [x] Safe-area insets for notched phones
 
+## Build (play designer) — functional model, drafted 2026-10-05
+
+Builder's proposal, before any UI design. Decisions are in "Decided"; what is still open is in "Open questions".
+
+- **Frames:** a frame is a full still state of the field (positions + who holds the disc). Build =
+  Explore's drag surface plus controls to add / duplicate / delete / reorder / save frames. A new
+  frame starts as a copy of the previous one.
+- **Playback = automatic transitions** between consecutive frames (the same engine as Watch). A
+  cutter glides A→B; a thrown disc flies holder→receiver; they should arrive together. Defense is
+  authored by hand, exactly like offense, and animates the same way.
+- **Presets are single frames.** "Save this frame as a setup" reuses the same save path.
+- **Dynamic possession:** no permanent thrower. Select a player → **Give disc**. The holder is shown
+  with the disc icon (maybe a ring/designator — undecided). Possession changes do not change anyone's
+  title.
+- **Player titles replace T / M / 1–6:** every player starts **unnamed**; selecting one lets you set
+  a title (**max 5 chars**, e.g. "H" for handlers, "C" for cutters). Titles are identity — they
+  persist across frames and throws. The selected-player panel (one of the boxes under the field on
+  desktop) is where naming and Give disc live.
+- **Reuse, don't rebuild:** `play/` format (a preset is already a one-keyframe play), the Watch
+  playback controller, the unsurfaced throw engine (`scene/possession.ts`, `motion/disc.ts`
+  flight timing), selection + marquee, trails layer, filmstrip.
+
 ## Built but not surfaced (re-attach later)
 
 > **Reference implementation kept alive:** `pages/Whiteboard.tsx` + `ui/shell/*` + `ui/PresetMenu.tsx` are now *unrouted* but still compile and are still tested (decided during P3 of fieldview-ui-rework). They compose every feature below together — start there when re-attaching one.
@@ -115,6 +137,12 @@ substance exists — the work is mostly UI entry points. Paths are under `fronte
   deliberately.* While an offensive player is dragged, the assigned defender trails using the existing
   pursuit model (`motion/pursuit.ts`, `motion/step.ts`, driver in `ui/motion/driver.ts`). The toggle and
   its pref ship in the MVP as a "coming soon" stub. ADR-33 is reserved for it.
+- **Realistic animation** — *future.* Transitions currently start and finish together over one fixed time. Later:
+  duration derived from the longest move, per-frame speed override, easing, and physically plausible paths
+  (acceleration/deceleration from the motion model; a disc that leads the receiver).
+- **Automatic defense** — *future.* Let the system place the defense (pursuit, cushion, shading) instead of
+  the user dragging every defender, e.g. a "suggest defense" action in Build. Builds on the deferred
+  defense-following work (`motion/pursuit.ts`, `motion/step.ts`).
 - **Advanced settings** — *do later.* The old panel exists (`ui/AdvancedPanel.tsx`: space-model sliders,
   lens, layers, motion tunables). Intended eventual home: the open space under the Explore field on
   desktop. Not in the MVP UI.
@@ -129,6 +157,9 @@ substance exists — the work is mostly UI entry points. Paths are under `fronte
 - Accounts / a saved library of plays and teams
 
 ## Open questions
+
+- **Build — still open (small):** reordering frames (assumed out of v1); max frames (suggest 30); which characters a title may use; whether the faint 10 ft circle around the holder ships. See `docs/fieldview-build-functional-spec.md` §9.
+- **Space model must accept "no mark":** today `requireRole(scene, "mark")` throws. See Decided (mark rule).
 
 
 - Sharing: URL-only (long links, can't update after sending) vs. accounts + saved library
@@ -164,6 +195,25 @@ substance exists — the work is mostly UI entry points. Paths are under `fronte
 - 2026-10-03 · Defense-following *behaviour* put on hold (toggle stub only) and Advanced settings
   moved to do-later; placeholders (toy setups/plays/copy) are allowed and tracked in
   `docs/fieldview-placeholders.md`. `fieldview-motion` archived; all five ui-rework specs approved.
+
+- 2026-10-05 · **Build model.** Frames are full field states; **always 14 players; no turnovers; straight-line
+  transitions; titles ≤ 2 characters, drawn inside the piece; defense is hand-placed** (automatic defense is a
+  Future item). Saving/sharing: encode the play in a link (+ QR, + file export as backup); links are snapshots.
+- 2026-10-05 · **The mark is geometry, not an assignment.** The mark is the *closest* defender to the disc holder
+  **within 10 ft (10/3 yd)**; if none is that close there is **no mark**; any other defender is a standard
+  defender (double-team rule deliberately not modelled). Matchups stop determining the mark.
+- 2026-10-05 · **Frames inherit.** Per player, per frame: either an explicit ("moved") position or inherit the
+  previous frame's resolved position; the first frame is fully explicit. Editing an earlier frame moves everyone
+  who inherits from it. The disc holder inherits the same way. Reset = drop this frame's explicit positions.
+- 2026-10-05 · Undo/redo wanted (snapshots of the small play document, one step per completed gesture).
+- 2026-10-05 · **Timing (v1):** every piece starts and arrives together over one fixed transition time; the
+  disc flies in the same time. Realistic timing is a Future item. **Plays are single paths** (no branching).
+- 2026-10-05 · **Deleting a frame resets the defaults:** later frames simply inherit from what is now before them
+  (no "locking in" positions). Frame reordering is out of v1.
+- 2026-10-05 · **No legacy support.** Nothing from before the rework is relevant: the play format becomes a clean
+  v3 (no v1/v2 readers or backfill), the toy plays are regenerated, and the dormant old shell / Whiteboard /
+  PresetMenu / old Designer are deleted as the first step of the Build work.
+- 2026-10-05 · One saved list of plays (a one-frame play is a setup); disc holder drawn with a green ring for now.
 
 ## Decided against
 
