@@ -5,9 +5,13 @@
 //
 // The plays are toy content for now (placeholders register #3–#5).
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { Seo } from "../../encyclopedia/seo/Seo";
-import { BUILTIN_PLAYS } from "../play/plays";
+import { BUILTIN_PLAYS, isSetup } from "../play/plays";
+import { library, newPlayId, useLibrary } from "../play/library";
+import { BAD_LINK_MESSAGE, codeFromHash, decodePlay } from "../play/share";
+import { PlayValidationError } from "../play/validate";
 import { toScene } from "../play/model";
 import { FieldViewFrame } from "../ui/app/FieldViewFrame";
 import { useFieldViewApp } from "../ui/app/FieldViewApp";
@@ -31,12 +35,63 @@ function FrameCaption({ label }: { label?: string }) {
   );
 }
 
-function WatchPlay({ plays }: { plays: readonly Play[] }) {
+// The play in a shared link, if the address carries one. `error` is the message
+// to show for a link that is damaged, too large or from another version.
+function useSharedPlay(): { play: Play | null; error: string | null; code: string | null } {
+  const { hash } = useLocation();
+  return useMemo(() => {
+    const code = codeFromHash(hash);
+    if (code === null) return { play: null, error: null, code: null };
+    try {
+      return { play: decodePlay(code), error: null, code };
+    } catch (error) {
+      return { play: null, error: error instanceof PlayValidationError ? error.message : BAD_LINK_MESSAGE, code };
+    }
+  }, [hash]);
+}
+
+// PLACEHOLDER(fieldview-build): wording of the shared-link banner is a
+// stand-in (docs/fieldview-placeholders.md #23).
+function SharedBanner({ play }: { play: Play }) {
+  const [savedId, setSavedId] = useState<string | null>(null);
+  useEffect(() => setSavedId(null), [play]);
+  return (
+    <div data-testid="shared-banner" className="border-b border-film-border bg-white px-4 py-3 text-sm">
+      <p className="mb-2 font-mono text-[10px] font-bold uppercase tracking-wider text-zinc-400">Shared with you</p>
+      {savedId ? (
+        <p>
+          Saved to my plays.{" "}
+          <Link className="font-bold text-film-accentPink underline" to={`/fieldview/build/${savedId}`}>
+            Open in Build
+          </Link>
+        </p>
+      ) : (
+        <button
+          type="button"
+          onClick={() => {
+            const id = newPlayId();
+            library.save(id, play);
+            setSavedId(id);
+          }}
+          className="w-full border border-film-border bg-white px-4 py-2 font-mono text-xs font-bold uppercase tracking-wider hover:bg-film-panel"
+        >
+          Save to my plays
+        </button>
+      )}
+    </div>
+  );
+}
+
+function WatchPlay({ plays, shared, linkError }: { plays: readonly Play[]; shared: Play | null; linkError: string | null }) {
   const { store, loadScene } = useFieldViewApp();
   const [index, setIndex] = useState(0);
   const [listOpen, setListOpen] = useState(false);
   const [trails, setTrails] = useState(true);
-  const play = plays[index];
+  // A newly opened link is the first thing in the list and is what plays.
+  useEffect(() => {
+    if (shared) setIndex(0);
+  }, [shared]);
+  const play = plays[Math.min(index, plays.length - 1)];
   const playback = usePlayback(store, play);
   const { controller } = playback;
 
@@ -69,7 +124,15 @@ function WatchPlay({ plays }: { plays: readonly Play[] }) {
         fieldDisabled
         onFieldTap={() => (playing ? controller.pause() : controller.play())}
         fieldOverlay={trails ? <TrailLayer play={play} frameIndex={playback.frameIndex} /> : null}
-        caption={<FrameCaption label={play.frames[playback.frameIndex]?.label} />}
+        caption={
+          linkError ? (
+            <p role="alert" data-testid="link-error" className="text-sm text-film-accentPink">
+              {linkError}
+            </p>
+          ) : (
+            <FrameCaption label={play.frames[playback.frameIndex]?.label} />
+          )
+        }
         barCenter={<Transport playback={playback} />}
         barRight={
           <button
@@ -87,6 +150,7 @@ function WatchPlay({ plays }: { plays: readonly Play[] }) {
         }
         menuExtras={
           <>
+            {shared && index === 0 && <SharedBanner play={shared} />}
             <p className="px-4 pb-2 pt-2 font-mono text-[10px] font-bold uppercase tracking-wider text-zinc-400">
               Watch options
             </p>
@@ -95,6 +159,7 @@ function WatchPlay({ plays }: { plays: readonly Play[] }) {
         }
         sidebar={
           <div className="flex min-h-full flex-col">
+            {shared && index === 0 && <SharedBanner play={shared} />}
             <section aria-label="Plays" className="border-b border-film-border">
               <h2 className="flex justify-between px-4 pb-2 pt-4 font-mono text-[10px] font-bold uppercase tracking-wider text-zinc-400">
                 Plays <span>{plays.length}</span>
@@ -126,6 +191,18 @@ function WatchPlay({ plays }: { plays: readonly Play[] }) {
 }
 
 export function Watch() {
+  const entries = useLibrary();
+  const { play: shared, error } = useSharedPlay();
+  // A shared link first, then the built-in examples, then multi-frame plays from
+  // this device's library (one-frame plays are setups: they live in Explore).
+  const plays = useMemo<Play[]>(
+    () => [
+      ...(shared ? [shared] : []),
+      ...BUILTIN_PLAYS,
+      ...entries.map((e) => e.play).filter((p) => !isSetup(p)),
+    ],
+    [shared, entries],
+  );
   return (
     <>
       {/* PLACEHOLDER(fieldview-ui-rework): title/description are stand-ins (#11). */}
@@ -133,8 +210,8 @@ export function Watch() {
         title="Watch — Field View — Ultipedia"
         description="Watch ultimate plays run frame by frame."
       />
-      {BUILTIN_PLAYS.length > 0 ? (
-        <WatchPlay plays={BUILTIN_PLAYS} />
+      {plays.length > 0 ? (
+        <WatchPlay plays={plays} shared={shared} linkError={error} />
       ) : (
         <FieldViewFrame
           mode="watch"

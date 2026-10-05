@@ -7,14 +7,22 @@
 // The document lives in a BuildSession; the SceneStore is only a view of the
 // current frame (ADR-40). Nothing here runs per pointer move.
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { Seo } from "../../encyclopedia/seo/Seo";
-import { addFrame, deleteFrame, duplicateFrame, newPlay, placedIds, resetFrame } from "../play/model";
+import type { Play } from "../play/format";
+import { library, newPlayId, useLibrary } from "../play/library";
+import { addFrame, deleteFrame, duplicateFrame, newPlay, placedIds, renamePlay, resetFrame } from "../play/model";
+import { BUILTIN_PLAYS, BUILTIN_SETUPS } from "../play/plays";
+import { playFromFileText } from "../play/share";
+import { PlayValidationError } from "../play/validate";
 import { FieldViewFrame } from "../ui/app/FieldViewFrame";
 import { useFieldViewApp } from "../ui/app/FieldViewApp";
 import { BuildPlayerCard, FrameCard, PlayMeta, PreviewCard } from "../ui/build/cards";
 import { BTN, BTN_PRIMARY, FrameChip, SavePill, UndoRedo } from "../ui/build/controls";
 import { FrameStrip } from "../ui/build/FrameStrip";
+import { LibraryList } from "../ui/build/LibraryList";
+import { ShareDialog } from "../ui/build/ShareDialog";
 import { GhostLayer } from "../ui/build/GhostLayer";
 import { useBuildSession } from "../ui/build/useBuildSession";
 import { usePlayback } from "../ui/playback/usePlayback";
@@ -23,13 +31,158 @@ import { usePlayback } from "../ui/playback/usePlayback";
 // from the tab order and from pointer input in one attribute.
 const inertWhen = (on: boolean) => (on ? ({ inert: "" } as Record<string, string>) : {});
 
+const SAVE_DELAY_MS = 500;
+
+// FileReader rather than File.text(): the same result, older browsers included.
+function readFileText(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result ?? ""));
+    reader.onerror = () => reject(reader.error ?? new Error("read failed"));
+    reader.readAsText(file);
+  });
+}
+const EXAMPLES: readonly Play[] = [...BUILTIN_PLAYS, ...BUILTIN_SETUPS];
+
 export function Build() {
   const { store, loadScene } = useFieldViewApp();
-  const view = useBuildSession(store, loadScene, newPlay);
+  const { playId } = useParams();
+  const navigate = useNavigate();
+  const entries = useLibrary();
+
+  // The id of the play in the session: null until it has been saved once.
+  const currentIdRef = useRef<string | null>(playId && library.get(playId) ? playId : null);
+  const view = useBuildSession(
+    store,
+    loadScene,
+    () => (currentIdRef.current ? library.get(currentIdRef.current)!.play : newPlay()),
+    currentIdRef.current ? "saved" : "new",
+  );
   const { session, play, frameIndex } = view;
   const playback = usePlayback(store, play);
   const { controller } = playback;
   const [previewing, setPreviewing] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
+  const [notice, setNotice] = useState<{ text: string; undo?: () => void } | null>(null);
+
+  // ── autosave ────────────────────────────────────────────────────────────────
+
+  const pendingRef = useRef<{ timer: number; play: Play } | null>(null);
+  // Writes the last edit now. `address` gives a first-saved play its URL; it is
+  // off when the caller is about to navigate somewhere else itself.
+  const flush = useCallback(
+    (address = true) => {
+    const pending = pendingRef.current;
+    if (!pending) return;
+    window.clearTimeout(pending.timer);
+    pendingRef.current = null;
+    const isNew = currentIdRef.current === null;
+    const id = currentIdRef.current ?? newPlayId();
+    const result = library.save(id, pending.play);
+    currentIdRef.current = id;
+    session.setSaveStatus(result.ok ? "saved" : "error");
+    // A play's first save gives it its address, without reloading anything.
+    if (isNew && address) navigate(`/fieldview/build/${id}`, { replace: true });
+    },
+    [session, navigate],
+  );
+
+  useEffect(() => {
+    const off = session.subscribeDocument((next) => {
+      if (pendingRef.current) window.clearTimeout(pendingRef.current.timer);
+      session.setSaveStatus("saving");
+      pendingRef.current = { play: next, timer: window.setTimeout(() => flush(), SAVE_DELAY_MS) };
+    });
+    return () => {
+      off();
+      flush(false); // leaving Build must not lose the last edit (and must not navigate back)
+    };
+  }, [session, flush]);
+
+  // ── library: open, new, duplicate, delete ───────────────────────────────────
+
+  // A different play was asked for through the route (a click in the list, a
+  // back button): load it. Only a CHANGE of address counts — a re-render while
+  // the router catches up with our own navigation must not reload anything.
+  const seenPlayId = useRef(playId);
+  useEffect(() => {
+    if (playId !== undefined && !library.get(playId)) {
+      navigate("/fieldview/build", { replace: true });
+    }
+    // Once, on arrival: an address for a play that no longer exists.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  useEffect(() => {
+    if (playId === seenPlayId.current) return;
+    seenPlayId.current = playId;
+    if (playId === undefined || playId === currentIdRef.current) return;
+    const entry = library.get(playId);
+    if (!entry) {
+      navigate("/fieldview/build", { replace: true });
+      return;
+    }
+    flush(false); // the play being left keeps its last edit
+    currentIdRef.current = playId;
+    session.loadPlay(entry.play);
+  }, [playId, session, navigate, flush]);
+
+  const startNew = useCallback(() => {
+    flush(false);
+    currentIdRef.current = null;
+    session.loadPlay(newPlay());
+    session.setSaveStatus("new");
+    navigate("/fieldview/build");
+  }, [session, navigate, flush]);
+
+  const openCopy = useCallback(
+    (source: Play, name?: string) => {
+      flush(false);
+      const id = newPlayId();
+      library.save(id, name ? renamePlay(source, name) : source);
+      navigate(`/fieldview/build/${id}`);
+    },
+    [navigate, flush],
+  );
+
+  // ── files ───────────────────────────────────────────────────────────────────
+
+  const importFile = useCallback(
+    async (file: File): Promise<string | null> => {
+      try {
+        const opened = playFromFileText(await readFileText(file));
+        openCopy(opened);
+        return null;
+      } catch (error) {
+        return error instanceof PlayValidationError ? error.message : "That file couldn't be read.";
+      }
+    },
+    [openCopy],
+  );
+
+  const libraryPanel = (
+    <LibraryList
+      entries={entries}
+      currentId={currentIdRef.current}
+      examples={EXAMPLES}
+      onNew={startNew}
+      onOpen={(id) => {
+        flush(false);
+        navigate(`/fieldview/build/${id}`);
+      }}
+      onDuplicate={(id) => {
+        const entry = library.get(id);
+        if (entry) openCopy(entry.play, `${entry.play.name} copy`);
+      }}
+      onDelete={(id) => {
+        const entry = library.get(id);
+        if (!entry) return;
+        library.remove(id);
+        setNotice({ text: `Deleted “${entry.play.name}”.`, undo: () => library.restore(entry) });
+        if (id === currentIdRef.current) startNew();
+      }}
+      onDuplicateExample={(example) => openCopy(example, example.frames.length === 1 ? example.name : `${example.name} copy`)}
+    />
+  );
 
   const placed = useMemo(() => new Set(placedIds(play, frameIndex)), [play, frameIndex]);
 
@@ -68,6 +221,11 @@ export function Build() {
   }, [session, previewing]);
 
   const label = play.frames[frameIndex]?.label;
+  const shareButton = (
+    <button type="button" className={BTN_PRIMARY} onClick={() => setShareOpen(true)}>
+      Share
+    </button>
+  );
   const history = (
     <UndoRedo canUndo={view.canUndo && !previewing} canRedo={view.canRedo && !previewing} onUndo={() => session.undo()} onRedo={() => session.redo()} />
   );
@@ -118,17 +276,24 @@ export function Build() {
             onNext={() => session.selectFrame(frameIndex + 1)}
           />
         }
-        barRight={history}
+        barRight={
+          <>
+            {history}
+            {shareButton}
+          </>
+        }
         barDesktop={
           <>
             {history}
             <SavePill status={view.save} />
+            {shareButton}
           </>
         }
         menuExtras={
           <>
             <p className="px-4 pb-2 pt-2 font-mono text-[10px] font-bold uppercase tracking-wider text-zinc-400">Play</p>
             <PlayMeta play={play} session={session} />
+            {libraryPanel}
           </>
         }
         sidebar={
@@ -137,6 +302,7 @@ export function Build() {
               <h2 className="px-4 pb-2 pt-4 font-mono text-[10px] font-bold uppercase tracking-wider text-zinc-400">Play</h2>
               <PlayMeta play={play} session={session} />
             </section>
+            {libraryPanel}
           </div>
         }
         dock={
@@ -190,6 +356,28 @@ export function Build() {
           </div>
         }
       />
+      <ShareDialog open={shareOpen} onClose={() => setShareOpen(false)} play={play} onImportFile={importFile} />
+      {notice && (
+        <div role="status" className="fixed bottom-4 left-1/2 z-[65] flex -translate-x-1/2 items-center gap-3 border border-film-border bg-white px-4 py-2 text-sm shadow">
+          {notice.text}
+          {notice.undo && (
+            <button
+              type="button"
+              aria-label="Undo delete"
+              className="font-mono text-xs font-bold uppercase text-film-accentPink underline"
+              onClick={() => {
+                notice.undo?.();
+                setNotice(null);
+              }}
+            >
+              Undo
+            </button>
+          )}
+          <button type="button" aria-label="Dismiss" className="px-1 text-zinc-500" onClick={() => setNotice(null)}>
+            ✕
+          </button>
+        </div>
+      )}
     </>
   );
 }

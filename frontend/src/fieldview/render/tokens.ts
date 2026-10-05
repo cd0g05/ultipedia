@@ -232,3 +232,10 @@ export const ROUTE_TOKENS = {
     fontSize: 1.6,
   },
 } as const;
+
+// The QR code for a shared link: ink on white, so it scans from a phone held up
+// to a laptop whatever the surrounding theme is.
+export const QR_TOKENS = {
+  dark: "#18181b", // zinc-900
+  light: "#ffffff",
+};

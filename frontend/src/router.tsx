@@ -48,7 +48,7 @@ export const routes: RouteObject[] = [
       { index: true, element: <Navigate to="/fieldview/explore" replace /> },
       { path: "explore", element: <Explore /> },
       { path: "watch", element: <Watch /> },
-      { path: "build", element: <Build /> },
+      { path: "build/:playId?", element: <Build /> },
     ],
   },
   { path: "/contribute/*", element: <IntakeApp /> },

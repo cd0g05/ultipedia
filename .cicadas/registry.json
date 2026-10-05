@@ -108,6 +108,13 @@
       "owner": "unknown",
       "created_at": "2026-10-05T22:12:55.099026+00:00",
       "initiative": "fieldview-build"
+    },
+    "feat/fieldview-build-share": {
+      "intent": "Library and sharing: LocalPlayStore + library list, autosave, share codec (fflate, base64url), QR, share dialog, file import/export, Watch opens shared links",
+      "modules": [],
+      "owner": "unknown",
+      "created_at": "2026-10-05T22:21:08.162985+00:00",
+      "initiative": "fieldview-build"
     }
   }
 }

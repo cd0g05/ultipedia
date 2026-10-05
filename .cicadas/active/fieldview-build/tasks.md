@@ -153,21 +153,32 @@ count in P0 task 1; it was **69 files / 991 tests**, Field View alone 55 / 884, 
 
 ## Partition: feat/fieldview-build-share
 
-- [ ] Add `fflate` and `qrcode-generator` to `package.json` (+ lockfile); note licences <!-- id: 120 -->
-- [ ] `play/share.ts`: `encodePlay`/`decodePlay`/`shareLink`; length cap; bounded inflate (≤ 64 KB); validator on decode <!-- id: 121 -->
-- [ ] Tests: round trip for every built-in and a 30-frame play; zip-bomb, oversized, tampered, wrong-version payloads rejected; size budget recorded <!-- id: 122 -->
-- [ ] `play/library.ts`: `LocalPlayStore` (`fieldview.plays.v3`), validate on read, quota errors returned, cross-tab `storage` sync, `useLibrary()` <!-- id: 123 -->
-- [ ] Tests: persistence across reload, invalid entries dropped, quota error leaves memory intact, cross-tab update <!-- id: 124 -->
-- [ ] `LibraryList` (My plays): new / open / duplicate / delete / rename; route `build/:playId`; built-ins read-only with "Duplicate to edit" <!-- id: 125 -->
-- [ ] Autosave to the library with Saved / "Couldn't save" states <!-- id: 126 -->
-- [ ] `QrCode` component (SVG from the module matrix) with the too-long fallback message <!-- id: 127 -->
-- [ ] `ShareDialog` per the mockup: link + Copy, QR, Download file, Open a file…, snapshot note <!-- id: 128 -->
-- [ ] File export/import (`.fieldview.json`) through the validator <!-- id: 129 -->
-- [ ] Watch: read `#p=` on mount and `hashchange`; play it; "Save to my plays"; invalid-link message <!-- id: 130 -->
-- [ ] Watch list = built-in examples + library multi-frame plays; Explore picker = built-in setups + library one-frame plays <!-- id: 131 -->
-- [ ] Tests: share → open in Watch → save → open in Build, end to end; axe on the dialog and lists <!-- id: 132 -->
+- [x] Add `fflate` and `qrcode-generator` to `package.json` (+ lockfile); note licences <!-- id: 120 -->
+- [x] `play/share.ts`: `encodePlay`/`decodePlay`/`shareLink`; length cap; bounded inflate (≤ 64 KB); validator on decode <!-- id: 121 -->
+- [x] Tests: round trip for every built-in and a 30-frame play; zip-bomb, oversized, tampered, wrong-version payloads rejected; size budget recorded <!-- id: 122 -->
+- [x] `play/library.ts`: `LocalPlayStore` (`fieldview.plays.v3`), validate on read, quota errors returned, cross-tab `storage` sync, `useLibrary()` <!-- id: 123 -->
+- [x] Tests: persistence across reload, invalid entries dropped, quota error leaves memory intact, cross-tab update <!-- id: 124 -->
+- [x] `LibraryList` (My plays): new / open / duplicate / delete / rename; route `build/:playId`; built-ins read-only with "Duplicate to edit" <!-- id: 125 -->
+- [x] Autosave to the library with Saved / "Couldn't save" states <!-- id: 126 -->
+- [x] `QrCode` component (SVG from the module matrix) with the too-long fallback message <!-- id: 127 -->
+- [x] `ShareDialog` per the mockup: link + Copy, QR, Download file, Open a file…, snapshot note <!-- id: 128 -->
+- [x] File export/import (`.fieldview.json`) through the validator <!-- id: 129 -->
+- [x] Watch: read `#p=` on mount and `hashchange`; play it; "Save to my plays"; invalid-link message <!-- id: 130 -->
+- [x] Watch list = built-in examples + library multi-frame plays; Explore picker = built-in setups + library one-frame plays <!-- id: 131 -->
+- [x] Tests: share → open in Watch → save → open in Build, end to end; axe on the dialog and lists <!-- id: 132 -->
 - [ ] A shared link and QR work on a real phone <!-- NEEDS MANUAL REVIEW --> <!-- id: 133 -->
-- [ ] Register copy placeholders; Reflect: full suite + `test:perf` + `vite build` green; update specs <!-- id: 134 -->
+- [x] Register copy placeholders; Reflect: full suite + `test:perf` + `vite build` green; update specs <!-- id: 134 -->
+
+**Reflect notes (P4)**
+- After P4: tsc clean; 66 files / 981 tests; `test:perf` 4 files / 27 tests green (§8.9 frame ≈ 10.1 ms); `vite build` OK (JS 571 kB / 181 kB gzip; `fflate` + `qrcode-generator` added: fflate MIT, qrcode-generator MIT).
+- **Sizes recorded:** a 30-frame play encodes to ~1.3 k chars; the seven built-in plays to 460–600 chars. `MAX_CODE_LENGTH` is 12 000 chars and `MAX_INFLATED_BYTES` 64 KB. An 8 MB zero-filled bomb (≈ 8 KB compressed, under the code cap) is stopped at the inflate ceiling in well under a second; the codec inflates in 256-byte slices so one slice cannot run far past the ceiling.
+- **Library:** memory is the source of truth, a failed write returns `{ok:false, reason}` and keeps the play; invalid / duplicate / wrong-version entries are dropped on read; the `storage` event syncs other tabs. `useLibrary()` is a `useSyncExternalStore` over the module singleton; tests reset it by removing entries.
+- **Build page:** route `build/:playId?`. A new play saves on its first edit (debounced 500 ms) and then replaces its URL with `/build/<id>`; leaving Build flushes without navigating; opening, duplicating, deleting or starting another play flushes first. Deleting shows "Deleted … Undo delete". Examples are never opened directly: "Duplicate to edit" opens a copy. The save pill gained a "new" state ("New play · saves as you go").
+- **Bug found by tests:** the route-driven "load this play" effect re-ran while the router caught up with our own `navigate`, reloading the old play over the new one. It now reacts only to a change of the address (`seenPlayId`), with a separate once-on-arrival check for an id that no longer exists.
+- **Files:** read with `FileReader` (jsdom and older Safari); validated through `validatePlay`; a non-play shows "That file isn't a Field View play." in the dialog.
+- **Watch:** `#p=` is read from the router location, so a hash change re-decodes; the shared play is first in the list, with a banner (Save to my plays → Open in Build); an invalid link shows "This link isn't a Field View play." and the normal plays still work; the list also includes the library's multi-frame plays. **Explore:** built-in setups, then the library's one-frame plays.
+- Builder (task 133): a link and QR on a real phone. Copy placeholders are register row #23.
+
 
 ## Partition: feat/fieldview-build-qa
 
