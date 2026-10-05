@@ -14,20 +14,7 @@ modules:
   - "frontend/package.json"
 index:
   partition_cleanup: "## Partition: feat/fieldview-build-cleanup"
-  partition_model: "
-
-**Reflect notes (P0)**
-- Baseline at kickoff: tsc clean; 69 files / 991 tests; `test:perf` 4 files / 27 tests (computeGrid best ≈ 9.7 ms).
-- After P0: tsc clean; 55 files / 793 tests; `test:perf` 4 files / 27 tests green (computeGrid best ≈ 9.8 ms; §8.9 frame ≈ 10 ms).
-- Audit: `FieldStage` had no importers. `Whiteboard` was imported by 9 tests; `Designer` by 5 tests + `router.tsx`; `presetFormat` also by `modelGuard` and `playFormatV2` (their preset round-trip cases removed).
-- `tests/fieldHarness.tsx` (FieldCanvas over the vert-stack scene + `SelectionProbe` + `CellReadout`) now backs `drag.test` and `overlay.test`. Kept in `overlay.test`: hover readout, ADR-2 zero-commit tests (incl. one-commit selection change), live repaint, §8.5, §8.9 frame budget, prefs parsing, reduced-motion. Dropped: rail, team-visibility, advanced-panel and persist-across-remount cases (they only exercised deleted UI).
-- Deleted tests: bottomSheet, shellDesktop, shellPanels, shellGuard, panelParity, presetMenu, presetRegistry, presetFormat, designer, responsive, pages, a11y, throwing, motionUi.
-- Kept (unmounted, harvest later): `ui/AdvancedPanel`, `ui/shell/{throwMode,sceneStore,useSelection}`, `motion/*`, `scene/{matchups,force}`, `playModel`.
-- `/fieldview/designer` and `/field-view/designer` removed from `router.tsx`; router test asserts they no longer render anything.
-- Backlog "Built but not surfaced" now points at commit `085621f` for the removed UI.
-
-
-## Partition: feat/fieldview-build-model"
+  partition_model: "## Partition: feat/fieldview-build-model"
   partition_disc: "## Partition: feat/fieldview-build-disc-titles"
   partition_ui: "## Partition: feat/fieldview-build-ui"
   partition_share: "## Partition: feat/fieldview-build-share"
@@ -43,18 +30,28 @@ count in P0 task 1; it was **69 files / 991 tests**, Field View alone 55 / 884, 
 
 ## Partition: feat/fieldview-build-cleanup
 
-- [ ] Re-measure the baseline (`npx vitest run src`, `npm run test:perf`, `npx tsc -b`); record counts and perf numbers in the Reflect notes <!-- id: 1 -->
-- [ ] Consumer audit: for every file in FR-8.1 grep who imports it; list the tests that import it; record in Reflect <!-- id: 2 -->
-- [ ] Create `tests/fieldHarness.tsx`: renders `FieldCanvas` over a `SceneStore` with the 14-player scene, a stubbed SVG rect and the overlay settings — no shell, no page <!-- id: 3 -->
-- [ ] Port to the harness (or the Explore route) the tests worth keeping: piece drag, marquee group drag, keyboard nudge, nearest-grab (`drag.test`), the §8.9 frame budget and hover readout (`overlay.test`), the 0-commit drag test <!-- id: 4 -->
-- [ ] Delete `pages/{Whiteboard,Designer,FieldStage}.tsx`; remove the `/fieldview/designer` and `/field-view/designer` routes and their route tests <!-- id: 5 -->
-- [ ] Delete `ui/shell/{ShellLayout,LeftSidebar,RightSidebarSlot,BottomSheet,ToolRibbon,panelRegistry}.ts(x)` and `ui/shell/panels/*`; keep `throwMode.ts`, `sceneStore.tsx`, `useSelection.ts` <!-- id: 6 -->
-- [ ] Delete `ui/{PresetMenu,Timeline,PlayMeta,OverlayRail}.tsx` and `scene/{presetRegistry,presetFormat}.ts`; keep `AdvancedPanel.tsx`, `playModel.ts`, `motion/*`, `scene/{matchups,force}.ts` <!-- id: 7 -->
-- [ ] Delete the tests that only covered deleted code (`bottomSheet`, `shellDesktop`, `shellPanels`, `shellGuard`, `panelParity`, `presetMenu`, `presetRegistry`, `presetFormat`, `designer`, `responsive`, `pages`, `a11y`, `throwing`, `motionUi`) — and nothing else <!-- id: 8 -->
-- [ ] `tsc -b` clean with no unused exports from the deleted code; adjust `index.css`/comments that cite the deleted shell <!-- id: 9 -->
-- [ ] `docs/fieldview-backlog.md` "Built but not surfaced": point each removed UI at its last git commit instead of a path that no longer exists <!-- id: 10 -->
-- [ ] Reflect: full suite + `test:perf` green; update specs <!-- id: 11 -->
-- [ ] Confirm with the Builder that nothing deleted was wanted (it is all in git history) <!-- NEEDS MANUAL REVIEW --> <!-- id: 12 -->
+- [x] Re-measure the baseline (`npx vitest run src`, `npm run test:perf`, `npx tsc -b`); record counts and perf numbers in the Reflect notes <!-- id: 1 -->
+- [x] Consumer audit: for every file in FR-8.1 grep who imports it; list the tests that import it; record in Reflect <!-- id: 2 -->
+- [x] Create `tests/fieldHarness.tsx`: renders `FieldCanvas` over a `SceneStore` with the 14-player scene, a stubbed SVG rect and the overlay settings — no shell, no page <!-- id: 3 -->
+- [x] Port to the harness (or the Explore route) the tests worth keeping: piece drag, marquee group drag, keyboard nudge, nearest-grab (`drag.test`), the §8.9 frame budget and hover readout (`overlay.test`), the 0-commit drag test <!-- id: 4 -->
+- [x] Delete `pages/{Whiteboard,Designer,FieldStage}.tsx`; remove the `/fieldview/designer` and `/field-view/designer` routes and their route tests <!-- id: 5 -->
+- [x] Delete `ui/shell/{ShellLayout,LeftSidebar,RightSidebarSlot,BottomSheet,ToolRibbon,panelRegistry}.ts(x)` and `ui/shell/panels/*`; keep `throwMode.ts`, `sceneStore.tsx`, `useSelection.ts` <!-- id: 6 -->
+- [x] Delete `ui/{PresetMenu,Timeline,PlayMeta,OverlayRail}.tsx` and `scene/{presetRegistry,presetFormat}.ts`; keep `AdvancedPanel.tsx`, `playModel.ts`, `motion/*`, `scene/{matchups,force}.ts` <!-- id: 7 -->
+- [x] Delete the tests that only covered deleted code (`bottomSheet`, `shellDesktop`, `shellPanels`, `shellGuard`, `panelParity`, `presetMenu`, `presetRegistry`, `presetFormat`, `designer`, `responsive`, `pages`, `a11y`, `throwing`, `motionUi`) — and nothing else <!-- id: 8 -->
+- [x] `tsc -b` clean with no unused exports from the deleted code; adjust `index.css`/comments that cite the deleted shell <!-- id: 9 -->
+- [x] `docs/fieldview-backlog.md` "Built but not surfaced": point each removed UI at its last git commit instead of a path that no longer exists <!-- id: 10 -->
+- [x] Reflect: full suite + `test:perf` green; update specs <!-- id: 11 -->
+- [x] Confirm with the Builder that nothing deleted was wanted (it is all in git history) <!-- NEEDS MANUAL REVIEW --> <!-- id: 12 -->
+
+**Reflect notes (P0)**
+- Baseline at kickoff: tsc clean; 69 files / 991 tests; `test:perf` 4 files / 27 tests (computeGrid best ≈ 9.7 ms).
+- After P0: tsc clean; 55 files / 793 tests; `test:perf` 4 files / 27 tests green (computeGrid best ≈ 9.8 ms; §8.9 frame ≈ 10 ms).
+- Audit: `FieldStage` had no importers. `Whiteboard` was imported by 9 tests; `Designer` by 5 tests + `router.tsx`; `presetFormat` also by `modelGuard` and `playFormatV2` (their preset round-trip cases removed).
+- `tests/fieldHarness.tsx` (FieldCanvas over the vert-stack scene + `SelectionProbe` + `CellReadout`) now backs `drag.test` and `overlay.test`. Kept in `overlay.test`: hover readout, ADR-2 zero-commit tests (incl. one-commit selection change), live repaint, §8.5, §8.9 frame budget, prefs parsing, reduced-motion. Dropped: rail, team-visibility, advanced-panel and persist-across-remount cases (they only exercised deleted UI).
+- Deleted tests: bottomSheet, shellDesktop, shellPanels, shellGuard, panelParity, presetMenu, presetRegistry, presetFormat, designer, responsive, pages, a11y, throwing, motionUi.
+- Kept (unmounted, harvest later): `ui/AdvancedPanel`, `ui/shell/{throwMode,sceneStore,useSelection}`, `motion/*`, `scene/{matchups,force}`, `playModel`.
+- `/fieldview/designer` and `/field-view/designer` removed from `router.tsx`; router test asserts they no longer render anything.
+- Backlog "Built but not surfaced" now points at commit `085621f` for the removed UI.
 
 ## Partition: feat/fieldview-build-model
 
