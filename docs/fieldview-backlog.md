@@ -159,6 +159,7 @@ substance exists — the work is mostly UI entry points. Paths are under `fronte
 ## Open questions
 
 - **Build — still open (small):** reordering frames (assumed out of v1); max frames (suggest 30); which characters a title may use; whether the faint 10 ft circle around the holder ships. See `docs/fieldview-build-functional-spec.md` §9.
+- **Piece size per device (being evaluated 2026-10-05):** proposal is phone 85% / tablet 70% / desktop 50% of today's size (≈ 19 / 21 / 14 px across vs 22 / 30 / 28 today). Needs a way to set it per breakpoint in `PIECE_TOKENS` (today one radius for everything). Mockup: `design/fieldview-build-mockup.html` (Current/Proposed switch).
 - **Space model must accept "no mark":** today `requireRole(scene, "mark")` throws. See Decided (mark rule).
 
 

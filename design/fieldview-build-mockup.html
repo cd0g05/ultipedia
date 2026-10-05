@@ -29,6 +29,12 @@
   .notes ul { margin: 0; padding-left: 18px; } .notes li { margin: 4px 0; }
   .scaler-host { width: 100%; overflow: hidden; margin-top: 16px; } .scaler { transform-origin: top left; }
 
+  .sizebar { position: sticky; top: 0; z-index: 20; background: var(--base); border: 1px solid var(--ink); padding: 10px 16px; margin-top: 20px; display: flex; flex-wrap: wrap; gap: 8px 24px; align-items: center; font-size: .875rem; }
+  .sizebar label { cursor: pointer; } .sizebar #sizenote { color: var(--ink-2); font: 400 .75rem var(--f-mono); }
+  .cap { font: 400 .75rem var(--f-mono); color: var(--ink-2); margin: 6px 0 0; }
+  .cap b { color: var(--pink); }
+  .screen.ph { width: 844px; height: 390px; } .ph .top { height: 56px; padding: 0 8px; gap: 8px; }
+  .ph .btn { height: 40px; } .ph .pill { height: 40px; padding: 0 10px; }
   .key { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; margin-top: 16px; }
   .key div { background: var(--base); border: 1px solid var(--border); padding: 12px; display: flex; gap: 12px; align-items: center; font-size: .8125rem; }
   .key svg { flex: none; width: 64px; height: 44px; background: #fff; border: 1px solid var(--border); }
@@ -118,11 +124,18 @@
   <h1>Field View — Build</h1>
   <p class="lede">Static mockup, no functionality, in the Light Film Room style of the earlier mockups. It follows <code>docs/fieldview-build-functional-spec.md</code>: a play is a list of frames; each frame stores only the players you <em>placed</em> in it and everyone else inherits the previous frame; the disc holder inherits the same way; the mark is whoever is within 10 ft of the holder. The play shown is “Go deep”, five frames, editing frame 4. Heat values are illustrative.</p>
 
+  <div class="sizebar">
+    <h3 style="margin:0">Piece size</h3>
+    <label><input type="radio" name="psize" value="current"> <b>Current</b> — 100% everywhere</label>
+    <label><input type="radio" name="psize" value="proposed" checked> <b>Proposed</b> — phone 85% · tablet 70% · desktop 50%</label>
+    <span id="sizenote"></span>
+  </div>
+
   <h2>What the field is telling you</h2>
   <div class="key" id="key"></div>
 
   <h2>1 · Build — desktop (editing frame 4 of 5)</h2>
-  <div class="scaler-host"><div class="scaler" data-w="1440" data-h="880" id="s-desk"></div></div>
+  <div class="scaler-host"><div class="scaler" data-w="1440" data-h="880" id="s-desk"></div></div><div data-cap="desk|Desktop"></div>
   <div class="notes">
     <div><h3>Same bones as Explore</h3><ul><li>Field, setup-style sidebar, dock under the field — nothing relearned</li><li>Drag, marquee and arrow-key nudge behave exactly as in Explore</li></ul></div>
     <div><h3>What Build adds</h3><ul><li><b>Top bar:</b> undo / redo, “Saved to this device”, <b>Share</b></li><li><b>Sidebar:</b> My plays (the one saved list), play name and description</li><li><b>Under the field:</b> Frame card, Selected-player card, Preview card, and the frame strip with <b>+ Add frame</b></li></ul></div>
@@ -131,7 +144,7 @@
 
   <h2>2 · Build — tablet / phone (secondary)</h2>
   <p class="lede">Build is laptop-first but usable on a tablet. Same top bar slots as Explore (☰ + mode, the chip — now a frame chip — legend); the sidebar's jobs become a frame strip under the field, a row of frame actions, and a slide-over for the selected player. Phone-sized screens would use the same pieces, one at a time.</p>
-  <div class="scaler-host"><div class="scaler" data-w="1180" data-h="820" id="s-tab"></div></div>
+  <div class="scaler-host"><div class="scaler" data-w="1180" data-h="820" id="s-tab"></div></div><div data-cap="tab|Tablet"></div>
   <div class="notes">
     <div><h3>Top bar</h3><ul><li>☰ menu + BUILD · frame chip ◀ 4 / 5 ▶ · undo / redo · legend · Share</li></ul></div>
     <div><h3>Under the field</h3><ul><li>Frame strip (four across, scrolls), then actions: Add · Duplicate · Delete · Reset frame · Preview</li></ul></div>
@@ -147,10 +160,24 @@
 
   <h2>4 · Explore — selected-player panel (desktop)</h2>
   <p class="lede">Explore gets the same selected-player card (the only difference is the extra panel under the field): naming and Give disc are useful there too, with no frames involved.</p>
-  <div class="scaler-host"><div class="scaler" data-w="1440" data-h="820" id="s-explore"></div></div>
+  <div class="scaler-host"><div class="scaler" data-w="1440" data-h="820" id="s-explore"></div></div><div data-cap="desk|Desktop"></div>
   <div class="notes">
     <div><h3>Panel</h3><ul><li>Title (≤ 2 characters, shown inside the piece), Give disc, quick facts</li><li>No frame controls, no “placed in this frame”</li></ul></div>
     <div><h3>Same piece language</h3><ul><li>Green ring = holds the disc · heavy ring = the mark · pink ring = selected</li></ul></div>
+  </div>
+
+  <h2>5 · Piece size on phone and tablet — evaluate</h2>
+  <p class="lede">Use the Piece size switch at the top to flip every frame on this page between today's size and the proposal. Each frame is at 1:1 CSS pixels (844×390 phone, 1180×820 tablet) unless your window is narrower, in which case it is scaled down — judge on a real device for the true feel. The captions give the on-screen diameter of one piece.</p>
+  <h3 style="margin-top:24px">Phone, landscape — Explore</h3>
+  <div class="scaler-host"><div class="scaler" data-w="844" data-h="390" id="s-ph-explore"></div></div><div data-cap="phone|Phone"></div>
+  <h3 style="margin-top:24px">Phone, landscape — Watch (frame 4, trails into the frame)</h3>
+  <div class="scaler-host"><div class="scaler" data-w="844" data-h="390" id="s-ph-watch"></div></div><div data-cap="phone|Phone"></div>
+  <h3 style="margin-top:24px">Tablet, landscape — Watch</h3>
+  <div class="scaler-host"><div class="scaler" data-w="1180" data-h="820" id="s-tab-watch"></div></div><div data-cap="tab|Tablet"></div>
+  <div class="notes">
+    <div><h3>What to look at</h3><ul><li>Can you tell offense from defense and read the 2-character titles at arm's length?</li><li>Does the green holder ring and heavy mark ring still read when the piece is smaller?</li><li>Do the pieces stop crowding in the vertical stack?</li></ul></div>
+    <div><h3>Desktop</h3><ul><li>Frame 1 (Build) and frame 4 (Explore) above are at the proposed 50%</li><li>Titles are kept at a readable minimum rather than scaled all the way down</li></ul></div>
+    <div><h3>Not changed by size</h3><ul><li>The grab target stays 3 yd (≥ 44 px on touch)</li><li>Heat, field and layout are identical</li></ul></div>
   </div>
 
   <h2>Control → what it does to the document</h2>
@@ -220,8 +247,18 @@ function markOf(r) {
   return best;
 }
 
+// Piece size per device, as a fraction of today's size (the field units are unchanged, so a piece
+// is smaller on screen by exactly this factor at the same field width).
+const SCALES = { phone: 0.85, tab: 0.70, desk: 0.50 };
+let SIZE_MODE = 'proposed';
+const psFor = kind => SIZE_MODE === 'current' ? 1 : SCALES[kind];
+const FIELD_PX = { phone: 828, tab: 1148, desk: 1072 };     // rendered field width (px) in each frame
+// on-screen diameter of one piece: 2 * 1.45 yd * 100% * scale * (field px / 110 yd)
+const diaPx = kind => Math.round(2 * 1.45 * psFor(kind) * FIELD_PX[kind] / 110);
+const cap = (kind, name) => `<p class="cap">${name}: pieces at <b>${Math.round(psFor(kind)*100)}%</b> ≈ <b>${diaPx(kind)} px</b> across`
+  + (SIZE_MODE === 'proposed' ? ` (today: ${Math.round(2*1.45*FIELD_PX[kind]/110)} px)` : '') + '</p>';
 let uid = 0;
-function fieldSVG(frameIndex, {w, h, left=0, top=0, mini=false, selected=null, ghosts=true, style='', heat=true}) {
+function fieldSVG(frameIndex, {w, h, left=0, top=0, mini=false, selected=null, ghosts=true, trails=false, ps=1, style='', heat=true}) {
   const id = 'f' + (uid++), cs = mini ? 3 : 2;
   const r = resolve(frameIndex), mark = markOf(r);
   const defs = PLAYERS.filter(p=>p.team==='defense').map(p=>r.pos[p.id]);
@@ -230,7 +267,8 @@ function fieldSVG(frameIndex, {w, h, left=0, top=0, mini=false, selected=null, g
     let d = 99; for (const p of defs) d = Math.min(d, Math.hypot(p[0]-(x+cs/2), p[1]-(y+cs/2)));
     cells += `<rect x="${x}" y="${y}" width="${cs}" height="${cs}" fill="${heatRGB(Math.min(1, Math.max(0, (d-1.5)/8)))}"/>`;
   }
-  const R = mini ? 2.1 : 1.45, fs = 1.75;
+  const k = mini ? 1 : ps;                       // piece scale: 1 = the size the app has today
+  const R = mini ? 2.1 : 1.45 * ps, fs = mini ? 1.75 : Math.max(.95, 1.75 * ps);
   const moved = FRAMES[frameIndex].moved;
   const placedHere = frameIndex > 0 ? Object.keys(moved) : [];
   const prev = frameIndex > 0 ? resolve(frameIndex-1) : null;
@@ -238,17 +276,17 @@ function fieldSVG(frameIndex, {w, h, left=0, top=0, mini=false, selected=null, g
   for (const p of PLAYERS) {
     const [x,y] = r.pos[p.id], off = p.team==='offense';
     const isHolder = p.id === r.holder, isMark = p.id === mark, isSel = p.id === selected;
-    if (!mini && ghosts && placedHere.includes(p.id)) {
+    if (!mini && (ghosts || trails) && placedHere.includes(p.id)) {
       const [gx,gy] = prev.pos[p.id];
       extra += `<line x1="${gx}" y1="${gy}" x2="${x}" y2="${y}" stroke="#18181b" stroke-width=".3" stroke-dasharray=".9 .7" opacity=".55" marker-end="url(#${id}a)"/>`;
-      extra += `<circle cx="${gx}" cy="${gy}" r="${R}" fill="#fff" fill-opacity=".35" stroke="#18181b" stroke-width=".3" stroke-dasharray=".8 .6" opacity=".6"/>`;
+      if (ghosts) extra += `<circle cx="${gx}" cy="${gy}" r="${R}" fill="#fff" fill-opacity=".35" stroke="#18181b" stroke-width=".3" stroke-dasharray=".8 .6" opacity=".6"/>`;
     }
-    if (isHolder) pieces += `<circle cx="${x}" cy="${y}" r="${R+.75}" fill="none" stroke="#047857" stroke-width="${mini?.8:.6}"/>`;
-    if (isSel && !mini) pieces += `<circle cx="${x}" cy="${y}" r="${R+1.7}" fill="none" stroke="#be185d" stroke-width=".4"/>`;
-    pieces += `<circle cx="${x}" cy="${y}" r="${R}" fill="${off?'#18181b':'#fff'}" stroke="${off?'#fff':'#18181b'}" stroke-width="${isMark?.75:(off?.28:.38)}"/>`;
+    if (isHolder) pieces += `<circle cx="${x}" cy="${y}" r="${R+.75*k}" fill="none" stroke="#047857" stroke-width="${mini?.8:Math.max(.4,.6*k)}"/>`;
+    if (isSel && !mini) pieces += `<circle cx="${x}" cy="${y}" r="${R+1.7*k}" fill="none" stroke="#be185d" stroke-width="${Math.max(.3,.4*k)}"/>`;
+    pieces += `<circle cx="${x}" cy="${y}" r="${R}" fill="${off?'#18181b':'#fff'}" stroke="${off?'#fff':'#18181b'}" stroke-width="${isMark?Math.max(.45,.75*k):(off?.28:.38)}"/>`;
     if (!mini && p.title) pieces += `<text x="${x}" y="${y+.62}" text-anchor="middle" font-size="${fs}" font-weight="700" fill="${off?'#fff':'#18181b'}" font-family="JetBrains Mono,monospace">${p.title}</text>`;
-    if (isHolder) pieces += `<circle cx="${x+R*.95}" cy="${y-R*.95}" r="${mini?1:.78}" fill="#fff" stroke="#18181b" stroke-width=".25"/>`;
-    if (!mini && placedHere.includes(p.id)) pieces += `<rect x="${x-R-.2}" y="${y-R-.2}" width=".95" height=".95" fill="#be185d"/>`;
+    if (isHolder) pieces += `<circle cx="${x+R*.95}" cy="${y-R*.95}" r="${mini?1:Math.max(.5,.78*k)}" fill="#fff" stroke="#18181b" stroke-width=".25"/>`;
+    if (!mini && placedHere.includes(p.id)) pieces += `<rect x="${x-R-.2}" y="${y-R-.2}" width="${Math.max(.6,.95*k)}" height="${Math.max(.6,.95*k)}" fill="#be185d"/>`;
   }
   return `<svg class="field" viewBox="0 0 ${FW} ${FH}" width="${w}" height="${h}" style="left:${left}px;top:${top}px;${style}">
     <defs><marker id="${id}a" viewBox="0 0 6 6" refX="5" refY="3" markerWidth="3" markerHeight="3" orient="auto"><path d="M0 0L6 3L0 6z" fill="#18181b"/></marker>
@@ -309,7 +347,7 @@ function buildDesk() {
     <div class="top"><span class="brand">Field View</span>${tabs('Build')}<span class="spacer"></span>
       ${undoRedo}<span class="pill saved">✓ Saved to this device</span>
       <button class="btn primary">${ic('share')} Share</button>${legend}${gear}</div>
-    ${fieldSVG(3, {...F, selected:'o5'})}
+    ${fieldSVG(3, {...F, selected:'o5', ps: psFor('desk')})}
     <div class="dock" style="top:494px">
       <div class="cards">
         <div class="card"><h5>Frame 4 of 5 <span class="tag n">3 changes</span></h5>
@@ -337,7 +375,7 @@ function buildTab() {
     <div class="top"><button class="btn sq ic" style="width:48px;height:48px">${IC.menu}</button><span class="btn dark" style="height:48px">Build</span>
       <span class="chip"><button>${IC.prev}</button><span class="lbl"><small>Frame</small><b>4 / 5 · Deep cut</b></span><button>${IC.next}</button></span>
       <span class="spacer"></span>${undoRedo}${legend}<button class="btn primary">${ic('share')} Share</button></div>
-    ${fieldSVG(3, {...F, selected:'o5'})}
+    ${fieldSVG(3, {...F, selected:'o5', ps: psFor('tab')})}
     <div style="position:absolute;left:16px;right:16px;top:520px">
       ${filmstrip(3, true)}
       <div class="row" style="margin-top:6px">
@@ -390,7 +428,7 @@ function exploreDesk() {
   const it = (n,s,a)=>`<div class="item ${a?'on':''}"><b>${n}</b><span>${s}</span></div>`;
   return `<div class="screen" style="width:1440px;height:820px">
     <div class="top"><span class="brand">Field View</span>${tabs('Explore')}<span class="spacer"></span>${legend}${gear}</div>
-    ${fieldSVG(2, {...F, selected:'o4', ghosts:false})}
+    ${fieldSVG(2, {...F, selected:'o4', ghosts:false, ps: psFor('desk')})}
     <div class="dock" style="top:502px;right:344px"><div class="cards" style="grid-template-columns:minmax(0,520px)">
       <div class="card"><h5>Selected player <span class="tag g">Has the disc</span></h5>
         <div class="row" style="margin-bottom:6px"><div><label class="l" style="padding:0 0 4px">Title</label><input class="tin" value="C" maxlength="2"></div>
@@ -402,17 +440,48 @@ function exploreDesk() {
       <div class="sec"><h4>Options</h4><div class="opt"><span>Defense follows<small>Coming soon</small></span><span class="sw"></span></div></div></div></div>`;
 }
 
+/* ---------- 5. Phone + tablet: Explore / Watch at the proposed sizes ---------- */
+const miniIc = (d, fill) => `<svg viewBox="0 0 24 24" width="20" height="20" fill="${fill?'currentColor':'none'}" stroke="${fill?'none':'currentColor'}" stroke-width="2.2" stroke-linecap="square"><path d="${d}"/></svg>`;
+const transport = (big) => `<button class="btn sq" style="${big?'width:48px;height:48px;':''}">${miniIc('M6 5v14M18 5l-9 7 9 7z')}</button><button class="btn primary" style="${big?'width:64px;height:48px;':'width:52px;'}">${miniIc('M8 5v14l11-7z',1)}</button><button class="btn sq" style="${big?'width:48px;height:48px;':''}">${miniIc('M18 5v14M6 5l9 7-9 7z')}</button>
+  <span style="display:inline-flex;gap:6px;align-items:center;padding:0 8px;font:700 .75rem var(--f-mono);color:var(--ink-2)">${[0,1,2,3,4].map(i=>`<i style="display:block;width:10px;height:10px;background:${i<=3?'var(--pink)':'var(--border)'}"></i>`).join('')}&nbsp;4 / 5</span>`;
+const playChip = `<span class="chip" style="height:40px"><span class="lbl" style="min-width:110px;padding:0 12px"><small>Play</small><b>Go deep ▾</b></span></span>`;
+const setupChip = `<span class="chip" style="height:40px"><button>${IC.prev}</button><span class="lbl" style="min-width:140px"><small>Setup</small><b>Vertical stack</b></span><button>${IC.next}</button></span>`;
+const resetBtn = `<button class="btn sq ic">${IC.reset}</button>`;
+function phoneField(frame, kind, opts) {
+  const w = 828, h = Math.round(w / 2.75);
+  return fieldSVG(frame, { w, h, left: 8, top: 56 + Math.round((390 - 56 - h) / 2), ps: psFor(kind), ...opts });
+}
+function phoneExplore() {
+  return `<div class="screen ph"><div class="top"><button class="btn sq ic">${IC.menu}</button><span class="btn dark" style="padding:0 12px">Explore</span><span class="spacer"></span>${setupChip}<span class="spacer"></span>${legend}${resetBtn}</div>
+    ${phoneField(2, 'phone', { ghosts:false })}</div>`;
+}
+function phoneWatch() {
+  return `<div class="screen ph"><div class="top"><button class="btn sq ic">${IC.menu}</button><span class="btn dark" style="padding:0 12px">Watch</span><span class="spacer"></span>${transport(false)}<span class="spacer"></span>${legend}${playChip}</div>
+    ${phoneField(3, 'phone', { ghosts:false, trails:true })}</div>`;
+}
+function tabletWatch() {
+  const w = 1148, h = Math.round(w / 2.75);
+  return `<div class="screen tab"><div class="top"><button class="btn sq ic" style="width:48px;height:48px">${IC.menu}</button><span class="btn dark" style="height:48px">Watch</span><span class="spacer"></span>${transport(true)}<span class="spacer"></span>${legend}<span class="chip"><span class="lbl" style="min-width:150px"><small>Play</small><b>Go deep ▾</b></span></span></div>
+    ${fieldSVG(3, { w, h, left: 16, top: 68 + Math.round((820 - 68 - h) / 2), ps: psFor('tab'), ghosts:false, trails:true })}</div>`;
+}
+
+function renderAll() {
+  const set = (id, html) => { document.getElementById(id).innerHTML = html; };
+  set('s-desk', buildDesk()); set('s-tab', buildTab()); set('s-share', shareDlg()); set('s-explore', exploreDesk());
+  set('s-ph-explore', phoneExplore()); set('s-ph-watch', phoneWatch()); set('s-tab-watch', tabletWatch());
+  document.querySelectorAll('[data-cap]').forEach(el => { const [kind, name] = el.dataset.cap.split('|'); el.innerHTML = cap(kind, name); });
+  document.getElementById('sizenote').textContent = SIZE_MODE === 'current' ? 'showing today\'s size' : 'showing the proposal — flip to Current to compare';
+  fit();
+}
+document.querySelectorAll('input[name=psize]').forEach(r => r.addEventListener('change', e => { SIZE_MODE = e.target.value; renderAll(); }));
 document.getElementById('s-desk').innerHTML = buildDesk();
-document.getElementById('s-tab').innerHTML = buildTab();
-document.getElementById('s-share').innerHTML = shareDlg();
-document.getElementById('s-explore').innerHTML = exploreDesk();
 function fit() {
   document.querySelectorAll('.scaler').forEach(el => {
     const w=+el.dataset.w, h=+el.dataset.h, avail=el.parentElement.clientWidth, s=Math.min(1, avail/w);
     el.style.transform=`scale(${s})`; el.style.width=w+'px'; el.parentElement.style.height=(h*s)+'px';
   });
 }
-addEventListener('resize', fit); fit();
+addEventListener('resize', fit); renderAll();
 </script>
 </body>
 </html>
