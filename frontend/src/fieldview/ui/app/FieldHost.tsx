@@ -18,9 +18,12 @@ export interface FieldHostProps {
   // control — keyboard users have the transport buttons.
   onTap?: () => void;
   overlayLayer?: ReactNode;
+  // Build: players placed in the current frame, and the end of a drag.
+  placed?: ReadonlySet<string>;
+  onGestureEnd?: (info: { movedIds: string[] }) => void;
 }
 
-export function FieldHost({ disabled = false, onTap, overlayLayer }: FieldHostProps) {
+export function FieldHost({ disabled = false, onTap, overlayLayer, placed, onGestureEnd }: FieldHostProps) {
   const { store, identity } = useFieldViewApp();
   const overlay = useOverlayState();
   const svgRef = useRef<SVGSVGElement | null>(null);
@@ -49,6 +52,8 @@ export function FieldHost({ disabled = false, onTap, overlayLayer }: FieldHostPr
         visible={overlay.visible}
         disabled={disabled}
         overlayLayer={overlayLayer}
+        placed={placed}
+        onGestureEnd={onGestureEnd}
       />
       {/* Kept mounted and screen-reader-only: it is the model's "why is this
           spot open" answer and the reason colour is never the only carrier of

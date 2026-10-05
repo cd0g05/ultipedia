@@ -24,7 +24,8 @@ function walk(dir: string, out: string[] = []): string[] {
 
 // Rows that are deliberately not a marker in code: a deferred feature with no
 // code behind it yet (#19 Advanced settings).
-const NOT_IN_CODE = new Set([19]);
+// #8 (the Build placeholder card) was resolved by the real Build page.
+const NOT_IN_CODE = new Set([8, 19]);
 
 const files = [...walk(SRC), TAILWIND].filter(
   (f) => !f.includes("/tests/") && !f.endsWith("placeholderAudit.test.ts"),

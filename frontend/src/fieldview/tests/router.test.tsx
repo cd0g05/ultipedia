@@ -39,10 +39,11 @@ describe("fieldview routes", () => {
     expect(screen.getByRole("group", { name: /ultimate field/i })).toBeInTheDocument();
   });
 
-  it("/fieldview/build renders the placeholder and no field", () => {
+  it("/fieldview/build renders the designer: the field, the frame strip and the cards", () => {
     renderAt("/fieldview/build");
-    expect(screen.getByRole("heading", { name: /play designer/i })).toBeInTheDocument();
-    expect(screen.queryByRole("group", { name: /ultimate field/i })).not.toBeInTheDocument();
+    expect(screen.getByTestId("mode-label")).toHaveTextContent("Build");
+    expect(screen.getByRole("group", { name: /ultimate field/i })).toBeInTheDocument();
+    expect(screen.getAllByTestId("frame-strip").length).toBeGreaterThan(0);
   });
 
   it("Field View is outside the site Layout: no site footer", () => {

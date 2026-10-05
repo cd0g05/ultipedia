@@ -122,23 +122,34 @@ count in P0 task 1; it was **69 files / 991 tests**, Field View alone 55 / 884, 
 
 ## Partition: feat/fieldview-build-ui
 
-- [ ] `ui/build/BuildSession.ts`: document + history + frame index + store sync (`toScene` into the store on frame/document change) + subscribe <!-- id: 80 -->
-- [ ] `useBuildSession` hook (`useSyncExternalStore`) for structural state only <!-- id: 81 -->
-- [ ] `FieldCanvas`: track moved ids per gesture (piece, group, keyboard-nudge burst) and call `onGestureEnd({ movedIds })` on release/cancel <!-- id: 82 -->
-- [ ] `pages/Build.tsx` desktop layout per the mockup: top bar slots (undo/redo, Saved, Share), sidebar (play name/description), dock <!-- id: 83 -->
-- [ ] `FrameStrip`: thumbnails (static SVG from `resolve`), badges (placed / disc), add tile, select, 4-up scroll, current kept in view <!-- id: 84 -->
-- [ ] `FrameCard`: label, duplicate, reset frame, delete <!-- id: 85 -->
-- [ ] Build `SelectedPlayerCard`: title, Give disc, Reset player, "placed in this frame" status <!-- id: 86 -->
-- [ ] `PreviewCard` + preview through the playback controller (play all / from this frame); editing disabled while running <!-- id: 87 -->
-- [ ] `GhostLayer` (ghost circle + arrow for players placed in the current frame) and the placed marker on pieces (`pieceLayer` prop) <!-- id: 88 -->
-- [ ] Undo/redo buttons and shortcuts (⌘/Ctrl-Z, Shift-⌘/Ctrl-Z); disabled states <!-- id: 89 -->
-- [ ] Compact layout: frame chip in the top bar, frame strip, actions row, selected-player bar <!-- id: 90 -->
-- [ ] In-memory "Saved" state and the autosave interface P4 plugs into <!-- id: 91 -->
-- [ ] Tests: session ops end to end (drag → placement → inheritance visible in later frames and badges), history, gesture commit as one undo step <!-- id: 92 -->
-- [ ] Tests: 0 React commits across a Build drag, a marquee drag and a preview; `test:perf` budgets hold <!-- id: 93 -->
-- [ ] axe in every Build state; keyboard operation of strip, cards, undo/redo; extend `frameGuard` (inheritance only in `play/model.ts`) <!-- id: 94 -->
+- [x] `ui/build/BuildSession.ts`: document + history + frame index + store sync (`toScene` into the store on frame/document change) + subscribe <!-- id: 80 -->
+- [x] `useBuildSession` hook (`useSyncExternalStore`) for structural state only <!-- id: 81 -->
+- [x] `FieldCanvas`: track moved ids per gesture (piece, group, keyboard-nudge burst) and call `onGestureEnd({ movedIds })` on release/cancel <!-- id: 82 -->
+- [x] `pages/Build.tsx` desktop layout per the mockup: top bar slots (undo/redo, Saved, Share), sidebar (play name/description), dock <!-- id: 83 -->
+- [x] `FrameStrip`: thumbnails (static SVG from `resolve`), badges (placed / disc), add tile, select, 4-up scroll, current kept in view <!-- id: 84 -->
+- [x] `FrameCard`: label, duplicate, reset frame, delete <!-- id: 85 -->
+- [x] Build `SelectedPlayerCard`: title, Give disc, Reset player, "placed in this frame" status <!-- id: 86 -->
+- [x] `PreviewCard` + preview through the playback controller (play all / from this frame); editing disabled while running <!-- id: 87 -->
+- [x] `GhostLayer` (ghost circle + arrow for players placed in the current frame) and the placed marker on pieces (`pieceLayer` prop) <!-- id: 88 -->
+- [x] Undo/redo buttons and shortcuts (⌘/Ctrl-Z, Shift-⌘/Ctrl-Z); disabled states <!-- id: 89 -->
+- [x] Compact layout: frame chip in the top bar, frame strip, actions row, selected-player bar <!-- id: 90 -->
+- [x] In-memory "Saved" state and the autosave interface P4 plugs into <!-- id: 91 -->
+- [x] Tests: session ops end to end (drag → placement → inheritance visible in later frames and badges), history, gesture commit as one undo step <!-- id: 92 -->
+- [x] Tests: 0 React commits across a Build drag, a marquee drag and a preview; `test:perf` budgets hold <!-- id: 93 -->
+- [x] axe in every Build state; keyboard operation of strip, cards, undo/redo; extend `frameGuard` (inheritance only in `play/model.ts`) <!-- id: 94 -->
 - [ ] Layout matches the approved mockup on desktop and tablet <!-- NEEDS MANUAL REVIEW --> <!-- id: 95 -->
-- [ ] Reflect: full suite + `test:perf` green; update specs and backlog <!-- id: 96 -->
+- [x] Reflect: full suite + `test:perf` green; update specs and backlog <!-- id: 96 -->
+
+**Reflect notes (P3)**
+- After P3: tsc clean; 63 files / 926 tests; `test:perf` 4 files / 27 tests green (§8.9 frame ≈ 10.4 ms). Desktop layout checked in a production build at 1440×900 (field + Frame / Selected player / Preview cards + frame strip, sidebar Play section, undo/redo + save pill in the top bar). The user's running dev server still lacks the `desktop` Tailwind screen until restarted.
+- New: `ui/build/{BuildSession,useBuildSession,GhostLayer,FrameStrip,cards,controls}`; `pages/Build.tsx` is the real page (the placeholder card and register row #8 are retired; row #23 added for the new copy). `FieldViewFrame` gained `barDesktop`, `compactDock`, `fieldPlaced`, `onFieldGestureEnd`; the "Soon" tag on Build is gone.
+- **Gesture commit:** `FieldCanvas` tracks a gesture (snapshot at press; ids dragged; `travelled` set on the first move) and calls `onGestureEnd({movedIds})` on release/cancel, and after a 450 ms quiet for keyboard-nudge bursts. movedIds = dragged ids ∪ any player whose position changed (so a mark carried by a dragged holder is placed too). A tap that only selects commits nothing. Verified: 0 React commits across 30 pointer moves; the placement is one commit at release.
+- **Session:** the session is created without touching the store (constructing happens in render); the hook calls `resync()` once mounted. `loadScene` (app) is used for every sync, so identity refreshes on title/disc/undo — discrete events only. `apply(op, {sync})`; gestures use `sync:false` because the field already shows the result.
+- **Inheritance guard:** nothing outside `play/` reads `.moved`; the UI uses `placedIds` / `discChangedIn` from `play/model.ts` (new), and the gesture state field in `FieldCanvas` is named `travelled` so the guard stays a plain grep.
+- **Preview:** playback controller on the session's document; the strip and cards are `inert` and the field disabled while it runs; it ends by itself at the last frame and the field returns to the edited frame.
+- **Deliberately not in P3** (P4): Share button/dialog, "My plays" library list and New play (the page opens a fresh default play each visit), real saving — the pill honestly says "Unsaved changes" after an edit and "✓ Saved to this device" only for an untouched play until P4 wires `subscribeDocument` to the store.
+- Builder (task 95): confirm the layout against the mockup on a real desktop and tablet.
+
 
 ## Partition: feat/fieldview-build-share
 

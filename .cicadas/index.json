@@ -245,6 +245,13 @@
       "summary": "P2: Offense/Defense n names, imperative holder/mark rings and titles, per-device piece scale, v3 playback with per-frame holder and disc pass, Watch caption, Explore on built-in setups with title + Give disc",
       "decisions": "",
       "modules": []
+    },
+    {
+      "timestamp": "2026-10-05T22:20:55.617591+00:00",
+      "branch": "feat/fieldview-build-ui",
+      "summary": "P3: BuildSession, gesture commit, frame strip/cards/ghost layer, preview, undo/redo, compact layout, real Build page",
+      "decisions": "",
+      "modules": []
     }
   ]
 }

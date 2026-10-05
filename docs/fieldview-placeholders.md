@@ -29,7 +29,7 @@ Status: `open` = Builder must supply/confirm · `toy` = a development stand-in e
 |---|---|---|---|---|---|---|
 | 6 | **Colour guide** text | Explanation of Closed / Contested / Strong space | `ui/content/ColourGuide.tsx` | Plain-language wording (derived from `space/constants.ts`/`explain.ts`; terms are decided, wording is not) | P2 | open (toy in code) |
 | 7 | **Rotate message** | "Rotate your phone to landscape for the best view." + dismiss label | `ui/app/RotateNotice.tsx` | Final copy | P2 | open (toy in code) |
-| 8 | **Build placeholder** | Card copy ("Play designer — coming in the next update…") | `pages/Build.tsx` | Final copy | P2 | open (toy in code) |
+| 8 | **Build placeholder** | Card copy ("Play designer — coming in the next update…") | `pages/Build.tsx` | Final copy | P2 | done — replaced by the real Build page (fieldview-build P3) |
 | 9 | **Menu & settings labels** | "Back to Ultipedia", "How to read the colours", "Colour-blind mode", "Defense follows — coming soon" | `ui/app/MenuDrawer.tsx`, `ui/content/Options.tsx` | Confirm wording | P2/P3 | open (toy in code; Options half in P3) |
 | 10 | **Selected-player card** | Row labels and the definition of "Side of field" / "Moved from start" | `ui/content/SelectedPlayerCard.tsx` | Confirm labels and definitions | P3 | open (toy in code) |
 | 11 | **Route titles / SEO meta** | `<title>`/description for explore, watch, build | page `Seo` usage | Final titles and descriptions | P2 | open (toy in code) |
@@ -54,6 +54,7 @@ Status: `open` = Builder must supply/confirm · `toy` = a development stand-in e
 | 20 | **New-play defaults** | A new play is named "Untitled play" and starts as the vertical-stack setup with unnamed players | `play/model.ts` `newPlay()` (`PLACEHOLDER(fieldview-build)`) | Final default name and starting formation | fieldview-build P1 | open (toy in code) |
 | 21 | **Disc-holder ring colour** | Emerald ring (`#047857`) around the player holding the disc | `render/tokens.ts` `PIECE_TOKENS.holder` (`PLACEHOLDER(fieldview-build)`) | Final colour (confirm it reads on the heatmap and for colour-blind users) | fieldview-build P2 | tune |
 | 22 | **Piece sizes per device** | Phone 85%, tablet 70% (from 1000 px wide), desktop 50%; titles never below 65% | `index.css` `--fv-piece-scale` (`PLACEHOLDER(fieldview-build)`) | Sizes confirmed on real devices | fieldview-build P2 | tune |
+| 23 | **Build copy** | Save-state wording, "No changes — same as the previous frame.", "Select a player to name them…", the empty-state lines | `ui/build/controls.tsx`, `ui/build/cards.tsx` (`PLACEHOLDER(fieldview-build)`) | Final copy | fieldview-build P3 | open (toy in code) |
 
 ## Where the mockups differ from what will be built
 
