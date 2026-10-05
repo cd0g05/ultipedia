@@ -89,7 +89,7 @@ Builder's proposal, before any UI design. Decisions are in "Decided"; what is st
 
 ## Built but not surfaced (re-attach later)
 
-> **Reference implementation kept alive:** `pages/Whiteboard.tsx` + `ui/shell/*` + `ui/PresetMenu.tsx` are now *unrouted* but still compile and are still tested (decided during P3 of fieldview-ui-rework). They compose every feature below together — start there when re-attaching one.
+> **Reference implementation removed (fieldview-build P0):** the old `pages/Whiteboard.tsx`, `pages/Designer.tsx`, `ui/shell/*` (ribbon, sidebar, bottom sheet, panels), `ui/PresetMenu.tsx`, `ui/Timeline.tsx`, `ui/PlayMeta.tsx`, `ui/OverlayRail.tsx` and `scene/preset*.ts` were deleted. They are all in git history at commit `085621f` (e.g. `git show 085621f:frontend/src/fieldview/pages/Whiteboard.tsx`); start there when re-attaching a feature. The engines below are still in the tree.
 
 Already implemented in some form, with code and tests in the repo, but **deliberately not in the new
 UI's MVP** (rework decision D2 and friends, 2026-10-03). Each should be quick to add back because the
@@ -97,7 +97,7 @@ substance exists — the work is mostly UI entry points. Paths are under `fronte
 
 - **Throw to player** — possession moves to a chosen receiver; the new thrower gets a mark; the disc
   flies as an animation and lands before possession changes. `scene/possession.ts`, `motion/disc.ts`,
-  `ui/shell/throwMode.ts`, ribbon button in `ui/shell/ToolRibbon.tsx`, throw-click in `ui/FieldCanvas.tsx`.
+  `ui/shell/throwMode.ts`, ribbon button (at `085621f:…/ui/shell/ToolRibbon.tsx`), throw-click in `ui/FieldCanvas.tsx`.
 - **Cuts / routes** — click a destination (multi-waypoint, so two-part cuts) and run it with real
   accel/decel physics; stop, rewind, drag waypoint markers to reshape. `motion/route.ts`,
   `motion/kinematics.ts`, `motion/simulate.ts`, `ui/motion/*`, `render/routeLayer.tsx`.
@@ -105,16 +105,16 @@ substance exists — the work is mostly UI entry points. Paths are under `fronte
   `motion/pursuit.ts`, `motion/step.ts`. (The new "Defense follows" toggle reuses this on drag.)
 - **Advanced settings panel** — space-model sliders, lens/layers, and the motion tunables `accel`,
   `decel`, `cushion`, `lead`. `ui/AdvancedPanel.tsx`, `motion/constants.ts`, `space/constants.ts`.
-  Deferred (see Future); the old panel stays for the unlinked designer.
+  Deferred (see Future); the panel component stays in the tree, unmounted.
 - **Force controls** — flat / flick / backhand × default / inside / around, plus a "custom" reading.
-  `scene/force.ts`, `ui/shell/panels/MarkPanel.tsx`.
+  `scene/force.ts`, panel at `085621f:…/ui/shell/panels/MarkPanel.tsx`.
 - **Matchups** — auto-assign and manual reassign of who guards whom. `scene/matchups.ts`,
-  `ui/shell/panels/DefensePlayerPanel.tsx`.
+  panel at `085621f:…/ui/shell/panels/DefensePlayerPanel.tsx`.
 - **Marquee multi-select + group drag** — draw a box on empty grass, move the group rigidly.
   `scene/selection.ts`, marquee code in `ui/FieldCanvas.tsx`.
 - **Keyboard nudge** of the selected player(s). `ui/FieldCanvas.tsx`.
 - **User presets** — save / rename / delete (with undo) / import / export JSON, persisted to
-  localStorage. `scene/presetRegistry.ts`, `scene/presetFormat.ts`, `ui/PresetMenu.tsx`. *(Also listed
+  localStorage. Removed in P0 (see `085621f`); superseded by the one play library in fieldview-build. *(Also listed
   under Future: coach-made presets.)*
 - **PNG export** of the field with the painted heatmap. `render/exportImage.ts`.
 - **Present / fullscreen mode** — field alone fullscreen for showing a team. `ui/useFullscreen.ts`,

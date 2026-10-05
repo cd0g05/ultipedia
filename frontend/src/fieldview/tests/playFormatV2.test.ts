@@ -20,7 +20,6 @@ import { validatePlayFile } from "../play/validate";
 import { backfillScene, entitiesOf, keyframeOf, playModelOf, toPlayFile } from "../play/serialize";
 import { sampleAt } from "../play/tween";
 import { getPreset, listPresetNames } from "../scene/presets";
-import { presetToScene, sceneToPreset } from "../scene/presetFormat";
 import type { Scene } from "../scene/types";
 
 // A v1 file, exactly as the pre-initiative writer emitted one: formatVersion
@@ -293,15 +292,6 @@ describe("built-in presets load with a thrower and sensible matchups", () => {
         if (p.team !== "defense") continue;
         expect(scene.matchups[p.id], `${name} ${p.id}`).toBe(`o${p.id.slice(1)}`);
       }
-    });
-
-    it(`${name}: survives the preset format round-trip with the disc intact`, () => {
-      // A preset file stores neither field, so this is the same backfill path
-      // as a v1 play — and the built-in's own thrower/mark must come back.
-      const restored = presetToScene(sceneToPreset(getPreset(name), "p", "P"));
-      expect(restored.possession).toBe("o1");
-      expect(throwerOf(restored).map((p) => p.id)).toEqual(["o1"]);
-      expect(restored.players.filter((p) => p.role === "mark")).toHaveLength(1);
     });
   }
 });

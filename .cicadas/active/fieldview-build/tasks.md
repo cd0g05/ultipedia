@@ -14,7 +14,20 @@ modules:
   - "frontend/package.json"
 index:
   partition_cleanup: "## Partition: feat/fieldview-build-cleanup"
-  partition_model: "## Partition: feat/fieldview-build-model"
+  partition_model: "
+
+**Reflect notes (P0)**
+- Baseline at kickoff: tsc clean; 69 files / 991 tests; `test:perf` 4 files / 27 tests (computeGrid best ≈ 9.7 ms).
+- After P0: tsc clean; 55 files / 793 tests; `test:perf` 4 files / 27 tests green (computeGrid best ≈ 9.8 ms; §8.9 frame ≈ 10 ms).
+- Audit: `FieldStage` had no importers. `Whiteboard` was imported by 9 tests; `Designer` by 5 tests + `router.tsx`; `presetFormat` also by `modelGuard` and `playFormatV2` (their preset round-trip cases removed).
+- `tests/fieldHarness.tsx` (FieldCanvas over the vert-stack scene + `SelectionProbe` + `CellReadout`) now backs `drag.test` and `overlay.test`. Kept in `overlay.test`: hover readout, ADR-2 zero-commit tests (incl. one-commit selection change), live repaint, §8.5, §8.9 frame budget, prefs parsing, reduced-motion. Dropped: rail, team-visibility, advanced-panel and persist-across-remount cases (they only exercised deleted UI).
+- Deleted tests: bottomSheet, shellDesktop, shellPanels, shellGuard, panelParity, presetMenu, presetRegistry, presetFormat, designer, responsive, pages, a11y, throwing, motionUi.
+- Kept (unmounted, harvest later): `ui/AdvancedPanel`, `ui/shell/{throwMode,sceneStore,useSelection}`, `motion/*`, `scene/{matchups,force}`, `playModel`.
+- `/fieldview/designer` and `/field-view/designer` removed from `router.tsx`; router test asserts they no longer render anything.
+- Backlog "Built but not surfaced" now points at commit `085621f` for the removed UI.
+
+
+## Partition: feat/fieldview-build-model"
   partition_disc: "## Partition: feat/fieldview-build-disc-titles"
   partition_ui: "## Partition: feat/fieldview-build-ui"
   partition_share: "## Partition: feat/fieldview-build-share"

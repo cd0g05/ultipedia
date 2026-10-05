@@ -16,7 +16,6 @@ import { movePlayer, moveThrower } from "../scene/scene";
 import { normalize, throwTo } from "../scene/possession";
 import { autoAssign, reassign } from "../scene/matchups";
 import { getPreset, listPresetNames } from "../scene/presets";
-import { presetToScene, sceneToPreset } from "../scene/presetFormat";
 import { sampleAt } from "../play/tween";
 import { entitiesOf, keyframeOf, toPlayFile } from "../play/serialize";
 import type { Scene } from "../scene/types";
@@ -133,10 +132,8 @@ describe("ADR-1 guard — no public op leaves a thrower who is not the possessor
     }
   });
 
-  it("holds across a preset and play-format round trip", () => {
+  it("holds across a play-format round trip", () => {
     const s = getPreset("flatMark");
-    expectRolesAgreeWithPossession(presetToScene(sceneToPreset(s, "p1", "P")), "preset round trip");
-
     const play = toPlayFile({
       name: "Guard play",
       description: "",

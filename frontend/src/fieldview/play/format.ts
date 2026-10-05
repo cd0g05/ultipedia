@@ -2,10 +2,6 @@
 // encyclopedia's drill visualizer and the AI-animation pipeline will both
 // write against this shape, so identity (entities) is stated once and
 // position is stated per keyframe — cheap to diff, sane to generate.
-//
-// A preset (scene/presetFormat.ts) is deliberately this format with one
-// frame, so `PlayEntity` is owned here and re-exported there rather than
-// declared twice.
 
 import type { Role, Team, Vec2 } from "../scene/types";
 import { FIELD } from "../scene/field";
