@@ -6,8 +6,9 @@
 import type { Player, Role, Scene, Team } from "./types";
 import { normalize } from "./possession";
 
-function player(id: string, team: Team, role: Role, x: number, y: number, label?: string): Player {
-  return { id, team, role, pos: { x, y }, label };
+// Unnamed on purpose: titles are the player's own to set (fieldview-build).
+function player(id: string, team: Team, role: Role, x: number, y: number): Player {
+  return { id, team, role, pos: { x, y } };
 }
 
 // One thrower + 6 cutters (offense) and one mark + 6 defenders (defense),
@@ -22,8 +23,8 @@ function buildScene(params: {
 }): Scene {
   const { throwerX, throwerY, markOffset, cutters, defenderOffsets } = params;
   const players: Player[] = [
-    player("o1", "offense", "thrower", throwerX, throwerY, "T"),
-    player("d1", "defense", "mark", throwerX + markOffset.x, throwerY + markOffset.y, "M"),
+    player("o1", "offense", "thrower", throwerX, throwerY),
+    player("d1", "defense", "mark", throwerX + markOffset.x, throwerY + markOffset.y),
   ];
   // Matchups mirror the index pairing the positions already encode: d1 marks
   // the thrower, d(n) guards o(n). Stating them as data rather than letting
@@ -31,10 +32,10 @@ function buildScene(params: {
   // geometry puts a sagging help defender closer to somebody else's cutter.
   const matchups: Record<string, string | null> = { d1: "o1" };
   cutters.forEach((c, i) => {
-    players.push(player(`o${i + 2}`, "offense", "cutter", c.x, c.y, String(i + 1)));
+    players.push(player(`o${i + 2}`, "offense", "cutter", c.x, c.y));
     const off = defenderOffsets[i];
     players.push(
-      player(`d${i + 2}`, "defense", "defender", c.x + off.x, c.y + off.y, String(i + 1)),
+      player(`d${i + 2}`, "defense", "defender", c.x + off.x, c.y + off.y),
     );
     matchups[`d${i + 2}`] = `o${i + 2}`;
   });
@@ -299,26 +300,3 @@ export function getPreset(name: PresetName): Scene {
 export function listPresetNames(): PresetName[] {
   return [...PRESET_NAMES];
 }
-
-// The setups Explore offers, in the order it shows them, each with the one-line
-// takeaway a new player reads. UI names and takeaways are separate from
-// PRESET_LABELS (the registry's names) on purpose: this is the coach's
-// vocabulary and the learner's sentence.
-//
-// PLACEHOLDER(fieldview-ui-rework): which setups, their order, their names and
-// every takeaway are toy content the Builder replaces
-// (docs/fieldview-placeholders.md #1, #2).
-export interface CuratedSetup {
-  name: PresetName;
-  label: string;
-  takeaway: string;
-}
-
-export const CURATED_SETUPS: CuratedSetup[] = [
-  { name: "vertStack", label: "Vertical stack", takeaway: "Cutters have the deep and under lanes to themselves." },
-  { name: "horizontalStack", label: "Horizontal stack", takeaway: "Wide and flat: the middle opens up." },
-  { name: "hoStack", label: "Ho stack", takeaway: "Handlers split wide; one clean lane up the middle." },
-  { name: "sideStack", label: "Side stack", takeaway: "Everyone on one side — the open side is free to attack." },
-  { name: "clumped", label: "Clumped", takeaway: "See how little space a bunched team leaves." },
-  { name: "deepHelp", label: "Deep help", takeaway: "One cutter deep, the rest underneath — watch the help defender sag." },
-];

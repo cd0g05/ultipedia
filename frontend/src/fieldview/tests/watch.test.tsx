@@ -170,13 +170,13 @@ describe("playback options", () => {
 describe("Watch is read-only", () => {
   it("disables every piece", () => {
     renderWatch();
-    const piece = screen.getAllByRole("button", { name: "offense cutter" })[0];
+    const piece = screen.getByRole("button", { name: "Offense 2" });
     expect(piece).toHaveAttribute("aria-disabled", "true");
   });
 
   it("a nudge key cannot move a piece", () => {
     renderWatch();
-    const piece = screen.getAllByRole("button", { name: "offense cutter" })[0];
+    const piece = screen.getByRole("button", { name: "Offense 2" });
     const before = piece.getAttribute("transform");
     fireEvent.keyDown(piece, { key: "ArrowRight" });
     expect(piece.getAttribute("transform")).toBe(before);
@@ -193,13 +193,13 @@ describe("ADR-2: playback keeps React out of the animation frame", () => {
         </Profiler>
       </MemoryRouter>,
     );
-    const cutterBefore = screen.getAllByRole("button", { name: "offense cutter" })[0].getAttribute("transform");
+    const cutterBefore = screen.getByRole("button", { name: "Offense 2" }).getAttribute("transform");
     fireEvent.click(screen.getAllByRole("button", { name: "Next frame", hidden: true })[0]); // one structural commit
     commits = 0;
     // ~25 real animation frames, well inside the 1.2 s transition.
     await new Promise((resolve) => setTimeout(resolve, 400));
     await waitFor(() =>
-      expect(screen.getAllByRole("button", { name: "offense cutter" })[0].getAttribute("transform")).not.toBe(cutterBefore),
+      expect(screen.getByRole("button", { name: "Offense 2" }).getAttribute("transform")).not.toBe(cutterBefore),
     );
     expect(commits).toBe(0);
   });

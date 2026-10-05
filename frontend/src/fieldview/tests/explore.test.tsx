@@ -8,7 +8,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { MemoryRouter, useRoutes } from "react-router-dom";
 import { routes } from "../../router";
-import { CURATED_SETUPS, getPreset } from "../scene/presets";
+import { getPreset } from "../scene/presets";
+import { BUILTIN_SETUPS } from "../play/plays";
+
+// The setups as Explore lists them: name + takeaway (the play's description).
+const CURATED_SETUPS = BUILTIN_SETUPS.map((p) => ({ label: p.name, takeaway: p.description ?? "" }));
 import { createSceneStore } from "../scene/store";
 import { selectPlayer } from "../scene/selection";
 import { getStageViewBox, yardToPixel } from "../render/coords";
@@ -68,16 +72,16 @@ describe("setups", () => {
 
   it("▶ loads the next setup, ◀ goes back, and both wrap", () => {
     renderExplore();
-    const before = transformOf("offense cutter 1");
+    const before = transformOf("Offense 2");
     fireEvent.click(screen.getByRole("button", { name: "Next setup" }));
-    const second = transformOf("offense cutter 1");
+    const second = transformOf("Offense 2");
     expect(second).not.toBe(before);
     expect(screen.getByRole("button", { name: "Choose a setup" })).toHaveTextContent(
       CURATED_SETUPS[1].label,
     );
 
     fireEvent.click(screen.getByRole("button", { name: "Previous setup" }));
-    expect(transformOf("offense cutter 1")).toBe(before);
+    expect(transformOf("Offense 2")).toBe(before);
 
     // Wrap backwards from the first to the last.
     fireEvent.click(screen.getByRole("button", { name: "Previous setup" }));
@@ -114,7 +118,7 @@ describe("✎ custom marker and Reset", () => {
     const chip = screen.getByRole("button", { name: "Choose a setup" });
     expect(chip).not.toHaveTextContent("✎");
 
-    const cutter = screen.getByRole("button", { name: "offense cutter 1" });
+    const cutter = screen.getByRole("button", { name: "Offense 2" });
     const home = cutter.getAttribute("transform");
     fireEvent.keyDown(cutter, { key: "ArrowRight" });
     await rAF();
@@ -125,7 +129,7 @@ describe("✎ custom marker and Reset", () => {
     // Two Reset controls exist (compact bar icon, desktop sidebar); CSS shows one.
     fireEvent.click(screen.getAllByRole("button", { name: "Reset setup", hidden: true })[0]);
     await waitFor(() => expect(chip).not.toHaveTextContent("✎"), { timeout: 1500 });
-    expect(screen.getByRole("button", { name: "offense cutter 1" }).getAttribute("transform")).toBe(home);
+    expect(screen.getByRole("button", { name: "Offense 2" }).getAttribute("transform")).toBe(home);
   });
 });
 
@@ -146,12 +150,12 @@ describe("Defense follows (STUB — behaviour deferred, ADR-33 reserved)", () =>
     const sidebar = screen.getByRole("complementary", { name: "Sidebar", hidden: true });
     fireEvent.click(within(sidebar).getByRole("switch", { name: /defense follows/i, hidden: true }));
 
-    const defenderBefore = transformOf("defense defender 1");
-    const cutter = screen.getByRole("button", { name: "offense cutter 1" });
+    const defenderBefore = transformOf("Defense 2");
+    const cutter = screen.getByRole("button", { name: "Offense 2" });
     fireEvent.keyDown(cutter, { key: "ArrowRight", shiftKey: true });
     await rAF();
     await rAF();
-    expect(transformOf("defense defender 1")).toBe(defenderBefore);
+    expect(transformOf("Defense 2")).toBe(defenderBefore);
   });
 
   it("shows up in the compact menu too", () => {
@@ -184,7 +188,7 @@ describe("ADR-2: Explore keeps React out of the drag path", () => {
           </Profiler>
         </MemoryRouter>,
       );
-      const cutter = screen.getByRole("button", { name: "offense cutter 1" });
+      const cutter = screen.getByRole("button", { name: "Offense 2" });
       const m = cutter.getAttribute("transform")!.match(/translate\(([-\d.]+), ([-\d.]+)\)/)!;
       const grab = { clientX: Number(m[1]) - viewBox.x, clientY: Number(m[2]) - viewBox.y };
       fireEvent.pointerDown(cutter, { pointerId: 1, ...grab });
@@ -208,21 +212,21 @@ describe("selected-player card", () => {
   it("derives its rows from the scene", () => {
     const scene = getPreset("vertStack");
     const stats = playerStats(scene, "o3", baselineOf().current)!; // cutter 2
-    expect(stats.title).toBe("#2 · offense");
+    expect(stats.title).toBe("Offense 3");
     expect(stats.rows.map((r) => r.label)).toEqual([
       "Marked by",
       "Nearest defender",
       "Side of field",
       "Moved from start",
     ]);
-    expect(stats.rows[0].value).toBe("#2"); // d3 guards o3 by the preset's own pairing
+    expect(stats.rows[0].value).toBe("Defense 3"); // d3 guards o3 by the preset's own pairing
     expect(stats.rows[2].value).toBe("Middle");
     expect(stats.rows[3].value).toBe("0.0 yd");
   });
 
   it("flips its labels for a defender", () => {
     const stats = playerStats(getPreset("vertStack"), "d3", null)!;
-    expect(stats.title).toBe("#2 · defense");
+    expect(stats.title).toBe("Defense 3");
     expect(stats.rows[0].label).toBe("Marking");
     expect(stats.rows[1].label).toBe("Nearest attacker");
   });
@@ -247,7 +251,7 @@ describe("selected-player card", () => {
 
     const o3 = store.getScene().players.find((p) => p.id === "o3")!;
     store.setSelection(selectPlayer(store.getSelection(), o3));
-    await waitFor(() => expect(card).toHaveTextContent("#2 · offense"));
+    await waitFor(() => expect(card).toHaveTextContent("Offense 3"));
     expect(card).toHaveTextContent("Moved from start");
     expect(card).toHaveTextContent("0.0 yd");
 

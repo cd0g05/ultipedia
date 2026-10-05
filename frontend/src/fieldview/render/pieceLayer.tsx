@@ -51,7 +51,39 @@ export function PieceLayer({
 }: PieceLayerProps) {
   const pieceRefs = useRef(new Map<string, SVGGElement>());
   const discRef = useRef<SVGGElement | null>(null);
+  const discDotRef = useRef<SVGCircleElement | null>(null);
   const markDirRef = useRef<SVGLineElement | null>(null);
+
+  // Who holds the disc and who is the mark change DURING a drag (the mark is
+  // whoever is within 10 ft — fieldview-build ADR-38) and during playback (the
+  // disc moves between players), so the rings are written imperatively from the
+  // scene, like positions, and only when they actually change.
+  function paintState(
+    g: SVGGElement,
+    isHolder: boolean,
+    isMark: boolean,
+    team: Player["team"],
+    title: string,
+  ) {
+    // The title is identity (play level) and the player's to change in Explore,
+    // so it is written from the scene like a position — never through React.
+    const text = g.querySelector<SVGTextElement>(".fv-piece-title");
+    if (text && text.textContent !== title) text.textContent = title;
+    const flag = (isHolder ? "h" : "") + (isMark ? "m" : "");
+    if (g.dataset.state === flag) return;
+    g.dataset.state = flag;
+    const ring = g.querySelector<SVGCircleElement>(".fv-holder-ring");
+    ring?.setAttribute("opacity", isHolder ? "1" : "0");
+    const body = g.querySelector<SVGCircleElement>(".fv-piece-disc");
+    if (body) {
+      const style = team === "offense" ? PIECE_TOKENS.offense : PIECE_TOKENS.defense;
+      body.setAttribute("stroke", isMark ? PIECE_TOKENS.special.stroke : style.stroke);
+      body.setAttribute("stroke-width", String(isMark ? PIECE_TOKENS.special.strokeWidth : style.strokeWidth));
+    }
+    const note = isHolder ? "Has the disc" : isMark ? "Is the mark" : "";
+    if (note) g.setAttribute("aria-description", note);
+    else g.removeAttribute("aria-description");
+  }
 
   function repaint() {
     const scene = store.getScene();
@@ -67,7 +99,11 @@ export function PieceLayer({
       if (!g) continue;
       const { x, y } = yardToPixel(p.pos);
       g.setAttribute("transform", `translate(${x}, ${y})`);
+      paintState(g, p.id === scene.possession, p.role === "mark", p.team, p.label ?? "");
     }
+
+    if (discRef.current) discRef.current.setAttribute("display", thrower ? "inline" : "none");
+    if (markDirRef.current) markDirRef.current.setAttribute("display", mark && thrower ? "inline" : "none");
 
     if (discRef.current && thrower) {
       // In flight, the disc is wherever the driver last published it — and it
@@ -77,8 +113,12 @@ export function PieceLayer({
       // mutation, which is what the driver is producing during the flight.
       const airborne = getFlightPos();
       const { x, y } = yardToPixel(airborne ?? thrower.pos);
+      // The docking offset lives inside the scaled body (below), so the disc
+      // sits at the same place relative to a piece at every piece size.
+      discRef.current.setAttribute("transform", `translate(${x}, ${y})`);
       const { dx, dy } = airborne ? { dx: 0, dy: 0 } : PIECE_TOKENS.disc.offsetPx;
-      discRef.current.setAttribute("transform", `translate(${x + dx}, ${y + dy})`);
+      discDotRef.current?.setAttribute("cx", String(dx));
+      discDotRef.current?.setAttribute("cy", String(dy));
     }
 
     if (markDirRef.current && mark && thrower) {
@@ -137,15 +177,22 @@ export function PieceLayer({
   // The disc and the mark's force indicator are derived decorations, not
   // pieces — so they follow whether their owner is being drawn. A force arrow
   // hanging in space under a hidden mark reads as a bug.
-  const throwerShown = players.some((p) => p.role === "thrower");
-  const markShown = players.some((p) => p.role === "mark");
+  // Roles change while the scene is live, so these only ask whether the team
+  // is drawn at all; repaint() hides the disc / arrow when nobody holds it or
+  // nobody is the mark.
+  const throwerShown = players.some((p) => p.team === "offense");
+  const markShown = players.some((p) => p.team === "defense");
 
   return (
     <g data-testid="pieces">
-      {players.map((p) => {
-        const isSpecial = p.role === "thrower" || p.role === "mark";
+      {players.map((p, index) => {
         const style = p.team === "offense" ? PIECE_TOKENS.offense : PIECE_TOKENS.defense;
-        const radius = isSpecial ? PIECE_TOKENS.special.radius : style.radius;
+        const radius = style.radius;
+        // "Offense 3": the same name whatever the title, so an unnamed player
+        // is still addressable (titles are visual only). Counted within the
+        // team in roster order.
+        const ordinal = players.slice(0, index + 1).filter((q) => q.team === p.team).length;
+        const name = `${p.team === "offense" ? "Offense" : "Defense"} ${ordinal}`;
         // Eligible receivers are every offensive player except the one
         // already holding it — throwing to yourself is a no-op exit, not a
         // target (ux.md Flow 1 Alternate B).
@@ -165,7 +212,7 @@ export function PieceLayer({
             tabIndex={disabled ? -1 : 0}
             role="button"
             aria-disabled={disabled || undefined}
-            aria-label={`${p.team} ${p.role}${p.label ? ` ${p.label}` : ""}`}
+            aria-label={name}
             onKeyDown={(e) => handleKeyDown(p.id, e)}
             style={{
               cursor: disabled ? "default" : "grab",
@@ -178,38 +225,52 @@ export function PieceLayer({
               pointerEvents: "none",
             }}
           >
-            {/* Focus indicator. Drawn explicitly rather than left to the
-                browser's default ring, which boxes the <g>'s bounding box —
-                that is what used to put a black rectangle on the field. */}
-            <circle
-              className="fv-piece-focus-ring"
-              r={radius + PIECE_TOKENS.focusRing.gap}
-              fill="none"
-              stroke={PIECE_TOKENS.focusRing.stroke}
-              strokeWidth={PIECE_TOKENS.focusRing.strokeWidth}
-              opacity={0}
-            />
-            {/* Receiver emphasis: a dashed ring outside the piece, in the
-                CANVAS accent (PIECE_TOKENS), never the shell accent — canon
-                ADR-16 keeps the two palettes apart. */}
-            {eligible && (
+            {/* The scaled body: everything that is the piece — rings, disc,
+                title — shrinks together with --fv-piece-scale (per device,
+                index.css), strokes included. Grab distance is yards, not this. */}
+            <g className="fv-piece-body">
+              {/* Focus indicator. Drawn explicitly rather than left to the
+                  browser's default ring, which boxes the <g>'s bounding box —
+                  that is what used to put a black rectangle on the field. */}
               <circle
-                className="fv-throw-target"
-                r={radius + PIECE_TOKENS.throwTarget.gap}
+                className="fv-piece-focus-ring"
+                r={radius + PIECE_TOKENS.holder.gap + PIECE_TOKENS.focusRing.gap}
                 fill="none"
-                stroke={PIECE_TOKENS.throwTarget.stroke}
-                strokeWidth={PIECE_TOKENS.throwTarget.strokeWidth}
-                strokeDasharray={PIECE_TOKENS.throwTarget.strokeDasharray}
+                stroke={PIECE_TOKENS.focusRing.stroke}
+                strokeWidth={PIECE_TOKENS.focusRing.strokeWidth}
+                opacity={0}
               />
-            )}
-            <circle
-              r={radius}
-              fill={style.fill}
-              stroke={isSpecial ? PIECE_TOKENS.special.stroke : style.stroke}
-              strokeWidth={isSpecial ? PIECE_TOKENS.special.strokeWidth : style.strokeWidth}
-            />
-            {p.label && (
+              {/* Receiver emphasis: a dashed ring outside the piece, in the
+                  CANVAS accent (PIECE_TOKENS), never the shell accent — canon
+                  ADR-16 keeps the two palettes apart. */}
+              {eligible && (
+                <circle
+                  className="fv-throw-target"
+                  r={radius + PIECE_TOKENS.throwTarget.gap}
+                  fill="none"
+                  stroke={PIECE_TOKENS.throwTarget.stroke}
+                  strokeWidth={PIECE_TOKENS.throwTarget.strokeWidth}
+                  strokeDasharray={PIECE_TOKENS.throwTarget.strokeDasharray}
+                />
+              )}
+              {/* Holds the disc: a coloured ring, written by repaint(). */}
+              <circle
+                className="fv-holder-ring"
+                r={radius + PIECE_TOKENS.holder.gap}
+                fill="none"
+                stroke={PIECE_TOKENS.holder.stroke}
+                strokeWidth={PIECE_TOKENS.holder.strokeWidth}
+                opacity={0}
+              />
+              <circle
+                className="fv-piece-disc"
+                r={radius}
+                fill={style.fill}
+                stroke={style.stroke}
+                strokeWidth={style.strokeWidth}
+              />
               <text
+                className="fv-piece-title"
                 y={PIECE_TOKENS.label.fontSize * 0.35}
                 textAnchor="middle"
                 fontSize={PIECE_TOKENS.label.fontSize}
@@ -217,23 +278,26 @@ export function PieceLayer({
                 fontWeight={700}
                 fill={style.labelFill}
                 pointerEvents="none"
-              >
-                {p.label}
-              </text>
-            )}
+              />
+            </g>
           </g>
         );
       })}
 
-      {/* Disc — docked to the thrower, derived every frame, never stored. */}
+      {/* Disc — docked to the holder, derived every frame, never stored. */}
       {throwerShown && (
         <g ref={discRef} data-testid="disc" aria-hidden="true" pointerEvents="none">
-          <circle
-            r={PIECE_TOKENS.disc.radius}
-            fill={PIECE_TOKENS.disc.fill}
-            stroke={PIECE_TOKENS.disc.stroke}
-            strokeWidth={PIECE_TOKENS.disc.strokeWidth}
-          />
+          <g className="fv-piece-body">
+            <circle
+              ref={discDotRef}
+              cx={PIECE_TOKENS.disc.offsetPx.dx}
+              cy={PIECE_TOKENS.disc.offsetPx.dy}
+              r={PIECE_TOKENS.disc.radius}
+              fill={PIECE_TOKENS.disc.fill}
+              stroke={PIECE_TOKENS.disc.stroke}
+              strokeWidth={PIECE_TOKENS.disc.strokeWidth}
+            />
+          </g>
         </g>
       )}
 

@@ -94,7 +94,7 @@ describe("touch drag on the field", () => {
           <AppRoutes />
         </MemoryRouter>,
       );
-      const cutter = screen.getByRole("button", { name: "offense cutter 1" });
+      const cutter = screen.getByRole("button", { name: "Offense 2" });
       const home = cutter.getAttribute("transform");
       const at = pointFor(cutter);
       const client = { clientX: at.x - viewBox.x, clientY: at.y - viewBox.y };
@@ -115,7 +115,7 @@ describe("touch drag on the field", () => {
           <AppRoutes />
         </MemoryRouter>,
       );
-      const cutter = screen.getByRole("button", { name: "offense cutter 1" });
+      const cutter = screen.getByRole("button", { name: "Offense 2" });
       const start = pointFor(cutter);
       const client = { clientX: start.x - viewBox.x, clientY: start.y - viewBox.y };
       firePointer(cutter, "pointerdown", { pointerType: "touch", ...client });
@@ -155,7 +155,7 @@ describe("touch drag on the field", () => {
           <AppRoutes />
         </MemoryRouter>,
       );
-      const cutter = screen.getByRole("button", { name: "offense cutter 1" });
+      const cutter = screen.getByRole("button", { name: "Offense 2" });
       const start = pointFor(cutter);
       const client = { clientX: start.x - viewBox.x, clientY: start.y - viewBox.y };
       firePointer(cutter, "pointerdown", { pointerType: "mouse", ...client });
@@ -179,7 +179,7 @@ describe("touch drag on the field", () => {
           </Profiler>
         </MemoryRouter>,
       );
-      const cutter = screen.getByRole("button", { name: "offense cutter 1" });
+      const cutter = screen.getByRole("button", { name: "Offense 2" });
       const start = pointFor(cutter);
       const client = { clientX: start.x - viewBox.x, clientY: start.y - viewBox.y };
       firePointer(cutter, "pointerdown", { pointerType: "touch", ...client });

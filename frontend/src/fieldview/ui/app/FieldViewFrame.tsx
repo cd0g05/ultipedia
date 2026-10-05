@@ -38,6 +38,8 @@ export interface FieldViewFrameProps {
   barRight?: ReactNode;
   // Desktop right sidebar content.
   sidebar?: ReactNode;
+  // A line directly under the field on every layout (Watch: the frame label).
+  caption?: ReactNode;
   // Desktop content under the field.
   dock?: ReactNode;
   // Extra rows in the compact menu drawer (below the modes).
@@ -57,6 +59,7 @@ export function FieldViewFrame({
   barCenter,
   barRight,
   sidebar,
+  caption,
   dock,
   menuExtras,
   showField = true,
@@ -158,6 +161,7 @@ export function FieldViewFrame({
                 <FieldHost disabled={fieldDisabled} onTap={onFieldTap} overlayLayer={fieldOverlay} />
               </div>
             ))}
+          {caption && <div className="w-full shrink-0 px-2 pb-1 pt-2 text-center">{caption}</div>}
           {dock && <div className="mt-4 hidden w-full desktop:block">{dock}</div>}
         </main>
         {sidebar && (

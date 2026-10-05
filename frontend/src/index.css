@@ -74,6 +74,35 @@ body {
   opacity: 1;
 }
 
+/* Piece size per device (fieldview-build ADR-41). The whole piece body —
+   rings, disc, title — is scaled by one CSS variable, so a phone shows 85%,
+   a tablet 70% and a desktop 50% of the original size with the strokes
+   shrinking in proportion. The title is scaled less (never below 0.65 of the
+   original) so it stays legible. Grab distance is in yards (render/pick.ts)
+   and does not follow this, so smaller pieces are not harder to pick up.
+   PLACEHOLDER(fieldview-build): the three values and the 1000 px tablet
+   boundary are first guesses for the real-device pass
+   (docs/fieldview-placeholders.md #22). */
+:root {
+  --fv-piece-scale: 0.85;
+}
+@media (min-width: 1000px) {
+  :root {
+    --fv-piece-scale: 0.7;
+  }
+}
+@media (min-width: 1280px) and (min-height: 640px) {
+  :root {
+    --fv-piece-scale: 0.5;
+  }
+}
+.fv-piece-body {
+  transform: scale(var(--fv-piece-scale, 1));
+}
+.fv-piece-title {
+  transform: scale(calc(max(var(--fv-piece-scale, 1), 0.65) / var(--fv-piece-scale, 1)));
+}
+
 /* Present mode: the stage goes fullscreen for showing a play to a team.
    The SVG scales from its viewBox, so fitting it to the viewport is purely
    a sizing concern — no coordinate maths changes. */

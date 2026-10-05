@@ -52,6 +52,8 @@ Status: `open` = Builder must supply/confirm · `toy` = a development stand-in e
 | 18 | **Defense follows** | Toggle + persisted pref, labelled "coming soon", no behaviour — **in code** (`pages/Explore.tsx`, `ui/prefs.ts`) | Wire pursuit to dragging; design deliberately (ADR-33 reserved) | deferred (backlog) |
 | 19 | **Advanced settings** | Not shown at all | Space-model sliders etc.; intended home is the open space under the Explore field | deferred (backlog) |
 | 20 | **New-play defaults** | A new play is named "Untitled play" and starts as the vertical-stack setup with unnamed players | `play/model.ts` `newPlay()` (`PLACEHOLDER(fieldview-build)`) | Final default name and starting formation | fieldview-build P1 | open (toy in code) |
+| 21 | **Disc-holder ring colour** | Emerald ring (`#047857`) around the player holding the disc | `render/tokens.ts` `PIECE_TOKENS.holder` (`PLACEHOLDER(fieldview-build)`) | Final colour (confirm it reads on the heatmap and for colour-blind users) | fieldview-build P2 | tune |
+| 22 | **Piece sizes per device** | Phone 85%, tablet 70% (from 1000 px wide), desktop 50%; titles never below 65% | `index.css` `--fv-piece-scale` (`PLACEHOLDER(fieldview-build)`) | Sizes confirmed on real devices | fieldview-build P2 | tune |
 
 ## Where the mockups differ from what will be built
 
