@@ -1,0 +1,418 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Field View — Build mockup</title>
+<style>
+  @font-face { font-family: "Archivo Black"; font-weight: 400; font-display: swap; src: url("../frontend/public/fonts/ArchivoBlack-Regular.ttf") format("truetype"); }
+  @font-face { font-family: "JetBrains Mono"; font-weight: 400; font-display: swap; src: url("../frontend/public/fonts/JetBrainsMono-Regular.ttf") format("truetype"); }
+  @font-face { font-family: "JetBrains Mono"; font-weight: 700; font-display: swap; src: url("../frontend/public/fonts/JetBrainsMono-Bold.ttf") format("truetype"); }
+
+  :root {
+    --base: #ffffff; --panel: #f4f4f5; --border: #d4d4d8;
+    --ink: #18181b; --ink-2: #52525b; --ink-3: #a1a1aa; --grid: #e4e4e7;
+    --pink: #be185d; --pink-dark: #9d174d; --green: #047857;
+    --f-head: "Archivo Black", "Oswald", "Arial Narrow", sans-serif;
+    --f-mono: "JetBrains Mono", monospace;
+    --f-body: "Helvetica Neue", Arial, sans-serif;
+    --h-tight: #d64b4a; --h-mid: #f2c14e; --h-open: #4f941d;
+  }
+  * { box-sizing: border-box; border-radius: 0; }
+  body { margin: 0; background: var(--panel); color: var(--ink); font: 15px/1.6 var(--f-body); }
+  .wrap { max-width: 1480px; margin: 0 auto; padding: 32px 24px 80px; }
+  h1 { font: 400 2.25rem/1.1 var(--f-head); margin: 0 0 8px; text-transform: uppercase; }
+  h2 { font: 400 1.5rem/1.2 var(--f-head); margin: 56px 0 4px; text-transform: uppercase; padding-top: 16px; border-top: 1px solid var(--border); }
+  h3 { font: 700 .75rem/1.4 var(--f-mono); letter-spacing: .05em; text-transform: uppercase; color: var(--ink-2); margin: 0 0 8px; }
+  p.lede { color: var(--ink-2); max-width: 82ch; margin: 0 0 8px; }
+  .notes { background: var(--base); border: 1px solid var(--border); padding: 24px; font-size: .875rem; margin-top: 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 24px; }
+  .notes ul { margin: 0; padding-left: 18px; } .notes li { margin: 4px 0; }
+  .scaler-host { width: 100%; overflow: hidden; margin-top: 16px; } .scaler { transform-origin: top left; }
+
+  .key { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; margin-top: 16px; }
+  .key div { background: var(--base); border: 1px solid var(--border); padding: 12px; display: flex; gap: 12px; align-items: center; font-size: .8125rem; }
+  .key svg { flex: none; width: 64px; height: 44px; background: #fff; border: 1px solid var(--border); }
+
+  .screen { position: relative; overflow: hidden; border: 1px solid var(--ink); background: var(--panel);
+    background-image: linear-gradient(to right, var(--grid) 1px, transparent 1px), linear-gradient(to bottom, var(--grid) 1px, transparent 1px); background-size: 2rem 2rem; }
+  .screen.desk { width: 1440px; height: 880px; }
+  .screen.tab { width: 1180px; height: 820px; }
+  .screen svg.field { position: absolute; display: block; border: 1px solid var(--border); }
+
+  .top { position: absolute; left: 0; right: 0; top: 0; height: 64px; background: var(--base); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; padding: 0 24px; }
+  .tab .top { height: 68px; padding: 0 16px; }
+  .brand { font: 400 1.25rem var(--f-head); text-transform: uppercase; }
+  .tabs { display: flex; border: 1px solid var(--border); margin-left: 16px; }
+  .tabi { height: 40px; padding: 0 20px; display: inline-flex; align-items: center; gap: 8px; font: 700 .75rem var(--f-mono); letter-spacing: .05em; text-transform: uppercase; color: var(--ink-2); border-right: 1px solid var(--border); background: var(--base); }
+  .tabi:last-child { border-right: 0; } .tabi.on { background: var(--ink); color: #fff; }
+  .spacer { flex: 1; }
+  .btn, .pill { background: var(--base); border: 1px solid var(--border); color: var(--ink); font: 700 .75rem var(--f-mono); }
+  .btn { height: 40px; min-width: 40px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 0 14px; letter-spacing: .05em; text-transform: uppercase; white-space: nowrap; }
+  .btn.sq { padding: 0; width: 40px; }
+  .btn.primary { background: var(--pink); border-color: var(--pink); color: #fff; }
+  .btn.dark { background: var(--ink); border-color: var(--ink); color: #fff; }
+  .btn.off { color: var(--ink-3); background: var(--panel); }
+  .btn.sm { height: 32px; padding: 0 10px; font-size: .6875rem; }
+  .ic svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2.2; stroke-linecap: square; stroke-linejoin: miter; display: block; }
+  .ic.fill svg { fill: currentColor; stroke: none; }
+  .pill { height: 40px; padding: 0 12px; display: inline-flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: .05em; white-space: nowrap; font-size: .6875rem; color: var(--ink-2); }
+  .saved { color: var(--green); border-color: transparent; background: transparent; }
+  .legend i { display: block; width: 80px; height: 8px; background: linear-gradient(90deg, var(--h-tight), var(--h-mid), var(--h-open)); border: 1px solid #0003; }
+  .q { width: 16px; height: 16px; border: 1.5px solid var(--ink-2); display: grid; place-items: center; font-size: .625rem; }
+  .chip { height: 44px; display: inline-flex; align-items: stretch; border: 1px solid var(--border); background: var(--base); font: 700 .75rem var(--f-mono); }
+  .chip button { all: unset; width: 40px; display: grid; place-items: center; color: var(--ink-2); }
+  .chip .lbl { padding: 0 14px; display: flex; flex-direction: column; justify-content: center; line-height: 1.15; min-width: 190px; }
+  .chip .lbl small { font: 400 .625rem var(--f-mono); color: var(--ink-3); text-transform: uppercase; letter-spacing: .05em; }
+  .chip .lbl b { text-transform: uppercase; letter-spacing: .05em; }
+
+  .side { position: absolute; top: 64px; right: 0; bottom: 0; width: 320px; background: var(--base); border-left: 1px solid var(--border); overflow: hidden; }
+  .sec { border-bottom: 1px solid var(--border); }
+  .sec > h4 { margin: 0; padding: 14px 16px 6px; font: 700 .625rem var(--f-mono); letter-spacing: .05em; text-transform: uppercase; color: var(--ink-3); display: flex; justify-content: space-between; }
+  .item { padding: 8px 16px; border-left: 3px solid transparent; border-top: 1px solid var(--border); }
+  .item b { display: block; font: 700 .75rem var(--f-mono); letter-spacing: .05em; text-transform: uppercase; }
+  .item span { font-size: .75rem; color: var(--ink-2); display: block; line-height: 1.35; }
+  .item.on { background: var(--panel); border-left-color: var(--pink); } .item.on b { color: var(--pink); }
+  .field-in { display: block; width: calc(100% - 32px); margin: 0 16px 12px; height: 36px; border: 1px solid var(--border); padding: 0 12px; font: 400 .875rem var(--f-body); background: #fff; color: var(--ink); }
+  label.l { display: block; padding: 6px 16px 4px; font: 700 .625rem var(--f-mono); letter-spacing: .05em; text-transform: uppercase; color: var(--ink-3); }
+  .sw { width: 40px; height: 22px; background: var(--border); position: relative; flex: none; margin-left: auto; }
+  .sw::after { content: ""; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; background: #fff; }
+  .opt { display: flex; align-items: center; gap: 12px; padding: 8px 16px; font: 700 .75rem/1.3 var(--f-mono); letter-spacing: .05em; text-transform: uppercase; }
+  .opt small { display: block; font: 400 .6875rem var(--f-body); text-transform: none; letter-spacing: 0; color: var(--ink-3); }
+
+  .dock { position: absolute; left: 24px; right: 344px; }
+  .cards { display: grid; gap: 16px; grid-template-columns: 1fr 1.25fr 0.9fr; }
+  .card { background: var(--base); border: 1px solid var(--border); padding: 14px 16px; }
+  .card h5 { margin: 0 0 8px; font: 700 .625rem var(--f-mono); letter-spacing: .05em; text-transform: uppercase; color: var(--ink-3); display: flex; justify-content: space-between; align-items: center; }
+  .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .tin { width: 56px; height: 40px; border: 1px solid var(--ink); background: #fff; text-align: center; font: 700 1.125rem var(--f-mono); text-transform: uppercase; }
+  .tag { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--pink); background: #fdf2f8; color: var(--pink); font: 700 .625rem var(--f-mono); letter-spacing: .05em; text-transform: uppercase; padding: 2px 8px; }
+  .tag.g { border-color: var(--green); background: #ecfdf5; color: var(--green); }
+  .tag.n { border-color: var(--border); background: var(--panel); color: var(--ink-2); }
+  .kv { display: flex; justify-content: space-between; border-top: 1px solid var(--border); padding: 5px 0; font-size: .8125rem; margin-top: 8px; } .kv b { font: 700 .75rem var(--f-mono); }
+  .strip { display: flex; gap: 14px; overflow-x: auto; padding-bottom: 10px; margin-top: 16px; }
+  .fr { flex: 0 0 calc((100% - 3 * 14px) / 4); background: var(--base); border: 1px solid var(--border); padding: 7px; position: relative; }
+  .fr.on { border-color: var(--pink); box-shadow: 0 0 0 1px var(--pink); }
+  .fr svg { display: block; width: 100%; height: auto; border: 1px solid var(--border); }
+  .fr b { display: flex; justify-content: space-between; margin-top: 6px; font: 700 .625rem var(--f-mono); letter-spacing: .05em; text-transform: uppercase; }
+  .fr.on b { color: var(--pink); }
+  .fr .badge { position: absolute; top: 12px; left: 12px; background: var(--pink); color: #fff; font: 700 .5625rem var(--f-mono); padding: 1px 5px; }
+  .fr.add { border: 1px dashed var(--ink-3); background: #ffffffb0; display: grid; place-items: center; color: var(--ink-2); font: 700 .75rem var(--f-mono); letter-spacing: .05em; text-transform: uppercase; min-height: 100px; }
+
+  .drawer { position: absolute; top: 0; bottom: 0; right: 0; width: 360px; background: var(--base); border-left: 1px solid var(--border); }
+  .drawer .hd { padding: 14px 16px; border-bottom: 1px solid var(--border); font: 400 1.125rem var(--f-head); text-transform: uppercase; display: flex; justify-content: space-between; }
+  .scrim { position: absolute; inset: 0; background: rgba(24,24,27,.28); }
+  .modal { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 520px; background: var(--base); border: 1px solid var(--ink); }
+  .modal .hd { padding: 16px 20px; border-bottom: 1px solid var(--border); font: 400 1.25rem var(--f-head); text-transform: uppercase; display: flex; justify-content: space-between; }
+  .modal .bd { padding: 20px; }
+  .qr { width: 132px; height: 132px; border: 1px solid var(--ink); padding: 8px; background: #fff; }
+  .linkrow { display: flex; } .linkrow input { flex: 1; height: 40px; border: 1px solid var(--border); border-right: 0; padding: 0 12px; font: 400 .75rem var(--f-mono); color: var(--ink-2); background: var(--panel); }
+
+  table { border-collapse: collapse; width: 100%; font-size: .875rem; background: var(--base); border: 1px solid var(--border); margin-top: 16px; }
+  th, td { text-align: left; padding: 10px 14px; vertical-align: top; border-bottom: 1px solid var(--border); }
+  th { background: var(--panel); font: 700 .75rem var(--f-mono); letter-spacing: .05em; text-transform: uppercase; color: var(--ink-2); }
+  tr:last-child td { border-bottom: 0; } td:first-child { font: 700 .75rem var(--f-mono); text-transform: uppercase; letter-spacing: .05em; white-space: nowrap; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Field View — Build</h1>
+  <p class="lede">Static mockup, no functionality, in the Light Film Room style of the earlier mockups. It follows <code>docs/fieldview-build-functional-spec.md</code>: a play is a list of frames; each frame stores only the players you <em>placed</em> in it and everyone else inherits the previous frame; the disc holder inherits the same way; the mark is whoever is within 10 ft of the holder. The play shown is “Go deep”, five frames, editing frame 4. Heat values are illustrative.</p>
+
+  <h2>What the field is telling you</h2>
+  <div class="key" id="key"></div>
+
+  <h2>1 · Build — desktop (editing frame 4 of 5)</h2>
+  <div class="scaler-host"><div class="scaler" data-w="1440" data-h="880" id="s-desk"></div></div>
+  <div class="notes">
+    <div><h3>Same bones as Explore</h3><ul><li>Field, setup-style sidebar, dock under the field — nothing relearned</li><li>Drag, marquee and arrow-key nudge behave exactly as in Explore</li></ul></div>
+    <div><h3>What Build adds</h3><ul><li><b>Top bar:</b> undo / redo, “Saved to this device”, <b>Share</b></li><li><b>Sidebar:</b> My plays (the one saved list), play name and description</li><li><b>Under the field:</b> Frame card, Selected-player card, Preview card, and the frame strip with <b>+ Add frame</b></li></ul></div>
+    <div><h3>Showing inheritance</h3><ul><li>Dashed ghost at the inherited spot + arrow for anyone placed in this frame</li><li>Small pink square on every piece placed in this frame; frame thumbnails show a count badge</li><li>Reset player / Reset frame put them back to inheriting</li></ul></div>
+  </div>
+
+  <h2>2 · Build — tablet / phone (secondary)</h2>
+  <p class="lede">Build is laptop-first but usable on a tablet. Same top bar slots as Explore (☰ + mode, the chip — now a frame chip — legend); the sidebar's jobs become a frame strip under the field, a row of frame actions, and a slide-over for the selected player. Phone-sized screens would use the same pieces, one at a time.</p>
+  <div class="scaler-host"><div class="scaler" data-w="1180" data-h="820" id="s-tab"></div></div>
+  <div class="notes">
+    <div><h3>Top bar</h3><ul><li>☰ menu + BUILD · frame chip ◀ 4 / 5 ▶ · undo / redo · legend · Share</li></ul></div>
+    <div><h3>Under the field</h3><ul><li>Frame strip (four across, scrolls), then actions: Add · Duplicate · Delete · Reset frame · Preview</li></ul></div>
+    <div><h3>Selected player</h3><ul><li>A bar under the actions (not a slide-over: a panel over the field would hide the piece being edited): title, Give disc, Reset player</li></ul></div>
+  </div>
+
+  <h2>3 · Share</h2>
+  <div class="scaler-host"><div class="scaler" data-w="1000" data-h="520" id="s-share"></div></div>
+  <div class="notes">
+    <div><h3>Link</h3><ul><li>The play is encoded in the link itself — nothing is uploaded, no account</li><li>A link is a snapshot: later edits don't change a link already sent</li></ul></div>
+    <div><h3>QR + file</h3><ul><li>QR for the huddle (point phones at the laptop)</li><li>File export / import as the backup path</li></ul></div>
+  </div>
+
+  <h2>4 · Explore — selected-player panel (desktop)</h2>
+  <p class="lede">Explore gets the same selected-player card (the only difference is the extra panel under the field): naming and Give disc are useful there too, with no frames involved.</p>
+  <div class="scaler-host"><div class="scaler" data-w="1440" data-h="820" id="s-explore"></div></div>
+  <div class="notes">
+    <div><h3>Panel</h3><ul><li>Title (≤ 2 characters, shown inside the piece), Give disc, quick facts</li><li>No frame controls, no “placed in this frame”</li></ul></div>
+    <div><h3>Same piece language</h3><ul><li>Green ring = holds the disc · heavy ring = the mark · pink ring = selected</li></ul></div>
+  </div>
+
+  <h2>Control → what it does to the document</h2>
+  <table>
+    <tr><th>Control</th><th>Effect on the play</th></tr>
+    <tr><td>Drag a player</td><td>Places them in this frame (their own position); later frames that inherit them follow</td></tr>
+    <tr><td>Reset player</td><td>Removes that player's placement in this frame — they inherit again</td></tr>
+    <tr><td>Reset frame</td><td>Removes every placement and any “Give disc” in this frame — it equals the previous frame</td></tr>
+    <tr><td>Give disc</td><td>Sets the disc holder for this frame (later frames inherit it); the new mark is whoever is within 10 ft</td></tr>
+    <tr><td>+ Add frame / Duplicate</td><td>Inserts an empty frame after the current one (identical to the previous)</td></tr>
+    <tr><td>Delete frame</td><td>Removes it and its changes; later frames now inherit from what is before them</td></tr>
+    <tr><td>Title</td><td>Sets the player's title for the whole play (not per frame)</td></tr>
+    <tr><td>Undo / Redo</td><td>Steps through completed gestures (drag, give disc, rename, add / delete / reset)</td></tr>
+    <tr><td>Preview</td><td>Plays the transitions exactly as Watch will show them</td></tr>
+  </table>
+</div>
+
+<script>
+const FW = 110, FH = 40;
+const lerp = (a,b,t)=>a+(b-a)*t;
+const P = {T:[214,75,74], M:[242,193,78], O:[79,148,29]};
+const heatRGB = t => { const [a,b,u] = t<.5 ? [P.T,P.M,t/.5] : [P.M,P.O,(t-.5)/.5]; return `rgb(${a.map((v,i)=>Math.round(lerp(v,b[i],u))).join(',')})`; };
+const IC = {
+  undo: '<svg viewBox="0 0 24 24"><path d="M9 7L4 12l5 5M4 12h10a6 6 0 0 1 0 12"/></svg>',
+  redo: '<svg viewBox="0 0 24 24"><path d="M15 7l5 5-5 5M20 12H10a6 6 0 0 0 0 12"/></svg>',
+  menu: '<svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg>',
+  play: '<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>',
+  share: '<svg viewBox="0 0 24 24"><path d="M12 15V3M7 8l5-5 5 5M5 14v6h14v-6"/></svg>',
+  gear: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></svg>',
+  plus: '<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>',
+  disc: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/></svg>',
+  close: '<svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+  reset: '<svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 3-6.2M4 4v5h5"/></svg>',
+  dup: '<svg viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12"/><path d="M4 16V4h12"/></svg>',
+  trash: '<svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>',
+  prev: '<svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>',
+  next: '<svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>'
+};
+const ic = (n, cls='') => `<span class="ic ${cls}">${IC[n]}</span>`;
+
+/* ---------- the play, as the spec stores it: only what was PLACED per frame ---------- */
+const PLAYERS = [
+  ['o1','offense','H'],['o2','offense','H'],['o3','offense','H'],['o4','offense','C'],['o5','offense','C'],['o6','offense','C'],['o7','offense','C'],
+  ['d1','defense',''],['d2','defense',''],['d3','defense',''],['d4','defense',''],['d5','defense',''],['d6','defense',''],['d7','defense','']
+].map(([id,team,title])=>({id,team,title}));
+const FRAMES = [
+  { label:'Set', holder:'o1', moved:{ o1:[38,20], o2:[30,27], o3:[32,12], o4:[48,20], o5:[52,20], o6:[56,20], o7:[60,20],
+      d1:[39.4,21.8], d2:[31.4,28], d3:[33.2,12.6], d4:[49.2,23], d5:[53.2,17], d6:[57.2,23], d7:[61.2,17] } },
+  { label:'Cutter drives under', moved:{ o4:[42,9], d4:[44.1,10.4] } },
+  { label:'Throw', holder:'o4', moved:{} },
+  { label:'Deep cut', moved:{ o5:[78,12], d5:[76,13.6] } },
+  { label:'Throw deep', holder:'o5', moved:{} },
+];
+// resolve(play, i): explicit position, else the previous frame's resolved position (frame 0 is complete).
+function resolve(i) {
+  const pos = {}; let holder = null;
+  for (let k = 0; k <= i; k++) {
+    for (const [id,p] of Object.entries(FRAMES[k].moved)) pos[id] = p;
+    if (FRAMES[k].holder) holder = FRAMES[k].holder;
+  }
+  return { pos, holder };
+}
+// the mark: closest defender within 10 ft (10/3 yd) of the holder, else none.
+function markOf(r) {
+  const h = r.pos[r.holder]; let best = null, bd = 10/3;
+  for (const p of PLAYERS) if (p.team==='defense') { const d = Math.hypot(r.pos[p.id][0]-h[0], r.pos[p.id][1]-h[1]); if (d <= bd) { bd = d; best = p.id; } }
+  return best;
+}
+
+let uid = 0;
+function fieldSVG(frameIndex, {w, h, left=0, top=0, mini=false, selected=null, ghosts=true, style='', heat=true}) {
+  const id = 'f' + (uid++), cs = mini ? 3 : 2;
+  const r = resolve(frameIndex), mark = markOf(r);
+  const defs = PLAYERS.filter(p=>p.team==='defense').map(p=>r.pos[p.id]);
+  let cells = '';
+  if (heat) for (let x = 0; x < FW; x += cs) for (let y = 0; y < FH; y += cs) {
+    let d = 99; for (const p of defs) d = Math.min(d, Math.hypot(p[0]-(x+cs/2), p[1]-(y+cs/2)));
+    cells += `<rect x="${x}" y="${y}" width="${cs}" height="${cs}" fill="${heatRGB(Math.min(1, Math.max(0, (d-1.5)/8)))}"/>`;
+  }
+  const R = mini ? 2.1 : 1.45, fs = 1.75;
+  const moved = FRAMES[frameIndex].moved;
+  const placedHere = frameIndex > 0 ? Object.keys(moved) : [];
+  const prev = frameIndex > 0 ? resolve(frameIndex-1) : null;
+  let extra = '', pieces = '';
+  for (const p of PLAYERS) {
+    const [x,y] = r.pos[p.id], off = p.team==='offense';
+    const isHolder = p.id === r.holder, isMark = p.id === mark, isSel = p.id === selected;
+    if (!mini && ghosts && placedHere.includes(p.id)) {
+      const [gx,gy] = prev.pos[p.id];
+      extra += `<line x1="${gx}" y1="${gy}" x2="${x}" y2="${y}" stroke="#18181b" stroke-width=".3" stroke-dasharray=".9 .7" opacity=".55" marker-end="url(#${id}a)"/>`;
+      extra += `<circle cx="${gx}" cy="${gy}" r="${R}" fill="#fff" fill-opacity=".35" stroke="#18181b" stroke-width=".3" stroke-dasharray=".8 .6" opacity=".6"/>`;
+    }
+    if (isHolder) pieces += `<circle cx="${x}" cy="${y}" r="${R+.75}" fill="none" stroke="#047857" stroke-width="${mini?.8:.6}"/>`;
+    if (isSel && !mini) pieces += `<circle cx="${x}" cy="${y}" r="${R+1.7}" fill="none" stroke="#be185d" stroke-width=".4"/>`;
+    pieces += `<circle cx="${x}" cy="${y}" r="${R}" fill="${off?'#18181b':'#fff'}" stroke="${off?'#fff':'#18181b'}" stroke-width="${isMark?.75:(off?.28:.38)}"/>`;
+    if (!mini && p.title) pieces += `<text x="${x}" y="${y+.62}" text-anchor="middle" font-size="${fs}" font-weight="700" fill="${off?'#fff':'#18181b'}" font-family="JetBrains Mono,monospace">${p.title}</text>`;
+    if (isHolder) pieces += `<circle cx="${x+R*.95}" cy="${y-R*.95}" r="${mini?1:.78}" fill="#fff" stroke="#18181b" stroke-width=".25"/>`;
+    if (!mini && placedHere.includes(p.id)) pieces += `<rect x="${x-R-.2}" y="${y-R-.2}" width=".95" height=".95" fill="#be185d"/>`;
+  }
+  return `<svg class="field" viewBox="0 0 ${FW} ${FH}" width="${w}" height="${h}" style="left:${left}px;top:${top}px;${style}">
+    <defs><marker id="${id}a" viewBox="0 0 6 6" refX="5" refY="3" markerWidth="3" markerHeight="3" orient="auto"><path d="M0 0L6 3L0 6z" fill="#18181b"/></marker>
+    <filter id="${id}s" x="-5%" y="-5%" width="110%" height="110%"><feGaussianBlur stdDeviation="${mini?2.2:1.7}"/></filter><clipPath id="${id}c"><rect width="${FW}" height="${FH}"/></clipPath></defs>
+    <rect width="${FW}" height="${FH}" fill="#fff"/>
+    <g clip-path="url(#${id}c)"><g filter="url(#${id}s)" opacity=".72">${cells}</g></g>
+    <rect x="0" width="20" height="${FH}" fill="#fff" opacity=".22"/><rect x="90" width="20" height="${FH}" fill="#fff" opacity=".22"/>
+    <g stroke="#a1a1aa" stroke-width=".25" fill="none"><rect x=".12" y=".12" width="${FW-.24}" height="${FH-.24}"/><line x1="20" y1="0" x2="20" y2="${FH}"/><line x1="90" y1="0" x2="90" y2="${FH}"/></g>
+    ${mini?'':`<text x="55" y="38.4" text-anchor="middle" font-size="1.5" font-weight="700" letter-spacing=".25" fill="#be185d" font-family="JetBrains Mono,monospace">ATTACKING  →</text>`}
+    ${extra}${pieces}</svg>`;
+}
+
+/* ---------- the key: little pictures of each indicator ---------- */
+function keySVG(body) { return `<svg viewBox="0 0 64 44">${body}</svg>`; }
+document.getElementById('key').innerHTML = [
+  [keySVG('<circle cx="32" cy="22" r="11" fill="#18181b" stroke="#fff" stroke-width="2"/><text x="32" y="27" text-anchor="middle" font-size="14" font-weight="700" fill="#fff" font-family="JetBrains Mono,monospace">H</text>'),'<b>Offense</b> — filled dark. A title (≤ 2 characters) sits inside; players start unnamed.'],
+  [keySVG('<circle cx="32" cy="22" r="11" fill="#fff" stroke="#18181b" stroke-width="2.5"/>'),'<b>Defense</b> — white with a ring. Placed by hand, like offense.'],
+  [keySVG('<circle cx="32" cy="22" r="15" fill="none" stroke="#047857" stroke-width="3"/><circle cx="32" cy="22" r="11" fill="#18181b" stroke="#fff" stroke-width="2"/><circle cx="43" cy="11" r="5" fill="#fff" stroke="#18181b" stroke-width="1.5"/>'),'<b>Has the disc</b> — green ring and the disc icon. (Colour is a first pass.)'],
+  [keySVG('<circle cx="32" cy="22" r="11" fill="#fff" stroke="#18181b" stroke-width="4.5"/>'),'<b>The mark</b> — heavy ring: the closest defender within 10 ft of the holder. None in range = no mark.'],
+  [keySVG('<circle cx="32" cy="22" r="15" fill="none" stroke="#be185d" stroke-width="2"/><circle cx="32" cy="22" r="11" fill="#18181b" stroke="#fff" stroke-width="2"/>'),'<b>Selected</b> — pink ring; the Selected-player card shows it.'],
+  [keySVG('<circle cx="14" cy="22" r="9" fill="#fff" fill-opacity=".35" stroke="#18181b" stroke-width="1.5" stroke-dasharray="3 2"/><line x1="23" y1="22" x2="40" y2="22" stroke="#18181b" stroke-width="1.5" stroke-dasharray="4 3"/><circle cx="50" cy="22" r="9" fill="#18181b" stroke="#fff" stroke-width="2"/><rect x="40" y="12" width="5" height="5" fill="#be185d"/>'),'<b>Placed in this frame</b> — pink corner mark, a faint ghost where they would have been, and an arrow.']
+].map(([svg,txt])=>`<div>${svg}<span>${txt}</span></div>`).join('');
+
+/* ---------- chrome ---------- */
+const tabs = (on) => `<div class="tabs">${['Watch','Explore','Build'].map(t=>`<span class="tabi ${t===on?'on':''}">${t}</span>`).join('')}</div>`;
+const legend = `<span class="pill legend">Closed<i></i>Strong<span class="q">?</span></span>`;
+const gear = `<button class="btn sq ic">${IC.gear}</button>`;
+const undoRedo = `<button class="btn sq ic" title="Undo">${IC.undo}</button><button class="btn sq ic off" title="Redo">${IC.redo}</button>`;
+
+function filmstrip(current, compact=false) {
+  const frs = FRAMES.map((f,i)=>{
+    const n = i === 0 ? 14 : Object.keys(f.moved).length + (f.holder ? 0 : 0);
+    const badge = i > 0 && (n > 0 || f.holder) ? `<span class="badge">${n > 0 ? n+' placed' : ''}${f.holder ? (n>0?' · ':'')+'disc' : ''}</span>` : '';
+    return `<div class="fr ${i===current?'on':''}">${badge}${fieldSVG(i,{w:240,h:87,mini:true,style:'position:static;border:0;width:100%;height:auto'})}<b><span>${i+1} · ${f.label}</span><span>${i===current?'Editing':''}</span></b></div>`;
+  }).join('');
+  return `<div class="strip" style="${compact?'margin-top:0;':''}">${frs}<div class="fr add">${compact?'+':'+ Add frame'}</div></div>`;
+}
+
+const playsSidebar = (extra='') => `
+  <div class="sec"><h4>My plays <span>6</span></h4>
+    <div class="item on"><b>Go deep</b><span>5 frames · saved to this device</span></div>
+    <div class="item"><b>Under cut</b><span>6 frames</span></div>
+    <div class="item"><b>Vertical stack</b><span>1 frame · setup</span></div>
+    <div class="item"><b>Flow offense</b><span>8 frames</span></div>
+    <div class="item"><b>Ho stack basics</b><span>4 frames</span></div>
+    <div style="padding:10px 16px;border-top:1px solid var(--border)"><button class="btn sm" style="width:100%">${ic('plus')} New play</button></div></div>
+  <div class="sec"><h4>Play</h4>
+    <label class="l">Name</label><input class="field-in" value="Go deep">
+    <label class="l">Description</label><input class="field-in" value="Cutter drives under, then a second cutter goes deep.">
+  </div>
+  <div class="sec"><h4>Share</h4>
+    <div style="padding:6px 16px 14px;display:flex;gap:8px"><button class="btn sm primary">${ic('share')} Share link</button><button class="btn sm">Export file</button></div></div>${extra}`;
+
+/* ---------- 1. Build desktop ---------- */
+function buildDesk() {
+  const F = {w:1072, h:390, left:24, top:88};
+  return `<div class="screen desk">
+    <div class="top"><span class="brand">Field View</span>${tabs('Build')}<span class="spacer"></span>
+      ${undoRedo}<span class="pill saved">✓ Saved to this device</span>
+      <button class="btn primary">${ic('share')} Share</button>${legend}${gear}</div>
+    ${fieldSVG(3, {...F, selected:'o5'})}
+    <div class="dock" style="top:494px">
+      <div class="cards">
+        <div class="card"><h5>Frame 4 of 5 <span class="tag n">3 changes</span></h5>
+          <label class="l" style="padding:0 0 4px">Label</label>
+          <input class="field-in" style="margin:0 0 10px;width:100%" value="Deep cut">
+          <div class="row"><button class="btn sm">${ic('dup')} Duplicate</button><button class="btn sm">${ic('reset')} Reset frame</button><button class="btn sm">${ic('trash')} Delete</button></div></div>
+        <div class="card"><h5>Selected player <span class="tag">Placed in this frame</span></h5>
+          <div class="row" style="margin-bottom:6px"><div><label class="l" style="padding:0 0 4px">Title</label><input class="tin" value="C" maxlength="2"></div>
+            <div style="flex:1;min-width:150px"><label class="l" style="padding:0 0 4px">Disc</label><button class="btn sm primary" style="width:100%">${ic('disc')} Give disc</button></div>
+            <div><label class="l" style="padding:0 0 4px">&nbsp;</label><button class="btn sm">${ic('reset')} Reset player</button></div></div>
+          <div class="kv"><span>Team</span><b>Offense</b></div><div class="kv"><span>Moved from frame 3</span><b>27.6 yd</b></div></div>
+        <div class="card"><h5>Preview</h5>
+          <div class="row" style="margin-bottom:8px"><button class="btn primary" style="flex:1">${ic('play','fill')} Play all</button><button class="btn" style="flex:1">From frame 4</button></div>
+          <p style="margin:0;font-size:.75rem;color:var(--ink-2)">Same transitions as Watch. Everything in a frame starts and arrives together.</p></div>
+      </div>
+      ${filmstrip(3)}
+    </div>
+    <div class="side">${playsSidebar()}</div></div>`;
+}
+
+/* ---------- 2. Build tablet ---------- */
+function buildTab() {
+  const F = {w:1148, h:420, left:16, top:84};
+  return `<div class="screen tab">
+    <div class="top"><button class="btn sq ic" style="width:48px;height:48px">${IC.menu}</button><span class="btn dark" style="height:48px">Build</span>
+      <span class="chip"><button>${IC.prev}</button><span class="lbl"><small>Frame</small><b>4 / 5 · Deep cut</b></span><button>${IC.next}</button></span>
+      <span class="spacer"></span>${undoRedo}${legend}<button class="btn primary">${ic('share')} Share</button></div>
+    ${fieldSVG(3, {...F, selected:'o5'})}
+    <div style="position:absolute;left:16px;right:16px;top:520px">
+      ${filmstrip(3, true)}
+      <div class="row" style="margin-top:6px">
+        <button class="btn">${ic('plus')} Add frame</button><button class="btn">${ic('dup')} Duplicate</button><button class="btn">${ic('trash')} Delete</button>
+        <button class="btn">${ic('reset')} Reset frame</button><span class="spacer"></span><button class="btn primary">${ic('play','fill')} Preview</button></div>
+      <div class="card" style="margin-top:12px;display:flex;align-items:center;gap:16px;padding:10px 16px">
+        <span class="tag">Selected · offense · placed in this frame</span>
+        <span style="font:700 .625rem var(--f-mono);letter-spacing:.05em;text-transform:uppercase;color:var(--ink-3)">Title</span>
+        <input class="tin" value="C" style="width:64px;height:48px">
+        <button class="btn primary" style="height:48px">${ic('disc')} Give disc</button>
+        <button class="btn" style="height:48px">${ic('reset')} Reset player</button>
+        <span class="spacer"></span><span style="font-size:.8125rem;color:var(--ink-2)">Moved from frame 3: <b style="font-family:var(--f-mono)">27.6 yd</b></span>
+      </div>
+    </div></div>`;
+}
+// the tablet filmstrip should show ~5 across at the narrower width; fix flex via inline override
+function fixTab(html) { return html.replace(/class="strip" style="margin-top:0;"/, 'class="strip" style="margin-top:0;"'); }
+
+/* ---------- 3. Share ---------- */
+function qr() {
+  let cells = ''; const n = 21;
+  for (let y=0;y<n;y++) for (let x=0;x<n;x++) {
+    const finder = (x<7&&y<7)||(x>=n-7&&y<7)||(x<7&&y>=n-7);
+    const on = finder ? (()=>{ const fx = x%14, fy = y%14; const lx = x<7?x:x-(n-7), ly = y<7?y:y-(n-7); return lx===0||lx===6||ly===0||ly===6||(lx>=2&&lx<=4&&ly>=2&&ly<=4); })() : ((x*7+y*13+x*y)%5<2);
+    if (on) cells += `<rect x="${x}" y="${y}" width="1" height="1"/>`;
+  }
+  return `<svg class="qr" viewBox="0 0 ${n} ${n}" fill="#18181b" shape-rendering="crispEdges">${cells}</svg>`;
+}
+function shareDlg() {
+  return `<div class="screen" style="width:1000px;height:520px">
+    <div class="scrim"></div>
+    <div class="modal">
+      <div class="hd"><span>Share “Go deep”</span><span class="ic" style="color:var(--ink-2)">${IC.close}</span></div>
+      <div class="bd">
+        <div style="display:flex;gap:20px;align-items:flex-start">
+          ${qr()}
+          <div style="flex:1">
+            <label class="l" style="padding:0 0 4px">Link</label>
+            <div class="linkrow"><input value="https://ultipedia.example/fieldview/watch#p=eJxNj8EOgjAMhl8F…"><button class="btn primary">Copy</button></div>
+            <p style="font-size:.8125rem;color:var(--ink-2);margin:12px 0 0">Anyone with this link can watch the play on their phone. It is a <b>snapshot</b>: changes you make later won't update a link you already sent.</p>
+          </div></div>
+        <div class="row" style="margin-top:20px;border-top:1px solid var(--border);padding-top:16px">
+          <button class="btn">Download file</button><button class="btn">Open a file…</button><span class="spacer"></span><button class="btn dark">Done</button></div>
+      </div></div></div>`;
+}
+
+/* ---------- 4. Explore desktop with the selected-player card ---------- */
+function exploreDesk() {
+  const F = {w:1072, h:390, left:24, top:88};
+  const it = (n,s,a)=>`<div class="item ${a?'on':''}"><b>${n}</b><span>${s}</span></div>`;
+  return `<div class="screen" style="width:1440px;height:820px">
+    <div class="top"><span class="brand">Field View</span>${tabs('Explore')}<span class="spacer"></span>${legend}${gear}</div>
+    ${fieldSVG(2, {...F, selected:'o4', ghosts:false})}
+    <div class="dock" style="top:502px;right:344px"><div class="cards" style="grid-template-columns:minmax(0,520px)">
+      <div class="card"><h5>Selected player <span class="tag g">Has the disc</span></h5>
+        <div class="row" style="margin-bottom:6px"><div><label class="l" style="padding:0 0 4px">Title</label><input class="tin" value="C" maxlength="2"></div>
+          <div style="flex:1;min-width:150px"><label class="l" style="padding:0 0 4px">Disc</label><button class="btn sm off" style="width:100%">${ic('disc')} Has the disc</button></div></div>
+        <div class="kv"><span>Nearest defender</span><b>2.5 yd</b></div><div class="kv"><span>Side of field</span><b>Near side</b></div><div class="kv"><span>Moved from start</span><b>0.0 yd</b></div></div>
+    </div></div>
+    <div class="side">
+      <div class="sec"><h4>Setup <span>6</span></h4>${it('Vertical stack','Cutters have the deep and under lanes to themselves.',1)}${it('Horizontal stack','Wide and flat: the middle opens up.')}${it('Ho stack','Handlers split wide; one clean lane up the middle.')}${it('Side stack','Everyone on one side.')}${it('Clumped','See how little space a bunched team leaves.')}</div>
+      <div class="sec"><h4>Options</h4><div class="opt"><span>Defense follows<small>Coming soon</small></span><span class="sw"></span></div></div></div></div>`;
+}
+
+document.getElementById('s-desk').innerHTML = buildDesk();
+document.getElementById('s-tab').innerHTML = buildTab();
+document.getElementById('s-share').innerHTML = shareDlg();
+document.getElementById('s-explore').innerHTML = exploreDesk();
+function fit() {
+  document.querySelectorAll('.scaler').forEach(el => {
+    const w=+el.dataset.w, h=+el.dataset.h, avail=el.parentElement.clientWidth, s=Math.min(1, avail/w);
+    el.style.transform=`scale(${s})`; el.style.width=w+'px'; el.parentElement.style.height=(h*s)+'px';
+  });
+}
+addEventListener('resize', fit); fit();
+</script>
+</body>
+</html>
