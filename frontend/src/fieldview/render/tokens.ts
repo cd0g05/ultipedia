@@ -73,6 +73,12 @@ export const PIECE_TOKENS = {
     stroke: "#18181b", // zinc-900
     strokeWidth: 4,
   },
+  // Build: a small corner mark on a piece that was placed in the current frame
+  // (the others inherit their spot). Pink = "an edit", like selection.
+  placed: {
+    fill: "#be185d",
+    size: 7,
+  },
   // The disc holder: a ring outside the piece, plus the disc beside it.
   // PLACEHOLDER(fieldview-build): the colour is a first pass the Builder
   // confirms (docs/fieldview-placeholders.md #21). Selection stays pink.

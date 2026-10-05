@@ -52,6 +52,16 @@ export interface FieldViewFrameProps {
   fieldDisabled?: boolean;
   onFieldTap?: () => void;
   fieldOverlay?: ReactNode;
+  // Build: players placed in the current frame get a corner mark; the end of a
+  // drag reports what it moved.
+  fieldPlaced?: ReadonlySet<string>;
+  onFieldGestureEnd?: (info: { movedIds: string[] }) => void;
+  // Desktop top bar, between the tabs and the legend (Build: undo/redo, save
+  // state, Share).
+  barDesktop?: ReactNode;
+  // Compact layouts only: content under the field (Build: frame strip, actions,
+  // selected-player bar). Desktop uses `dock`.
+  compactDock?: ReactNode;
 }
 
 export function FieldViewFrame({
@@ -67,6 +77,10 @@ export function FieldViewFrame({
   fieldDisabled,
   onFieldTap,
   fieldOverlay,
+  fieldPlaced,
+  onFieldGestureEnd,
+  barDesktop,
+  compactDock,
 }: FieldViewFrameProps) {
   const overlay = useOverlayState();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -139,6 +153,7 @@ export function FieldViewFrame({
           {barCenter}
         </div>
         <div className="hidden flex-1 desktop:block" />
+        {barDesktop && <div className="hidden items-center gap-3 desktop:flex">{barDesktop}</div>}
 
         <Legend colourBlind={overlay.colourBlind} onOpenGuide={() => setGuideOpen(true)} />
         <div className="flex shrink-0 items-center gap-2 desktop:hidden">{barRight}</div>
@@ -158,10 +173,17 @@ export function FieldViewFrame({
                 // vertical space the surrounding chrome takes; see index.css).
                 style={{ maxWidth: `calc((100dvh - var(--fv-chrome)) * ${STAGE_ASPECT})` }}
               >
-                <FieldHost disabled={fieldDisabled} onTap={onFieldTap} overlayLayer={fieldOverlay} />
+                <FieldHost
+                  disabled={fieldDisabled}
+                  onTap={onFieldTap}
+                  overlayLayer={fieldOverlay}
+                  placed={fieldPlaced}
+                  onGestureEnd={onFieldGestureEnd}
+                />
               </div>
             ))}
           {caption && <div className="w-full shrink-0 px-2 pb-1 pt-2 text-center">{caption}</div>}
+          {compactDock && <div className="mt-2 w-full shrink-0 pb-3 desktop:hidden">{compactDock}</div>}
           {dock && <div className="mt-4 hidden w-full desktop:block">{dock}</div>}
         </main>
         {sidebar && (

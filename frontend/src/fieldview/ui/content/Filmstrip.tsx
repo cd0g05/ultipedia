@@ -15,7 +15,7 @@ import type { PlaybackView } from "../playback/usePlayback";
 const VIEW_BOX = viewBoxToString(getStageViewBox(FIELD_PX_WIDTH, FIELD_PX_HEIGHT));
 const THUMB_RADIUS = PIECE_TOKENS.offense.radius * 0.85;
 
-function FrameThumb({ play, frame }: { play: Play; frame: ResolvedFrame }) {
+export function FrameThumb({ play, frame }: { play: Play; frame: ResolvedFrame }) {
   return (
     <svg viewBox={VIEW_BOX} aria-hidden="true" className="block h-auto w-full border border-film-border bg-white">
       <FieldLayer />

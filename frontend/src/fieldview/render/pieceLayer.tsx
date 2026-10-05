@@ -40,6 +40,10 @@ interface PieceLayerProps {
   // Completes a throw on the focused receiver: ux.md requires Enter/Space to
   // do what a click does, since these pieces are already focusable buttons.
   onThrowTo?: (id: string) => void;
+  // Build: players placed in the current frame get a small pink corner mark.
+  placed?: ReadonlySet<string>;
+  // A keyboard nudge moved this piece (Build counts a burst as one gesture).
+  onNudge?: (id: string) => void;
 }
 
 export function PieceLayer({
@@ -48,6 +52,8 @@ export function PieceLayer({
   disabled = false,
   throwArmed = false,
   onThrowTo,
+  placed,
+  onNudge,
 }: PieceLayerProps) {
   const pieceRefs = useRef(new Map<string, SVGGElement>());
   const discRef = useRef<SVGGElement | null>(null);
@@ -172,6 +178,7 @@ export function PieceLayer({
       if (target.role === "thrower") moveThrower(draft, pos);
       else movePlayer(draft, id, pos);
     });
+    onNudge?.(id);
   }
 
   // The disc and the mark's force indicator are derived decorations, not
@@ -279,6 +286,17 @@ export function PieceLayer({
                 fill={style.labelFill}
                 pointerEvents="none"
               />
+              {placed?.has(p.id) && (
+                <rect
+                  className="fv-placed-mark"
+                  data-testid="placed-mark"
+                  x={-radius - 1}
+                  y={-radius - 1}
+                  width={PIECE_TOKENS.placed.size}
+                  height={PIECE_TOKENS.placed.size}
+                  fill={PIECE_TOKENS.placed.fill}
+                />
+              )}
             </g>
           </g>
         );

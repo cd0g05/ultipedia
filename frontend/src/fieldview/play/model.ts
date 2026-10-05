@@ -70,6 +70,19 @@ export function toScene(play: Play, i: number): Scene {
   return sceneOf(play, resolve(play, i));
 }
 
+// What frame i changed, for indicators and badges. Reading a frame's own edits
+// is the document's business, so it lives here and nowhere else.
+export function placedIds(play: Play, i: number): string[] {
+  if (i <= 0 || !inRange(play, i)) return [];
+  return Object.keys(play.frames[i].moved);
+}
+
+// True when frame i gave the disc to someone (frame 0 always names a holder but
+// that is a starting state, not a change).
+export function discChangedIn(play: Play, i: number): boolean {
+  return i > 0 && inRange(play, i) && play.frames[i].holder !== undefined;
+}
+
 // ── helpers ─────────────────────────────────────────────────────────────────
 
 function withFrame(play: Play, i: number, frame: Frame): Play {
