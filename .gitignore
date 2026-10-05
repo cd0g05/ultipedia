@@ -31,3 +31,6 @@ node_modules/
 # Cicadas per-worktree helpers (regenerated per branch)
 context.md
 #.cicadas-skill
+
+# Field View Build UI source lives in a folder named build/
+!frontend/src/fieldview/ui/build/
