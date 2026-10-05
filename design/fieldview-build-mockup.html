@@ -283,8 +283,8 @@ function fieldSVG(frameIndex, {w, h, left=0, top=0, mini=false, selected=null, g
     }
     if (isHolder) pieces += `<circle cx="${x}" cy="${y}" r="${R+.75*k}" fill="none" stroke="#047857" stroke-width="${mini?.8:Math.max(.4,.6*k)}"/>`;
     if (isSel && !mini) pieces += `<circle cx="${x}" cy="${y}" r="${R+1.7*k}" fill="none" stroke="#be185d" stroke-width="${Math.max(.3,.4*k)}"/>`;
-    pieces += `<circle cx="${x}" cy="${y}" r="${R}" fill="${off?'#18181b':'#fff'}" stroke="${off?'#fff':'#18181b'}" stroke-width="${isMark?Math.max(.45,.75*k):(off?.28:.38)}"/>`;
-    if (!mini && p.title) pieces += `<text x="${x}" y="${y+.62}" text-anchor="middle" font-size="${fs}" font-weight="700" fill="${off?'#fff':'#18181b'}" font-family="JetBrains Mono,monospace">${p.title}</text>`;
+    pieces += `<circle cx="${x}" cy="${y}" r="${R}" fill="${off?'#18181b':'#fff'}" stroke="${off?'#fff':'#18181b'}" stroke-width="${mini ? (isMark?.75:(off?.28:.38)) : (isMark ? Math.max(.3,.65*k) : (off ? Math.max(.16,.28*k) : Math.max(.2,.38*k)))}"/>`;
+    if (!mini && p.title) pieces += `<text x="${x}" y="${y + fs*0.35}" text-anchor="middle" font-size="${fs}" font-weight="700" fill="${off?'#fff':'#18181b'}" font-family="JetBrains Mono,monospace">${p.title}</text>`;
     if (isHolder) pieces += `<circle cx="${x+R*.95}" cy="${y-R*.95}" r="${mini?1:Math.max(.5,.78*k)}" fill="#fff" stroke="#18181b" stroke-width=".25"/>`;
     if (!mini && placedHere.includes(p.id)) pieces += `<rect x="${x-R-.2}" y="${y-R-.2}" width="${Math.max(.6,.95*k)}" height="${Math.max(.6,.95*k)}" fill="#be185d"/>`;
   }
