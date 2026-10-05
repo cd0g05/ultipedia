@@ -1,104 +1,69 @@
 {
  "_placeholder": true,
- "formatVersion": 2,
+ "formatVersion": 3,
  "name": "Dump swing",
  "description": "Reset to the open side and swing the disc.",
- "field": {
-  "length": 110,
-  "width": 40,
-  "endzone": 20
- },
- "entities": [
+ "players": [
   {
    "id": "o1",
-   "team": "offense",
-   "role": "thrower",
-   "label": "T"
+   "team": "offense"
   },
   {
    "id": "d1",
-   "team": "defense",
-   "role": "mark",
-   "label": "M"
+   "team": "defense"
   },
   {
    "id": "o2",
-   "team": "offense",
-   "role": "cutter",
-   "label": "1"
+   "team": "offense"
   },
   {
    "id": "d2",
-   "team": "defense",
-   "role": "defender",
-   "label": "1"
+   "team": "defense"
   },
   {
    "id": "o3",
-   "team": "offense",
-   "role": "cutter",
-   "label": "2"
+   "team": "offense"
   },
   {
    "id": "d3",
-   "team": "defense",
-   "role": "defender",
-   "label": "2"
+   "team": "defense"
   },
   {
    "id": "o4",
-   "team": "offense",
-   "role": "cutter",
-   "label": "3"
+   "team": "offense"
   },
   {
    "id": "d4",
-   "team": "defense",
-   "role": "defender",
-   "label": "3"
+   "team": "defense"
   },
   {
    "id": "o5",
-   "team": "offense",
-   "role": "cutter",
-   "label": "4"
+   "team": "offense"
   },
   {
    "id": "d5",
-   "team": "defense",
-   "role": "defender",
-   "label": "4"
+   "team": "defense"
   },
   {
    "id": "o6",
-   "team": "offense",
-   "role": "cutter",
-   "label": "5"
+   "team": "offense"
   },
   {
    "id": "d6",
-   "team": "defense",
-   "role": "defender",
-   "label": "5"
+   "team": "defense"
   },
   {
    "id": "o7",
-   "team": "offense",
-   "role": "cutter",
-   "label": "6"
+   "team": "offense"
   },
   {
    "id": "d7",
-   "team": "defense",
-   "role": "defender",
-   "label": "6"
+   "team": "defense"
   }
  ],
- "keyframes": [
+ "frames": [
   {
-   "t": 0,
-   "label": "Set",
-   "positions": {
+   "moved": {
     "o1": {
      "x": 40,
      "y": 20
@@ -155,20 +120,12 @@
      "x": 68,
      "y": 18
     }
-   }
+   },
+   "label": "Set",
+   "holder": "o1"
   },
   {
-   "t": 2,
-   "label": "Dump",
-   "positions": {
-    "o1": {
-     "x": 40,
-     "y": 20
-    },
-    "d1": {
-     "x": 39,
-     "y": 20
-    },
+   "moved": {
     "o2": {
      "x": 40,
      "y": 28
@@ -176,53 +133,12 @@
     "d2": {
      "x": 39.5,
      "y": 28.8
-    },
-    "o3": {
-     "x": 54,
-     "y": 20
-    },
-    "d3": {
-     "x": 52,
-     "y": 18
-    },
-    "o4": {
-     "x": 58,
-     "y": 20
-    },
-    "d4": {
-     "x": 56,
-     "y": 22
-    },
-    "o5": {
-     "x": 62,
-     "y": 20
-    },
-    "d5": {
-     "x": 60,
-     "y": 18
-    },
-    "o6": {
-     "x": 66,
-     "y": 20
-    },
-    "d6": {
-     "x": 64,
-     "y": 22
-    },
-    "o7": {
-     "x": 70,
-     "y": 20
-    },
-    "d7": {
-     "x": 68,
-     "y": 18
     }
-   }
+   },
+   "label": "Dump"
   },
   {
-   "t": 4,
-   "label": "Swing",
-   "positions": {
+   "moved": {
     "o1": {
      "x": 40,
      "y": 30
@@ -231,14 +147,6 @@
      "x": 39,
      "y": 28.5
     },
-    "o2": {
-     "x": 40,
-     "y": 28
-    },
-    "d2": {
-     "x": 39.5,
-     "y": 28.8
-    },
     "o3": {
      "x": 46,
      "y": 12
@@ -246,51 +154,9 @@
     "d3": {
      "x": 45.2,
      "y": 11.2
-    },
-    "o4": {
-     "x": 58,
-     "y": 20
-    },
-    "d4": {
-     "x": 56,
-     "y": 22
-    },
-    "o5": {
-     "x": 62,
-     "y": 20
-    },
-    "d5": {
-     "x": 60,
-     "y": 18
-    },
-    "o6": {
-     "x": 66,
-     "y": 20
-    },
-    "d6": {
-     "x": 64,
-     "y": 22
-    },
-    "o7": {
-     "x": 70,
-     "y": 20
-    },
-    "d7": {
-     "x": 68,
-     "y": 18
     }
-   }
+   },
+   "label": "Swing"
   }
- ],
- "interpolation": "linear",
- "possession": "o1",
- "matchups": {
-  "d1": "o1",
-  "d2": "o2",
-  "d3": "o3",
-  "d4": "o4",
-  "d5": "o5",
-  "d6": "o6",
-  "d7": "o7"
- }
+ ]
 }

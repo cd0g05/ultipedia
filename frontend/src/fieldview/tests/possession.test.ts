@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { nearestDefender, normalize, throwTo } from "../scene/possession";
-import { reassign } from "../scene/matchups";
+import { MARK_RADIUS_YD } from "../space/constants";
 import { getPreset } from "../scene/presets";
 import type { Scene } from "../scene/types";
 
@@ -24,28 +24,64 @@ describe("normalize — role derivation (ADR-1)", () => {
     expect(idsWithRole(s, "thrower")).toEqual(["o3"]);
   });
 
-  it("makes the possessor's assigned defender the mark", () => {
+  it("makes the closest defender within 10 ft the mark", () => {
     const s = scene();
-    s.possession = "o3"; // d3 guards o3 in every built-in
-    normalize(s);
-    expect(idsWithRole(s, "mark")).toEqual(["d3"]);
-  });
-
-  it("falls back to the nearest defender when the possessor is unassigned", () => {
-    const s = scene();
-    s.matchups = {}; // nobody assigned to anybody
     s.possession = "o1";
     normalize(s);
-    expect(idsWithRole(s, "mark")).toEqual([nearestDefender(s, "o1")]);
+    expect(idsWithRole(s, "mark")).toEqual(["d1"]); // d1 stands 3.16 yd from o1
+  });
+
+  it("has no mark when nobody is within 10 ft of the holder", () => {
+    const s = scene();
+    for (const p of s.players) if (p.id === "d1") p.pos = { x: 40 + MARK_RADIUS_YD + 0.5, y: 20 };
+    // Every other defender is further out than d1 was.
+    s.possession = "o1";
+    normalize(s);
+    expect(idsWithRole(s, "mark")).toEqual([]);
+  });
+
+  it("includes a defender just inside the 10 ft boundary, excludes one just past it", () => {
+    const s = scene();
+    const o1 = s.players.find((p) => p.id === "o1")!;
+    const d1 = s.players.find((p) => p.id === "d1")!;
+    d1.pos = { x: o1.pos.x + MARK_RADIUS_YD - 0.001, y: o1.pos.y };
+    normalize(s);
+    expect(roleOf(s, "d1")).toBe("mark");
+    d1.pos = { x: o1.pos.x + MARK_RADIUS_YD + 0.01, y: o1.pos.y };
+    normalize(s);
+    expect(roleOf(s, "d1")).toBe("defender");
+  });
+
+  it("picks the closer of two defenders in range, and breaks an exact tie on id", () => {
+    const s = scene();
+    const o1 = s.players.find((p) => p.id === "o1")!;
+    const place = (id: string, dx: number, dy: number) => {
+      s.players.find((p) => p.id === id)!.pos = { x: o1.pos.x + dx, y: o1.pos.y + dy };
+    };
+    place("d1", 3, 0);
+    place("d2", 2, 0);
+    normalize(s);
+    expect(idsWithRole(s, "mark")).toEqual(["d2"]);
+    place("d1", 0, 2);
+    place("d2", 0, -2);
+    normalize(s);
+    expect(idsWithRole(s, "mark")).toEqual(["d1"]); // equal distance: lower id wins
+  });
+
+  it("ignores matchups entirely", () => {
+    const s = scene();
+    s.matchups = { d5: "o1" };
+    normalize(s);
+    expect(idsWithRole(s, "mark")).toEqual(["d1"]);
   });
 
   it("gives every other offense player cutter and every other defender defender", () => {
     const s = scene();
     s.possession = "o4";
     normalize(s);
+    const markIds = idsWithRole(s, "mark");
     for (const p of s.players) {
-      if (p.id === "o4") continue;
-      if (p.id === "d4") continue;
+      if (p.id === "o4" || markIds.includes(p.id)) continue;
       expect(p.role).toBe(p.team === "offense" ? "cutter" : "defender");
     }
   });
@@ -65,10 +101,12 @@ describe("normalize — role derivation (ADR-1)", () => {
     expect(idsWithRole(s, "mark")).toHaveLength(1);
   });
 
-  it("moves the mark when the possessor's matchup is reassigned", () => {
+  it("moves the mark when a closer defender steps in", () => {
     const s = scene();
-    expect(idsWithRole(s, "mark")).toEqual(["d1"]); // d1 marks o1
-    reassign(s, "d5", "o1"); // d5 takes the thrower; d1 is displaced
+    expect(idsWithRole(s, "mark")).toEqual(["d1"]);
+    const o1 = s.players.find((p) => p.id === "o1")!;
+    s.players.find((p) => p.id === "d5")!.pos = { x: o1.pos.x + 1, y: o1.pos.y };
+    normalize(s);
     expect(idsWithRole(s, "mark")).toEqual(["d5"]);
     expect(roleOf(s, "d1")).toBe("defender");
   });
@@ -161,7 +199,9 @@ describe("throwTo — role handoff", () => {
     expect(s.possession).toBe("o5");
     expect(idsWithRole(s, "thrower")).toEqual(["o5"]);
     expect(roleOf(s, "o1")).toBe("cutter"); // the old thrower is now a cutter
-    expect(idsWithRole(s, "mark")).toEqual(["d5"]); // d5 guards o5
+    // The mark is whoever is now closest to o5 (within 10 ft), or nobody.
+    expect(idsWithRole(s, "mark")).not.toContain("d1");
+    expect(idsWithRole(s, "mark").length).toBeLessThanOrEqual(1);
     expect(roleOf(s, "d1")).toBe("defender"); // the old mark is now a plain defender
   });
 
@@ -192,7 +232,7 @@ describe("throwTo — role handoff", () => {
       throwTo(s, id);
       expect(s.possession).toBe(id);
       expect(idsWithRole(s, "thrower")).toEqual([id]);
-      expect(idsWithRole(s, "mark")).toHaveLength(1);
+      expect(idsWithRole(s, "mark").length).toBeLessThanOrEqual(1);
     }
   });
 });

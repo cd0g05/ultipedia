@@ -4,7 +4,7 @@
 // (ADR-9) without changing the shape defined here.
 
 import type { Player, Role, Scene, Team } from "./types";
-import { backfillScene } from "../play/backfill";
+import { normalize } from "./possession";
 
 function player(id: string, team: Team, role: Role, x: number, y: number, label?: string): Player {
   return { id, team, role, pos: { x, y }, label };
@@ -38,17 +38,14 @@ function buildScene(params: {
     );
     matchups[`d${i + 2}`] = `o${i + 2}`;
   });
-  // o1 is the thrower in every built-in; the stored `thrower`/`mark` roles
-  // above are what normalize() would derive from this possession anyway.
-  //
-  // Built through the same load-time backfill every stored play uses (ADR-4)
-  // rather than hand-assembling the Scene, so the built-ins cannot drift into
-  // a state a loaded file could never reach. The explicit possession and
-  // matchups are passed as the "stored" model precisely so the backfill does
-  // NOT auto-assign here: the index pairing above is data, and on the vert
-  // preset a sagging help defender sits closer to somebody else's cutter, so
-  // auto-assignment would quietly re-pair the built-in.
-  return backfillScene(players, { possession: "o1", matchups });
+  // o1 holds the disc in every built-in. The matchups stay explicit data (the
+  // index pairing above) rather than autoAssign()'d: on the vert preset a
+  // sagging help defender sits closer to somebody else's cutter, so
+  // auto-assignment would quietly re-pair the built-in. normalize() then
+  // derives the roles — the mark is whoever is within 10 ft of o1.
+  const scene: Scene = { players, possession: "o1", matchups };
+  normalize(scene);
+  return scene;
 }
 
 // Vertical stack, force side: cutters lined up single-file downfield of the

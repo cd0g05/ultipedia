@@ -87,6 +87,13 @@
       "owner": "unknown",
       "created_at": "2026-10-05T21:41:55.457870+00:00",
       "initiative": "fieldview-build"
+    },
+    "feat/fieldview-build-model": {
+      "intent": "Build play model: v3 format, resolve/ops/history, validator, geometric mark, space model tolerates no mark, regenerated v3 content",
+      "modules": [],
+      "owner": "unknown",
+      "created_at": "2026-10-05T21:46:36.539284+00:00",
+      "initiative": "fieldview-build"
     }
   }
 }

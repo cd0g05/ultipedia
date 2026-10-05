@@ -70,9 +70,12 @@ export const FORCE_TOLERANCE_YD = 0.5;
 // precisely so that correcting them after a look at the rendered field is a
 // token edit rather than a rewrite. If you retune them, keep every pair at
 // least 2 × FORCE_TOLERANCE_YD apart — the guard test will tell you.
+// Every preset stays within MARK_RADIUS_YD (10 ft) of the thrower: beyond it
+// the defender would no longer BE the mark (ADR-38) and the force would read
+// "custom" the moment it was snapped to.
 export const FORCE_PRESETS: Record<ForceSide, Record<ForceAngle, Vec2>> = {
   flat: {
-    inside: { x: 3.5, y: 0.5 },
+    inside: { x: 3.25, y: 0.5 },
     default: { x: 2.3, y: 0.0 },
     around: { x: 1.0, y: -0.5 },
   },

@@ -34,7 +34,7 @@ const markers: { file: string; text: string; cites: number[] }[] = [];
 for (const file of files) {
   const lines = readFileSync(file, "utf8").split("\n");
   lines.forEach((line, i) => {
-    if (!line.includes("PLACEHOLDER(fieldview-ui-rework)")) return;
+    if (!/PLACEHOLDER\(fieldview-(ui-rework|build)\)/.test(line)) return;
     // A marker may wrap onto the following comment lines; look there for #N or
     // a range like #3–#5.
     const window = lines.slice(i, i + 6).join(" ");

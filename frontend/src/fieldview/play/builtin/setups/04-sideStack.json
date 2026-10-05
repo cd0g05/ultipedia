@@ -1,8 +1,8 @@
 {
  "_placeholder": true,
  "formatVersion": 3,
- "name": "Sideline trap escape",
- "description": "Get out of a sideline box.",
+ "name": "Side stack",
+ "description": "Everyone on one side — the open side is free to attack.",
  "players": [
   {
    "id": "o1",
@@ -121,47 +121,7 @@
      "y": 8
     }
    },
-   "label": "Set",
    "holder": "o1"
-  },
-  {
-   "moved": {
-    "o2": {
-     "x": 44,
-     "y": 20
-    },
-    "d2": {
-     "x": 46.4,
-     "y": 19.9
-    }
-   },
-   "label": "Peel"
-  },
-  {
-   "moved": {
-    "o3": {
-     "x": 46,
-     "y": 16
-    },
-    "d3": {
-     "x": 48.7,
-     "y": 16.5
-    }
-   },
-   "label": "Reset"
-  },
-  {
-   "moved": {
-    "o1": {
-     "x": 44,
-     "y": 24
-    },
-    "d1": {
-     "x": 42.4,
-     "y": 21.2
-    }
-   },
-   "label": "Escape"
   }
  ]
 }

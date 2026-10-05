@@ -238,7 +238,9 @@ export function FieldCanvas({
     const settings = overlayRef.current;
     const scene = store.getScene();
 
-    if (!settings.on) {
+    // No holder (never in a valid play) means there is nothing to score: show
+    // no heat rather than a stale map.
+    if (!settings.on || scene.possession === null) {
       canvas.getContext("2d")?.clearRect(0, 0, canvas.width, canvas.height);
       // Still reaches the readout: switching the overlay off mid-hover must
       // return it to idle, not freeze the last sampled cell on screen.
@@ -269,7 +271,7 @@ export function FieldCanvas({
     const settings = overlayRef.current;
     const hover = hoverRef.current;
 
-    if (!settings.on || !hover) {
+    if (!settings.on || !hover || scene.possession === null) {
       readout.update(null, settings.lens);
       if (reticleRef.current) reticleRef.current.setAttribute("opacity", "0");
       return;

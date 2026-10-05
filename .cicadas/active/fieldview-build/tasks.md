@@ -55,25 +55,37 @@ count in P0 task 1; it was **69 files / 991 tests**, Field View alone 55 / 884, 
 
 ## Partition: feat/fieldview-build-model
 
-- [ ] `play/format.ts`: v3 types and constants (`PLAY_FORMAT_VERSION=3`, `MAX_FRAMES=30`, `MAX_TITLE_LENGTH=2`, `MAX_LABEL_LENGTH=24`, `PlayerRef`, `Frame`, `Play`) <!-- id: 20 -->
-- [ ] `play/model.ts`: `resolve`, `resolveAll`, `toScene` (positions → `Scene` with possession, `autoAssign` matchups, `normalize`) <!-- id: 21 -->
-- [ ] Operations: `placePlayers`, `giveDisc` (offense only), `setTitle` (trim, uppercase, ≤ 2), `setFrameLabel`, `renamePlay` <!-- id: 22 -->
-- [ ] Operations: `addFrame`, `duplicateFrame`, `deleteFrame` (refuses the only frame), `resetFrame` (not frame 0), `resetPlayer` <!-- id: 23 -->
-- [ ] `play/history.ts`: generic immutable undo/redo with a cap of 100; pure `push/undo/redo` <!-- id: 24 -->
-- [ ] `play/validate.ts`: v3 only; rejects other versions; drops unknown keys; clamps; 14 players with unique ids; frame 0 complete; offensive holder; `moved` keys ⊆ players; ≤ 30 frames; sanitised titles/labels <!-- id: 25 -->
-- [ ] `play/interpolate.ts`: move `samplePositions` out of `tween.ts` as a pure helper so playback compiles until P2 <!-- id: 26 -->
-- [ ] `space/constants.ts`: `MARK_RADIUS_YD = 10/3` (single source) <!-- id: 27 -->
-- [ ] `scene/possession.ts`: `markFor` = closest defender within `MARK_RADIUS_YD` (id tie-break) else `null`; `normalize` unchanged in contract; update `possession`/`matchups`/`force` tests that assumed a matchup-driven mark <!-- id: 28 -->
-- [ ] Space model: `extractRoster` records `hasMark`; `layers.mark` and the grid loop treat no mark as factor 1; identical-output sweep over every preset with a mark; no holder → `FieldCanvas` clears the heat canvas <!-- id: 29 -->
-- [ ] `playFromScene(scene, name)` (a `Scene` → one-frame `Play`); `newPlay()` default (vertical stack, 14 unnamed players) <!-- id: 30 -->
-- [ ] Tests: `resolve` cases from the spec (frame 0, moved wins, inherit chain, holder inherit, edit-frame-0 flow-through, placed-later unchanged, delete/duplicate/reset semantics) <!-- id: 31 -->
-- [ ] Tests: property checks (random op sequences keep every frame resolvable; ops never mutate frozen input; undo∘op = identity) <!-- id: 32 -->
-- [ ] Tests: validator (each rejection, each sanitisation) and mark rule (boundary at 10 ft, two defenders, none, tie) <!-- id: 33 -->
-- [ ] Regenerate the toy setups and plays as v3 via a throwaway generator; every file carries `"_placeholder": true`; register in `docs/fieldview-placeholders.md` <!-- NEEDS MANUAL REVIEW --> <!-- id: 34 -->
-- [ ] `play/plays.ts`: v3 loader; helpers `isSetup(play)` (one frame) and split lists; invalid files skipped and reported (as today) <!-- id: 35 -->
-- [ ] Delete `play/{backfill,tween,serialize,modeHandoff}.ts` and the v1/v2 tests (`play`, `playFormatV2`, backfill/tween cases); `tsc -b` clean <!-- id: 36 -->
-- [ ] Toy presets: pull every mark within 10 ft (≤ 3 yd) so setups still show a mark; `modelGuard` and §8 acceptance geometry unchanged <!-- id: 37 -->
-- [ ] Reflect: full suite + `test:perf` green; update specs <!-- id: 38 -->
+- [x] `play/format.ts`: v3 types and constants (`PLAY_FORMAT_VERSION=3`, `MAX_FRAMES=30`, `MAX_TITLE_LENGTH=2`, `MAX_LABEL_LENGTH=24`, `PlayerRef`, `Frame`, `Play`) <!-- id: 20 -->
+- [x] `play/model.ts`: `resolve`, `resolveAll`, `toScene` (positions → `Scene` with possession, `autoAssign` matchups, `normalize`) <!-- id: 21 -->
+- [x] Operations: `placePlayers`, `giveDisc` (offense only), `setTitle` (trim, uppercase, ≤ 2), `setFrameLabel`, `renamePlay` <!-- id: 22 -->
+- [x] Operations: `addFrame`, `duplicateFrame`, `deleteFrame` (refuses the only frame), `resetFrame` (not frame 0), `resetPlayer` <!-- id: 23 -->
+- [x] `play/history.ts`: generic immutable undo/redo with a cap of 100; pure `push/undo/redo` <!-- id: 24 -->
+- [x] `play/validate.ts`: v3 only; rejects other versions; drops unknown keys; clamps; 14 players with unique ids; frame 0 complete; offensive holder; `moved` keys ⊆ players; ≤ 30 frames; sanitised titles/labels <!-- id: 25 -->
+- [x] `play/interpolate.ts`: move `samplePositions` out of `tween.ts` as a pure helper so playback compiles until P2 <!-- id: 26 -->
+- [x] `space/constants.ts`: `MARK_RADIUS_YD = 10/3` (single source) <!-- id: 27 -->
+- [x] `scene/possession.ts`: `markFor` = closest defender within `MARK_RADIUS_YD` (id tie-break) else `null`; `normalize` unchanged in contract; update `possession`/`matchups`/`force` tests that assumed a matchup-driven mark <!-- id: 28 -->
+- [x] Space model: `extractRoster` records `hasMark`; `layers.mark` and the grid loop treat no mark as factor 1; identical-output sweep over every preset with a mark; no holder → `FieldCanvas` clears the heat canvas <!-- id: 29 -->
+- [x] `playFromScene(scene, name)` (a `Scene` → one-frame `Play`); `newPlay()` default (vertical stack, 14 unnamed players) <!-- id: 30 -->
+- [x] Tests: `resolve` cases from the spec (frame 0, moved wins, inherit chain, holder inherit, edit-frame-0 flow-through, placed-later unchanged, delete/duplicate/reset semantics) <!-- id: 31 -->
+- [x] Tests: property checks (random op sequences keep every frame resolvable; ops never mutate frozen input; undo∘op = identity) <!-- id: 32 -->
+- [x] Tests: validator (each rejection, each sanitisation) and mark rule (boundary at 10 ft, two defenders, none, tie) <!-- id: 33 -->
+- [x] Regenerate the toy setups and plays as v3 via a throwaway generator; every file carries `"_placeholder": true`; register in `docs/fieldview-placeholders.md` <!-- NEEDS MANUAL REVIEW --> <!-- id: 34 -->
+- [x] `play/plays.ts`: v3 loader; helpers `isSetup(play)` (one frame) and split lists; invalid files skipped and reported (as today) <!-- id: 35 -->
+- [x] Delete `play/{backfill,tween,serialize,modeHandoff}.ts` and the v1/v2 tests (`play`, `playFormatV2`, backfill/tween cases); `tsc -b` clean <!-- id: 36 -->
+- [x] Toy presets: pull every mark within 10 ft (≤ 3 yd) so setups still show a mark; `modelGuard` and §8 acceptance geometry unchanged <!-- id: 37 -->
+- [x] Reflect: full suite + `test:perf` green; update specs <!-- id: 38 -->
+
+**Reflect notes (P1)**
+- After P1: tsc clean; 58 files / 857 tests; `test:perf` 4 files / 27 tests green (§8.9 frame ≈ 10.4 ms, computeGrid best ≈ 9.4 ms).
+- New: `play/{format,model,history,validate,interpolate}.ts`; `MARK_RADIUS_YD` in `space/constants.ts`; geometric `markFor` in `scene/possession.ts`; space model tolerates no mark (factor 1) and no holder (zero grid, no throw); `FieldCanvas` clears heat and the readout when there is no holder.
+- `sceneOf(play, resolved)` added beside `toScene` (same derivation; the playback/Watch path will reuse it). `deleteFrame(0)` resolves the next frame into the new frame 0 so the play stays complete (spec only said "later frames inherit"; frame 0 must be complete).
+- `FORCE_PRESETS.flat.inside` moved from x 3.5 to 3.25: 3.5 yd is beyond the 10 ft mark radius, so snapping to it dropped the mark. Force tests now expect `custom` when a displaced mark leaves the radius.
+- Content regenerated as v3 with a throwaway generator: 7 plays in `play/builtin/*.json` (frame 0 full, later frames list only changed players) and 6 unnamed one-frame setups in `play/builtin/setups/`. All carry `"_placeholder": true`; register row 20 added for `newPlay()` defaults. `plays.ts` exports `BUILTIN_PLAYS`, `BUILTIN_SETUPS`, `isSetup`.
+- Deleted: `play/{backfill,tween,serialize,modeHandoff}.ts`, `tests/{play,playFormatV2}.test.ts`. Playback, Watch, Filmstrip, TrailLayer, PlayList, `usePlayback` now take a v3 `Play`. Watch tests look pieces up by `offense cutter` (unnamed) pending P2's accessible-name fallback.
+- Not yet: Explore still builds from `scene/presets.ts` (P2 moves it onto `BUILTIN_SETUPS`); `PlayStore`/`FilePlayStore` went with `serialize.ts` and return in P4 as `library.ts`.
+- New guard: `tests/inheritanceGuard.test.ts` — nothing under scene/render/space/motion/pages/ui reads `.moved`. P3's ghost/“placed here” markers will need a documented exception (a `ui/build/` allowance).
+- Builder: the toy plays/setups are still toy content (task 34 review).
+
 
 ## Partition: feat/fieldview-build-disc-titles
 

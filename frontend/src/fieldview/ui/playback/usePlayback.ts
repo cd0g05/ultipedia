@@ -4,7 +4,7 @@
 
 import { useEffect, useMemo, useSyncExternalStore } from "react";
 import type { SceneStore } from "../../scene/store";
-import type { PlayFile } from "../../play/format";
+import type { Play } from "../../play/format";
 import { createPlaybackController } from "./playback";
 import type { PlaybackController, PlaybackState } from "./playback";
 
@@ -12,7 +12,7 @@ export interface PlaybackView extends PlaybackState {
   controller: PlaybackController;
 }
 
-export function usePlayback(store: SceneStore, play: PlayFile): PlaybackView {
+export function usePlayback(store: SceneStore, play: Play): PlaybackView {
   const controller = useMemo(() => createPlaybackController(store, play), [store, play]);
   useEffect(() => () => controller.dispose(), [controller]);
   const state = useSyncExternalStore(controller.subscribe, controller.getState);

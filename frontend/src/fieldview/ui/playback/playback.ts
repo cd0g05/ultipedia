@@ -1,6 +1,7 @@
 // Watch's playback controller (tech-design ADR-34): a thin imperative layer
-// over the play format. Frames are the play's keyframes; moving between two of
-// them animates the pieces with the existing sampler (play/tween.ts) over a
+// over the play document. Frames are the play's RESOLVED frames (play/model.ts);
+// moving between two of them animates the pieces with the straight-line sampler
+// (play/interpolate.ts) over a
 // fixed transition, so a frame's actions all happen together rather than at the
 // pace the author dragged them.
 //
@@ -16,8 +17,9 @@
 
 import type { SceneStore } from "../../scene/store";
 import type { Vec2 } from "../../scene/types";
-import type { PlayFile } from "../../play/format";
-import { samplePositions } from "../../play/tween";
+import type { Play } from "../../play/format";
+import { resolveAll } from "../../play/model";
+import { samplePositions } from "../../play/interpolate";
 
 export type PlaybackStatus = "idle" | "playing" | "paused";
 export type PlaybackSpeed = 0.5 | 1 | 2;
@@ -69,7 +71,7 @@ function defaultReducedMotion(): boolean {
 
 export function createPlaybackController(
   store: SceneStore,
-  play: PlayFile,
+  play: Play,
   options: PlaybackOptions = {},
 ): PlaybackController {
   const now = options.now ?? (() => performance.now());
@@ -77,7 +79,7 @@ export function createPlaybackController(
   const cancel = options.cancel ?? ((h) => cancelAnimationFrame(h));
   const reduced = options.prefersReducedMotion ?? defaultReducedMotion;
 
-  const frames = play.keyframes;
+  const frames = resolveAll(play);
   const last = frames.length - 1;
   const listeners = new Set<() => void>();
 
@@ -189,13 +191,7 @@ export function createPlaybackController(
       motion.elapsed += dt;
       const u = Math.min(1, motion.elapsed / TRANSITION_SECONDS);
       write(
-        samplePositions(
-          [
-            { t: 0, positions: motion.fromPositions },
-            { t: 1, positions: frames[motion.to].positions },
-          ],
-          u,
-        ),
+        samplePositions(motion.fromPositions, frames[motion.to].positions, u),
       );
       if (u >= 1) {
         motion = null;
