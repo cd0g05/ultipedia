@@ -12,14 +12,14 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Seo } from "../../encyclopedia/seo/Seo";
 import type { Play } from "../play/format";
 import { library, newPlayId, useLibrary } from "../play/library";
-import { addFrame, deleteFrame, duplicateFrame, newPlay, placedIds, renamePlay, resetFrame } from "../play/model";
+import { addFrame, deleteFrame, newPlay, placedIds, renamePlay } from "../play/model";
 import { BUILTIN_PLAYS, BUILTIN_SETUPS } from "../play/plays";
 import { playFromFileText } from "../play/share";
 import { PlayValidationError } from "../play/validate";
 import { FieldViewFrame } from "../ui/app/FieldViewFrame";
 import { useFieldViewApp } from "../ui/app/FieldViewApp";
-import { BuildPlayerCard, FrameCard, PlayMeta, PreviewCard } from "../ui/build/cards";
-import { BTN, BTN_PRIMARY, FrameChip, SavePill, UndoRedo } from "../ui/build/controls";
+import { BuildPlayerCard, FrameBar, PlayMeta } from "../ui/build/cards";
+import { BTN_PRIMARY, FrameChip, SavePill, UndoRedo } from "../ui/build/controls";
 import { FrameStrip } from "../ui/build/FrameStrip";
 import { LibraryList } from "../ui/build/LibraryList";
 import { ShareDialog } from "../ui/build/ShareDialog";
@@ -250,7 +250,7 @@ export function Build() {
   );
 
   const playerCard = (bar: boolean) => (
-    <div {...inertWhen(previewing)}>
+    <div className="h-full" {...inertWhen(previewing)}>
       <BuildPlayerCard store={store} play={play} frameIndex={frameIndex} session={session} bar={bar} />
     </div>
   );
@@ -305,54 +305,26 @@ export function Build() {
             {libraryPanel}
           </div>
         }
-        dock={
-          <div className="flex flex-col gap-4">
-            <div className="grid grid-cols-3 gap-4">
-              <div {...inertWhen(previewing)}>
-                <FrameCard play={play} frameIndex={frameIndex} session={session} />
-              </div>
-              {playerCard(false)}
-              <PreviewCard
+        // Under the field on every layout. Compact: the frame strip and frame
+        // row scroll with the page, the selected-player panel is pinned to the
+        // bottom of the screen. Desktop: two thirds frames, one third the player.
+        panel={
+          <div className="contents desktop:mt-4 desktop:grid desktop:w-full desktop:grid-cols-3 desktop:items-stretch desktop:gap-4">
+            <div className="mt-2 flex w-full min-w-0 shrink-0 flex-col gap-2 px-1 desktop:col-span-2 desktop:mt-0 desktop:px-0">
+              {strip}
+              <FrameBar
+                play={play}
                 frameIndex={frameIndex}
-                frameCount={play.frames.length}
+                session={session}
                 previewing={previewing}
                 onPlayAll={() => startPreview(0)}
                 onFromHere={() => startPreview(frameIndex)}
                 onStop={stopPreview}
               />
             </div>
-            {strip}
-          </div>
-        }
-        compactDock={
-          <div className="flex flex-col gap-2 px-1">
-            {strip}
-            <div className="flex flex-wrap gap-2" {...inertWhen(previewing)}>
-              <button type="button" className={BTN} disabled={play.frames.length >= 30} onClick={() => { session.apply((p, i) => addFrame(p, i), { sync: false }); session.selectFrame(frameIndex + 1); }}>
-                Add frame
-              </button>
-              <button type="button" className={BTN} onClick={() => session.apply((p, i) => duplicateFrame(p, i))}>
-                Duplicate
-              </button>
-              <button type="button" className={BTN} disabled={play.frames.length <= 1} onClick={() => session.apply((p, i) => deleteFrame(p, i))}>
-                Delete
-              </button>
-              <button type="button" className={BTN} disabled={frameIndex === 0} onClick={() => session.apply((p, i) => resetFrame(p, i))}>
-                Reset frame
-              </button>
+            <div className="sticky bottom-0 z-10 mt-2 w-full min-w-0 shrink-0 bg-film-panel px-1 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-1 desktop:static desktop:mt-0 desktop:px-0 desktop:pb-3 desktop:pt-0">
+              {playerCard(false)}
             </div>
-            <div className="flex">
-              {previewing ? (
-                <button type="button" className={`${BTN_PRIMARY} ml-auto`} onClick={stopPreview}>
-                  Stop
-                </button>
-              ) : (
-                <button type="button" className={`${BTN_PRIMARY} ml-auto`} disabled={play.frames.length < 2} onClick={() => startPreview(frameIndex)}>
-                  Preview
-                </button>
-              )}
-            </div>
-            {playerCard(true)}
           </div>
         }
       />

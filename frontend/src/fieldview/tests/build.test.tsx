@@ -255,7 +255,7 @@ describe("Build — preview and keyboard", () => {
     await act(async () => {
       await rAF();
     });
-    click("Preview");
+    click("Play all");
     expect(first("Stop")).toBeInTheDocument();
     // Editing is off: the strip and cards are inert, the field is disabled.
     expect(screen.getAllByTestId("frame-strip")[0].closest("[inert]")).not.toBeNull();
@@ -355,14 +355,14 @@ describe("Build — accessibility", () => {
     expect(await violations(container)).toEqual([]);
 
     click("Frame 1");
-    click("Preview");
+    click("Play all");
     expect(await violations(container)).toEqual([]);
     click("Stop");
   });
 
   it("every control is reachable and named: strip frames, add, actions, undo/redo, player controls", () => {
     renderBuild();
-    for (const name of ["Frame 1", "Add frame", "Duplicate", "Delete", "Reset frame", "Undo", "Redo", "Preview"]) {
+    for (const name of ["Frame 1", "Add frame", "Duplicate", "Delete", "Reset frame", "Undo", "Redo", "Play all"]) {
       expect(first(name)).toBeInTheDocument();
     }
     expect(screen.getAllByRole("textbox", { name: "Label" })[0]).toBeInTheDocument();

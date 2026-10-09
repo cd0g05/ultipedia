@@ -19,20 +19,31 @@ import {
 import { MAX_LABEL_LENGTH, MAX_TITLE_LENGTH } from "../../play/format";
 import { useSelection } from "../shell/useSelection";
 import type { BuildSession } from "./BuildSession";
-import { BTN, BTN_PRIMARY, Card } from "./controls";
+import { BTN, BTN_PRIMARY } from "./controls";
 import { badgeFor } from "./FrameStrip";
 
 // ── Frame ────────────────────────────────────────────────────────────────────
 
-export function FrameActions({ play, frameIndex, session }: { play: Play; frameIndex: number; session: BuildSession }) {
+export function FrameActions({
+  play,
+  frameIndex,
+  session,
+  small = false,
+}: {
+  play: Play;
+  frameIndex: number;
+  session: BuildSession;
+  small?: boolean;
+}) {
+  const b = small ? `${BTN} h-9` : BTN;
   return (
     <div className="flex flex-wrap gap-2">
-      <button type="button" className={BTN} onClick={() => session.apply((p, i) => duplicateFrame(p, i))}>
+      <button type="button" className={b} onClick={() => session.apply((p, i) => duplicateFrame(p, i))}>
         Duplicate
       </button>
       <button
         type="button"
-        className={BTN}
+        className={b}
         disabled={frameIndex === 0}
         onClick={() => session.apply((p, i) => resetFrame(p, i))}
       >
@@ -40,7 +51,7 @@ export function FrameActions({ play, frameIndex, session }: { play: Play; frameI
       </button>
       <button
         type="button"
-        className={BTN}
+        className={b}
         disabled={play.frames.length <= 1}
         onClick={() => {
           session.apply((p, i) => deleteFrame(p, i));
@@ -55,33 +66,79 @@ export function FrameActions({ play, frameIndex, session }: { play: Play; frameI
 // PLACEHOLDER(fieldview-build): this copy is a stand-in (docs/fieldview-placeholders.md #23).
 const NO_CHANGES = "No changes — same as the previous frame.";
 
-export function FrameCard({ play, frameIndex, session }: { play: Play; frameIndex: number; session: BuildSession }) {
+// The desktop frame controls: one row under the strip — which frame, its label,
+// its actions and the preview. One row (not cards) so the whole Build dock fits
+// under the field without scrolling.
+export function FrameBar({
+  play,
+  frameIndex,
+  session,
+  previewing,
+  onPlayAll,
+  onFromHere,
+  onStop,
+}: {
+  play: Play;
+  frameIndex: number;
+  session: BuildSession;
+  previewing: boolean;
+  onPlayAll: () => void;
+  onFromHere: () => void;
+  onStop: () => void;
+}) {
   const frame = play.frames[frameIndex];
   const badge = badgeFor(play, frameIndex);
+  const count = play.frames.length;
   return (
-    <Card title={`Frame ${frameIndex + 1} of ${play.frames.length}`} tag={badge || undefined}>
-      <label className="mb-1 block font-mono text-[10px] font-bold uppercase tracking-wider text-zinc-400" htmlFor="frame-label">
-        Label
-      </label>
-      {/* Committed on blur/Enter so a label is one undo step, not one per key. */}
-      <input
-        id="frame-label"
-        key={`${frameIndex}-${frame.label ?? ""}`}
-        type="text"
-        maxLength={MAX_LABEL_LENGTH}
-        defaultValue={frame.label ?? ""}
-        placeholder={`Frame ${frameIndex + 1}`}
-        onBlur={(e) => {
-          if (e.target.value !== (frame.label ?? "")) session.apply((p, i) => setFrameLabel(p, i, e.target.value));
-        }}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") (e.target as HTMLInputElement).blur();
-        }}
-        className="mb-3 h-10 w-full border border-film-border bg-white px-3 text-sm"
-      />
-      <FrameActions play={play} frameIndex={frameIndex} session={session} />
-      {frameIndex > 0 && !badge && <p className="mt-3 text-xs text-zinc-600">{NO_CHANGES}</p>}
-    </Card>
+    <div role="group" aria-label="Frame" className="flex flex-wrap items-center gap-x-3 gap-y-2 border border-film-border bg-white px-3 py-2">
+      <div {...(previewing ? { inert: "" } : {})} className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-2">
+        <h2 className="whitespace-nowrap font-mono text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+          Frame {frameIndex + 1} of {count}
+        </h2>
+        <span
+          className="whitespace-nowrap border border-film-border px-1.5 font-mono text-[10px] font-bold uppercase tracking-wider text-zinc-600"
+          title={frameIndex > 0 && !badge ? NO_CHANGES : undefined}
+        >
+          {frameIndex === 0 ? "Starting positions" : badge || "No changes"}
+        </span>
+        <label className="sr-only" htmlFor="frame-label">
+          Label
+        </label>
+        {/* Committed on blur/Enter so a label is one undo step, not one per key. */}
+        <input
+          id="frame-label"
+          key={`${frameIndex}-${frame.label ?? ""}`}
+          type="text"
+          maxLength={MAX_LABEL_LENGTH}
+          defaultValue={frame.label ?? ""}
+          placeholder={`Label · Frame ${frameIndex + 1}`}
+          onBlur={(e) => {
+            if (e.target.value !== (frame.label ?? "")) session.apply((p, i) => setFrameLabel(p, i, e.target.value));
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+          }}
+          className="h-9 w-40 min-w-0 border border-film-border bg-white px-2 text-sm"
+        />
+        <FrameActions play={play} frameIndex={frameIndex} session={session} small />
+      </div>
+      <div className="flex gap-2">
+        {previewing ? (
+          <button type="button" className={`${BTN_PRIMARY} h-9`} onClick={onStop}>
+            Stop
+          </button>
+        ) : (
+          <>
+            <button type="button" className={`${BTN_PRIMARY} h-9`} disabled={count < 2} onClick={onPlayAll}>
+              Play all
+            </button>
+            <button type="button" className={`${BTN} h-9`} disabled={frameIndex >= count - 1} onClick={onFromHere}>
+              From frame {frameIndex + 1}
+            </button>
+          </>
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -108,34 +165,29 @@ export function BuildPlayerCard({ store, play, frameIndex, session, bar = false 
   const all = resolveAll(play);
   const here = all[frameIndex];
 
-  if (!ref || !id) {
-    const text = "Select a player to name them, give them the disc, or undo a move.";
-    return bar ? (
-      <p data-testid="build-player" className="border border-film-border bg-white px-4 py-3 text-sm text-zinc-500">
-        {text}
-      </p>
-    ) : (
-      <Card title="Selected player">
-        <p data-testid="build-player" className="text-sm text-zinc-500">
-          {text}
-        </p>
-      </Card>
-    );
-  }
+  // The panel is always here and never changes size: with nobody selected the
+  // same controls are shown greyed out, so picking a player moves nothing.
+  const selected = ref !== undefined && id !== null;
+  const offense = ref?.team === "offense";
+  const holds = selected && here.holder === id;
+  const placed = selected && placedIds(play, frameIndex).includes(id);
+  const before = selected && frameIndex > 0 ? all[frameIndex - 1].positions[id] : undefined;
+  const now = selected ? here.positions[id] : undefined;
+  const moved = before && now ? Math.hypot(now.x - before.x, now.y - before.y) : 0;
+  const ordinal = ref ? play.players.filter((p) => p.team === ref.team).findIndex((p) => p.id === id) + 1 : 0;
+  const name = ref ? `${offense ? "Offense" : "Defense"} ${ordinal}` : "Selected player";
+  const status = !selected ? "None selected" : frameIndex === 0 ? "Starting position" : placed ? "Placed in this frame" : "Inherited";
 
-  const offense = ref.team === "offense";
-  const holds = here.holder === id;
-  const placed = placedIds(play, frameIndex).includes(id);
-  const before = frameIndex > 0 ? all[frameIndex - 1].positions[id] : undefined;
-  const now = here.positions[id];
-  const moved = before ? Math.hypot(now.x - before.x, now.y - before.y) : 0;
-  const ordinal = play.players.filter((p) => p.team === ref.team).findIndex((p) => p.id === id) + 1;
-  const name = `${offense ? "Offense" : "Defense"} ${ordinal}`;
-  const status = frameIndex === 0 ? "Starting position" : placed ? "Placed in this frame" : "Inherited";
+  // PLACEHOLDER(fieldview-build): this hint is a stand-in (docs/fieldview-placeholders.md #23).
+  const footer = !selected
+    ? "Select a player to name them, give them the disc, or undo a move."
+    : frameIndex > 0
+      ? `Moved from frame ${frameIndex}: ${moved.toFixed(1)} yd`
+      : "";
 
   const controls = (
-    <div className={bar ? "flex flex-wrap items-center gap-3" : "flex flex-col gap-3"}>
-      <label className="flex items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+    <div className="flex flex-wrap items-end gap-2">
+      <label className="flex flex-col gap-1 font-mono text-[10px] font-bold uppercase tracking-wider text-zinc-400">
         Title
         <input
           type="text"
@@ -144,105 +196,48 @@ export function BuildPlayerCard({ store, play, frameIndex, session, bar = false 
           autoComplete="off"
           spellCheck={false}
           placeholder="—"
-          value={ref.title ?? ""}
-          onChange={(e) => session.apply((p) => setTitle(p, id, e.target.value), { sync: true })}
-          className="h-10 w-16 border border-film-border bg-white text-center font-mono text-sm font-bold uppercase text-zinc-900"
+          disabled={!selected}
+          value={ref?.title ?? ""}
+          onChange={(e) => id && session.apply((p) => setTitle(p, id, e.target.value), { sync: true })}
+          className="h-9 w-14 border border-film-border bg-white text-center font-mono text-sm font-bold uppercase text-zinc-900 disabled:bg-film-panel disabled:text-zinc-300"
         />
       </label>
       <button
         type="button"
-        className={BTN_PRIMARY}
-        disabled={!offense || holds}
-        onClick={() => session.apply((p, i) => giveDisc(p, i, id))}
+        className={`${BTN_PRIMARY} h-9`}
+        disabled={!selected || !offense || holds}
+        onClick={() => id && session.apply((p, i) => giveDisc(p, i, id))}
       >
         {holds ? "Has the disc" : "Give disc"}
       </button>
       <button
         type="button"
-        className={BTN}
+        className={`${BTN} h-9`}
         disabled={!placed}
-        onClick={() => session.apply((p, i) => resetPlayer(p, i, id))}
+        onClick={() => id && session.apply((p, i) => resetPlayer(p, i, id))}
       >
         Reset player
       </button>
     </div>
   );
 
-  if (bar) {
-    return (
-      <div data-testid="build-player" className="flex flex-wrap items-center gap-4 border border-film-border bg-white px-4 py-2">
-        <span className="border border-film-border px-1.5 font-mono text-[10px] font-bold uppercase tracking-wider text-zinc-600">
-          {name} · {status}
-        </span>
-        {controls}
-        {frameIndex > 0 && (
-          <span className="ml-auto text-xs text-zinc-600">
-            Moved from frame {frameIndex}: <b className="font-mono">{moved.toFixed(1)} yd</b>
-          </span>
-        )}
-      </div>
-    );
-  }
   return (
-    <Card title="Selected player" tag={status}>
-      <div data-testid="build-player">
-        <p className="mb-3 font-mono text-xs font-bold uppercase tracking-wider">{name}</p>
-        {controls}
-        {frameIndex > 0 && (
-          <p className="mt-3 flex justify-between border-t border-film-border pt-2 text-xs text-zinc-600">
-            <span>Moved from frame {frameIndex}</span>
-            <b className="font-mono">{moved.toFixed(1)} yd</b>
-          </p>
-        )}
-      </div>
-    </Card>
-  );
-}
-
-// ── Preview ──────────────────────────────────────────────────────────────────
-
-export function PreviewCard({
-  frameIndex,
-  frameCount,
-  previewing,
-  onPlayAll,
-  onFromHere,
-  onStop,
-}: {
-  frameIndex: number;
-  frameCount: number;
-  previewing: boolean;
-  onPlayAll: () => void;
-  onFromHere: () => void;
-  onStop: () => void;
-}) {
-  return (
-    <Card title="Preview">
-      <div className="flex gap-2">
-        {previewing ? (
-          <button type="button" className={`${BTN_PRIMARY} flex-1`} onClick={onStop}>
-            Stop
-          </button>
-        ) : (
-          <>
-            <button type="button" className={`${BTN_PRIMARY} flex-1`} disabled={frameCount < 2} onClick={onPlayAll}>
-              Play all
-            </button>
-            <button
-              type="button"
-              className={`${BTN} flex-1`}
-              disabled={frameIndex >= frameCount - 1}
-              onClick={onFromHere}
-            >
-              From frame {frameIndex + 1}
-            </button>
-          </>
-        )}
-      </div>
-      <p className="mt-3 text-xs text-zinc-600">
-        Same transitions as Watch. Everything in a frame starts and arrives together.
-      </p>
-    </Card>
+    <div
+      role="group"
+      aria-label="Selected player"
+      data-testid="build-player"
+      data-empty={selected ? "false" : "true"}
+      className={`flex min-w-0 flex-col justify-between gap-2 border border-film-border bg-white px-3 py-2 data-[empty=true]:text-zinc-400 ${
+        bar ? "w-full" : "h-full"
+      }`}
+    >
+      <h2 className="flex items-center justify-between gap-2 font-mono text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+        <span className={selected ? "text-zinc-900" : undefined}>{name}</span>
+        <span className="border border-film-border px-1.5 text-zinc-600">{status}</span>
+      </h2>
+      {controls}
+      <p className="min-h-[2.25rem] text-xs text-zinc-600">{footer}</p>
+    </div>
   );
 }
 

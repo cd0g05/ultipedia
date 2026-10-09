@@ -28,6 +28,7 @@ export function SelectedPlayerCard({ store, baselineRef }: SelectedPlayerCardPro
   const labelRefs = useRef<(HTMLElement | null)[]>([]);
   const valueRefs = useRef<(HTMLElement | null)[]>([]);
   const controlsRef = useRef<HTMLDivElement | null>(null);
+  const cardRef = useRef<HTMLElement | null>(null);
   const titleInputRef = useRef<HTMLInputElement | null>(null);
   const discButtonRef = useRef<HTMLButtonElement | null>(null);
   const shownIdRef = useRef<string | null>(null);
@@ -55,15 +56,26 @@ export function SelectedPlayerCard({ store, baselineRef }: SelectedPlayerCardPro
     if (id) store.mutate((draft) => throwTo(draft, id));
   }
 
+  // `disabled` is written imperatively by update() below and deliberately NOT a
+  // prop: React ignores clicks on a button whose disabled PROP is true, whatever
+  // the DOM says.
   useEffect(() => {
     function show(el: HTMLElement | null, visible: boolean) {
       if (el) el.style.display = visible ? "" : "none";
+    }
+    const DEFAULT_LABELS = ["Marked by", "Nearest defender", "Side of field", "Moved from start"];
+    function setControls(enabled: boolean) {
+      if (titleInputRef.current) titleInputRef.current.disabled = !enabled;
+      if (discButtonRef.current && !enabled) discButtonRef.current.disabled = true;
+      cardRef.current?.setAttribute("data-empty", enabled ? "false" : "true");
     }
     function update() {
       const sel = store.getSelection();
       const single = sel.kind === "offense" || sel.kind === "defense" || sel.kind === "mark";
       const stats = single ? playerStats(store.getScene(), sel.id, baselineRef.current) : null;
       if (!stats) {
+        // The card never changes size: with nothing selected the same rows and
+        // controls are there, greyed out, so choosing a player moves nothing.
         if (titleRef.current) {
           titleRef.current.textContent =
             sel.kind === "multi" ? `${sel.ids.length} players selected` : "Selected player";
@@ -75,8 +87,15 @@ export function SelectedPlayerCard({ store, baselineRef }: SelectedPlayerCardPro
               : "Select a player to see details.";
         }
         show(emptyRef.current, true);
-        show(listRef.current, false);
-        show(controlsRef.current, false);
+        DEFAULT_LABELS.forEach((label, i) => {
+          if (labelRefs.current[i]) labelRefs.current[i]!.textContent = label;
+          if (valueRefs.current[i]) valueRefs.current[i]!.textContent = "—";
+        });
+        if (titleInputRef.current && titleInputRef.current.value !== "") titleInputRef.current.value = "";
+        if (discButtonRef.current && discButtonRef.current.textContent !== "Give disc") {
+          discButtonRef.current.textContent = "Give disc";
+        }
+        setControls(false);
         shownIdRef.current = null;
         return;
       }
@@ -88,8 +107,7 @@ export function SelectedPlayerCard({ store, baselineRef }: SelectedPlayerCardPro
         if (v) v.textContent = row.value;
       });
       show(emptyRef.current, false);
-      show(listRef.current, true);
-      show(controlsRef.current, true);
+      setControls(true);
 
       // Controls follow the scene without React: the title box is only
       // rewritten when the selection changes or when it is not being typed in.
@@ -119,22 +137,26 @@ export function SelectedPlayerCard({ store, baselineRef }: SelectedPlayerCardPro
 
   return (
     <section
+      ref={cardRef}
       aria-label="Selected player"
       data-testid="selected-player-card"
-      className="w-full max-w-sm border border-film-border bg-white p-4"
+      data-empty="true"
+      className="flex w-full flex-wrap items-stretch gap-x-8 gap-y-3 border border-film-border bg-white p-4 data-[empty=true]:text-zinc-400"
     >
-      <h2
-        ref={titleRef}
-        className="mb-2 font-mono text-[10px] font-bold uppercase tracking-wider text-zinc-400"
-      >
-        Selected player
-      </h2>
-      <p ref={emptyRef} className="text-sm text-zinc-500">
-        Select a player to see details.
-      </p>
-      <dl ref={listRef} style={{ display: "none" }} className="text-sm">
+      <div className="min-w-[10rem]">
+        <h2
+          ref={titleRef}
+          className="font-mono text-[10px] font-bold uppercase tracking-wider text-zinc-400"
+        >
+          Selected player
+        </h2>
+        <p ref={emptyRef} className="mt-1 text-sm text-zinc-500">
+          Select a player to see details.
+        </p>
+      </div>
+      <dl ref={listRef} className="grid min-w-[16rem] flex-1 grid-cols-2 gap-x-6 text-sm">
         {Array.from({ length: ROW_COUNT }, (_, i) => (
-          <div key={i} className="flex justify-between gap-4 border-t border-film-border py-1.5">
+          <div key={i} className="flex justify-between gap-3 border-t border-film-border py-1.5">
             <dt
               ref={(el) => {
                 labelRefs.current[i] = el;
@@ -150,8 +172,8 @@ export function SelectedPlayerCard({ store, baselineRef }: SelectedPlayerCardPro
           </div>
         ))}
       </dl>
-      <div ref={controlsRef} style={{ display: "none" }} className="mt-3 border-t border-film-border pt-3">
-        <label className="flex items-center justify-between gap-4 text-sm text-zinc-600">
+      <div ref={controlsRef} className="flex items-end gap-3">
+        <label className="flex flex-col gap-1 font-mono text-[10px] font-bold uppercase tracking-wider text-zinc-400">
           Title
           <input
             ref={titleInputRef}
@@ -162,14 +184,14 @@ export function SelectedPlayerCard({ store, baselineRef }: SelectedPlayerCardPro
             spellCheck={false}
             placeholder="—"
             onChange={(e) => onTitle(e.target.value)}
-            className="h-9 w-16 border border-film-border bg-white text-center font-mono text-sm font-bold uppercase"
+            className="h-9 w-16 border border-film-border bg-white text-center font-mono text-sm font-bold uppercase text-zinc-900 disabled:bg-film-panel disabled:text-zinc-300"
           />
         </label>
         <button
           ref={discButtonRef}
           type="button"
           onClick={onGiveDisc}
-          className="mt-3 w-full border border-film-border bg-white px-4 py-2 font-mono text-xs font-bold uppercase tracking-wider hover:bg-film-panel disabled:cursor-default disabled:text-zinc-400 disabled:hover:bg-white"
+          className="h-9 border border-film-border bg-white px-4 font-mono text-xs font-bold uppercase tracking-wider text-zinc-900 hover:bg-film-panel disabled:cursor-default disabled:bg-film-panel disabled:text-zinc-300 disabled:hover:bg-film-panel"
         >
           Give disc
         </button>

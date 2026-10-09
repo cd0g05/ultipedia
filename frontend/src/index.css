@@ -140,9 +140,30 @@ body {
 .fv-app {
   --fv-chrome: 56px;
 }
+/* Tall compact screens (tablets): leave room under the field for what Explore
+   and Build put there, so nothing needs scrolling. Short screens (phones in
+   landscape) keep the full-size field; there the selected-player panel is pinned
+   to the bottom of the screen instead and the rest scrolls. PLACEHOLDER(fieldview-build):
+   first guesses (docs/fieldview-placeholders.md #22). */
+@media (min-height: 560px) {
+  .fv-app[data-mode="explore"] {
+    --fv-chrome: 190px;
+  }
+}
+@media (min-height: 720px) {
+  .fv-app[data-mode="build"] {
+    --fv-chrome: 450px;
+  }
+}
 @media (min-width: 1280px) and (min-height: 640px) {
-  .fv-app {
+  .fv-app,
+  .fv-app[data-mode] {
     --fv-chrome: 380px;
+  }
+  /* Build's dock (frame strip + frame row, with the selected-player panel beside
+     it) is taller than the other modes', and the field gives way to it. */
+  .fv-app[data-mode="build"] {
+    --fv-chrome: 440px;
   }
 }
 

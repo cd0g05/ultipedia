@@ -59,9 +59,11 @@ export interface FieldViewFrameProps {
   // Desktop top bar, between the tabs and the legend (Build: undo/redo, save
   // state, Share).
   barDesktop?: ReactNode;
-  // Compact layouts only: content under the field (Build: frame strip, actions,
-  // selected-player bar). Desktop uses `dock`.
-  compactDock?: ReactNode;
+  // Content under the field on EVERY layout, rendered once (Explore and Build:
+  // the selected-player panel; Build: also the frame strip). The page lays it out
+  // and may pin parts to the bottom of the screen on compact layouts so the
+  // panel is always in reach. Desktop-only content uses `dock`.
+  panel?: ReactNode;
 }
 
 export function FieldViewFrame({
@@ -80,7 +82,7 @@ export function FieldViewFrame({
   fieldPlaced,
   onFieldGestureEnd,
   barDesktop,
-  compactDock,
+  panel,
 }: FieldViewFrameProps) {
   const overlay = useOverlayState();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -88,6 +90,7 @@ export function FieldViewFrame({
 
   return (
     <div
+      data-mode={mode}
       className="fv-app film-room flex flex-col overflow-hidden bg-film-panel graph-paper"
       style={{ height: "100dvh", ["--fv-stage-aspect" as string]: STAGE_ASPECT } as CSSProperties}
     >
@@ -183,7 +186,7 @@ export function FieldViewFrame({
               </div>
             ))}
           {caption && <div className="w-full shrink-0 px-2 pb-1 pt-2 text-center">{caption}</div>}
-          {compactDock && <div className="mt-2 w-full shrink-0 pb-3 desktop:hidden">{compactDock}</div>}
+          {panel}
           {dock && <div className="mt-4 hidden w-full desktop:block">{dock}</div>}
         </main>
         {sidebar && (
