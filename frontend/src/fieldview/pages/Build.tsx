@@ -101,38 +101,39 @@ export function Build() {
 
   // ── library: open, new, duplicate, delete ───────────────────────────────────
 
-  // A different play was asked for through the route (a click in the list, a
-  // back button): load it. Only a CHANGE of address counts — a re-render while
-  // the router catches up with our own navigation must not reload anything.
-  const seenPlayId = useRef(playId);
+  // The address is the source of truth for WHICH play is open: handlers only
+  // navigate, and this effect loads whatever the address names when it is not
+  // the play already in the session. (A render that still shows the old address
+  // while the router catches up with our own navigation finds the session
+  // already holding that play and does nothing.)
+  const loadFresh = useCallback(() => {
+    flush(false); // the play being left keeps its last edit
+    currentIdRef.current = null;
+    session.loadPlay(newPlay());
+    session.setSaveStatus("new");
+  }, [session, flush]);
+
   useEffect(() => {
-    if (playId !== undefined && !library.get(playId)) {
-      navigate("/fieldview/build", { replace: true });
+    if (playId === (currentIdRef.current ?? undefined)) return;
+    if (playId === undefined) {
+      loadFresh();
+      return;
     }
-    // Once, on arrival: an address for a play that no longer exists.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-  useEffect(() => {
-    if (playId === seenPlayId.current) return;
-    seenPlayId.current = playId;
-    if (playId === undefined || playId === currentIdRef.current) return;
     const entry = library.get(playId);
     if (!entry) {
       navigate("/fieldview/build", { replace: true });
       return;
     }
-    flush(false); // the play being left keeps its last edit
+    flush(false);
     currentIdRef.current = playId;
     session.loadPlay(entry.play);
-  }, [playId, session, navigate, flush]);
+  }, [playId, session, navigate, flush, loadFresh]);
 
   const startNew = useCallback(() => {
-    flush(false);
-    currentIdRef.current = null;
-    session.loadPlay(newPlay());
-    session.setSaveStatus("new");
-    navigate("/fieldview/build");
-  }, [session, navigate, flush]);
+    // Already on an unsaved new play: the address will not change, so start over here.
+    if (playId === undefined) loadFresh();
+    else navigate("/fieldview/build");
+  }, [playId, loadFresh, navigate]);
 
   const openCopy = useCallback(
     (source: Play, name?: string) => {
@@ -176,6 +177,11 @@ export function Build() {
       onDelete={(id) => {
         const entry = library.get(id);
         if (!entry) return;
+        if (id === currentIdRef.current && pendingRef.current) {
+          // Its last edit must not write the play back after it is deleted.
+          window.clearTimeout(pendingRef.current.timer);
+          pendingRef.current = null;
+        }
         library.remove(id);
         setNotice({ text: `Deleted “${entry.play.name}”.`, undo: () => library.restore(entry) });
         if (id === currentIdRef.current) startNew();
