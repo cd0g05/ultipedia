@@ -1,7 +1,7 @@
 {
  "formatVersion": 3,
  "name": "Horizontal Stack 2",
- "description": "Wide and flat: the middle opens up.",
+ "description": "Wide and flat, the handler a touch off-centre: the middle still opens up.",
  "players": [
   {
    "id": "o1",
