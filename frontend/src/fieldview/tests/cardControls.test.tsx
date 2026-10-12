@@ -35,11 +35,15 @@ const titleInput = () => screen.getByRole("textbox", { name: "Player title" }) a
 const discButton = () => screen.getByRole("button", { name: /give disc|has the disc/i }) as HTMLButtonElement;
 
 describe("title", () => {
-  it("is hidden until a player is selected, then edits that player's title (trimmed, uppercased, two characters)", async () => {
+  it("is always there but greyed out until a player is selected, then edits that player's title (trimmed, uppercased, two characters)", async () => {
     const { store, select } = setup();
-    expect(screen.getByLabelText("Player title").closest("div")!.style.display).toBe("none");
+    expect(screen.getByLabelText("Player title")).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Give disc" })).toBeDisabled();
+    expect(screen.getByTestId("selected-player-card")).toHaveAttribute("data-empty", "true");
     select("o3");
     await rAF();
+    expect(titleInput()).toBeEnabled();
+    expect(screen.getByTestId("selected-player-card")).toHaveAttribute("data-empty", "false");
     fireEvent.change(titleInput(), { target: { value: " abc " } });
     expect(store.getScene().players.find((p) => p.id === "o3")!.label).toBe("AB");
     // Others are untouched.

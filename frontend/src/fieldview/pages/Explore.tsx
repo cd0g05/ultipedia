@@ -166,7 +166,13 @@ export function Explore() {
             </div>
           </div>
         }
-        dock={<SelectedPlayerCard store={store} baselineRef={baselineRef} />}
+        // Always on screen under the field (greyed out until a player is
+        // selected); on compact layouts it is pinned to the bottom of the screen.
+        panel={
+          <div className="sticky bottom-0 z-10 mt-2 w-full shrink-0 bg-film-panel pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-1 desktop:static desktop:mt-4 desktop:pb-0 desktop:pt-0">
+            <SelectedPlayerCard store={store} baselineRef={baselineRef} />
+          </div>
+        }
       />
       <SetupSlideOver
         open={listOpen}
