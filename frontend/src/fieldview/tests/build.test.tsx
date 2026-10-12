@@ -368,3 +368,29 @@ describe("Build — accessibility", () => {
     expect(screen.getAllByRole("textbox", { name: "Label" })[0]).toBeInTheDocument();
   });
 });
+
+describe("Build — desktop layout (as in the mockup)", () => {
+  it("has three cards under the field — Frame, Selected player, Preview — with the timeline below them", () => {
+    renderBuild();
+    for (const name of ["Frame", "Selected player", "Preview"]) {
+      expect(screen.getByRole("group", { name })).toBeInTheDocument();
+    }
+    const cards = ["Frame", "Selected player", "Preview"].map((n) => screen.getByRole("group", { name: n }));
+    const strip = screen.getAllByTestId("frame-strip")[0];
+    // Document order is the compact order; the desktop order is set with CSS grid
+    // `order` — the three cards must at least all sit in the one panel with the strip.
+    const panel = strip.closest(".contents")!;
+    for (const card of cards) expect(panel.contains(card)).toBe(true);
+  });
+
+  it("the plays sidebar opens and closes from the top bar", () => {
+    renderBuild();
+    expect(document.getElementById("fv-sidebar")).not.toBeNull();
+    const toggle = screen.getByRole("button", { name: "Plays", pressed: true });
+    fireEvent.click(toggle);
+    expect(document.getElementById("fv-sidebar")).toBeNull();
+    expect(screen.getByRole("button", { name: "Plays", pressed: false })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Plays", pressed: false }));
+    expect(document.getElementById("fv-sidebar")).not.toBeNull();
+  });
+});

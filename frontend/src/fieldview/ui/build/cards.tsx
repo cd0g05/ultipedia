@@ -35,9 +35,9 @@ export function FrameActions({
   session: BuildSession;
   small?: boolean;
 }) {
-  const b = small ? `${BTN} h-9` : BTN;
+  const b = small ? `${BTN} h-9 px-2 text-[11px] tracking-normal` : BTN;
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className={small ? "flex gap-1.5 [&>button]:flex-1 [&>button]:px-1" : "flex flex-wrap gap-2"}>
       <button type="button" className={b} onClick={() => session.apply((p, i) => duplicateFrame(p, i))}>
         Duplicate
       </button>
@@ -66,32 +66,31 @@ export function FrameActions({
 // PLACEHOLDER(fieldview-build): this copy is a stand-in (docs/fieldview-placeholders.md #23).
 const NO_CHANGES = "No changes — same as the previous frame.";
 
-// The desktop frame controls: one row under the strip — which frame, its label,
-// its actions and the preview. One row (not cards) so the whole Build dock fits
-// under the field without scrolling.
-export function FrameBar({
+// The Frame card (mockup: the left of three cards under the field): which
+// frame, its label, and its actions. A row on compact layouts, a square-ish card
+// on desktop.
+export function FrameCard({
   play,
   frameIndex,
   session,
   previewing,
-  onPlayAll,
-  onFromHere,
-  onStop,
 }: {
   play: Play;
   frameIndex: number;
   session: BuildSession;
   previewing: boolean;
-  onPlayAll: () => void;
-  onFromHere: () => void;
-  onStop: () => void;
 }) {
   const frame = play.frames[frameIndex];
   const badge = badgeFor(play, frameIndex);
   const count = play.frames.length;
   return (
-    <div role="group" aria-label="Frame" className="flex flex-wrap items-center gap-x-3 gap-y-2 border border-film-border bg-white px-3 py-2">
-      <div {...(previewing ? { inert: "" } : {})} className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-2">
+    <div
+      role="group"
+      aria-label="Frame"
+      {...(previewing ? { inert: "" } : {})}
+      className="flex h-full flex-wrap items-center gap-x-3 gap-y-2 border border-film-border bg-white px-3 py-2 desktop:flex-col desktop:items-stretch desktop:justify-between desktop:gap-2"
+    >
+      <div className="flex min-w-0 items-center justify-between gap-2">
         <h2 className="whitespace-nowrap font-mono text-[10px] font-bold uppercase tracking-wider text-zinc-400">
           Frame {frameIndex + 1} of {count}
         </h2>
@@ -101,43 +100,74 @@ export function FrameBar({
         >
           {frameIndex === 0 ? "Starting positions" : badge || "No changes"}
         </span>
-        <label className="sr-only" htmlFor="frame-label">
-          Label
-        </label>
-        {/* Committed on blur/Enter so a label is one undo step, not one per key. */}
-        <input
-          id="frame-label"
-          key={`${frameIndex}-${frame.label ?? ""}`}
-          type="text"
-          maxLength={MAX_LABEL_LENGTH}
-          defaultValue={frame.label ?? ""}
-          placeholder={`Label · Frame ${frameIndex + 1}`}
-          onBlur={(e) => {
-            if (e.target.value !== (frame.label ?? "")) session.apply((p, i) => setFrameLabel(p, i, e.target.value));
-          }}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") (e.target as HTMLInputElement).blur();
-          }}
-          className="h-9 w-40 min-w-0 border border-film-border bg-white px-2 text-sm"
-        />
-        <FrameActions play={play} frameIndex={frameIndex} session={session} small />
       </div>
-      <div className="flex gap-2">
+      <label className="sr-only" htmlFor="frame-label">
+        Label
+      </label>
+      {/* Committed on blur/Enter so a label is one undo step, not one per key. */}
+      <input
+        id="frame-label"
+        key={`${frameIndex}-${frame.label ?? ""}`}
+        type="text"
+        maxLength={MAX_LABEL_LENGTH}
+        defaultValue={frame.label ?? ""}
+        placeholder={`Label · Frame ${frameIndex + 1}`}
+        onBlur={(e) => {
+          if (e.target.value !== (frame.label ?? "")) session.apply((p, i) => setFrameLabel(p, i, e.target.value));
+        }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+        }}
+        className="h-9 w-40 min-w-0 border border-film-border bg-white px-2 text-sm desktop:w-full"
+      />
+      <FrameActions play={play} frameIndex={frameIndex} session={session} small />
+    </div>
+  );
+}
+
+// The Preview card (the right of the three): watch the play from the start or
+// from this frame, with the same transitions as Watch.
+export function PreviewCard({
+  frameIndex,
+  frameCount,
+  previewing,
+  onPlayAll,
+  onFromHere,
+  onStop,
+}: {
+  frameIndex: number;
+  frameCount: number;
+  previewing: boolean;
+  onPlayAll: () => void;
+  onFromHere: () => void;
+  onStop: () => void;
+}) {
+  return (
+    <div
+      role="group"
+      aria-label="Preview"
+      className="flex h-full flex-wrap items-center gap-x-3 gap-y-2 border border-film-border bg-white px-3 py-2 desktop:flex-col desktop:items-stretch desktop:justify-between desktop:gap-2"
+    >
+      <h2 className="font-mono text-[10px] font-bold uppercase tracking-wider text-zinc-400">Preview</h2>
+      <div className="flex gap-2 desktop:w-full">
         {previewing ? (
-          <button type="button" className={`${BTN_PRIMARY} h-9`} onClick={onStop}>
+          <button type="button" className={`${BTN_PRIMARY} h-9 flex-1`} onClick={onStop}>
             Stop
           </button>
         ) : (
           <>
-            <button type="button" className={`${BTN_PRIMARY} h-9`} disabled={count < 2} onClick={onPlayAll}>
+            <button type="button" className={`${BTN_PRIMARY} h-9 flex-1`} disabled={frameCount < 2} onClick={onPlayAll}>
               Play all
             </button>
-            <button type="button" className={`${BTN} h-9`} disabled={frameIndex >= count - 1} onClick={onFromHere}>
+            <button type="button" className={`${BTN} h-9 flex-1`} disabled={frameIndex >= frameCount - 1} onClick={onFromHere}>
               From frame {frameIndex + 1}
             </button>
           </>
         )}
       </div>
+      <p className="hidden text-xs text-zinc-600 desktop:block">
+        Same transitions as Watch. Everything in a frame starts and arrives together.
+      </p>
     </div>
   );
 }

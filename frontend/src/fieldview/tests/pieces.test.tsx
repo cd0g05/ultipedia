@@ -163,11 +163,11 @@ describe("piece size per device", () => {
     expect(css).toMatch(/\.fv-piece-body\s*\{\s*transform:\s*scale\(var\(--fv-piece-scale/);
   });
 
-  it("is 85% on a phone, 70% from 1000 px and 50% at the desktop breakpoint", () => {
+  it("is 85% on a phone, 70% from 1000 px and 50% at the desktop layout", () => {
     expect(css).toMatch(/:root\s*\{\s*--fv-piece-scale:\s*0\.85;/);
     expect(css).toMatch(/@media \(min-width: 1000px\)\s*\{\s*:root\s*\{\s*--fv-piece-scale:\s*0\.7;/);
     expect(css).toMatch(
-      /@media \(min-width: 1280px\) and \(min-height: 640px\)\s*\{\s*:root\s*\{\s*--fv-piece-scale:\s*0\.5;/,
+      /@media \(min-width: 1100px\) and \(min-height: 600px\)\s*\{\s*:root\s*\{\s*--fv-piece-scale:\s*0\.5;/,
     );
   });
 

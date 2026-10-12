@@ -6,9 +6,9 @@ export default {
       screens: {
         // Field View's desktop chrome (sidebar, dock, site header). One named
         // switch so the rule lives in one place (fieldview-ui-rework ADR-30).
-        // PLACEHOLDER(fieldview-ui-rework): thresholds are first guesses; tune in
+        // PLACEHOLDER(fieldview-ui-rework): thresholds are first guesses (now 1100×600: laptops with a narrow window were getting the compact layout); tune in
         // the real-device pass (docs/fieldview-placeholders.md #14).
-        desktop: { raw: "(min-width: 1280px) and (min-height: 640px)" },
+        desktop: { raw: "(min-width: 1100px) and (min-height: 600px)" },
       },
       colors: {
         // Intake palette (warm, vibrant-but-not-bold) — used by /contribute
