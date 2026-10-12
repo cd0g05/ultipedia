@@ -1,8 +1,7 @@
 {
- "_placeholder": true,
  "formatVersion": 3,
- "name": "Deep help",
- "description": "One cutter deep, the rest underneath — watch the help defender sag.",
+ "name": "Horizontal Stack 3",
+ "description": "The handler swings to the break side \u2014 watch the space it opens.",
  "players": [
   {
    "id": "o1",
@@ -65,63 +64,63 @@
   {
    "moved": {
     "o1": {
-     "x": 40,
-     "y": 20
+     "x": 41.5,
+     "y": 15.14
     },
     "d1": {
-     "x": 39,
-     "y": 22
+     "x": 42.9,
+     "y": 13.82
     },
     "o2": {
-     "x": 50,
-     "y": 10
+     "x": 41.29,
+     "y": 26.49
     },
     "d2": {
-     "x": 48,
-     "y": 11
+     "x": 52.3,
+     "y": 13.0
     },
     "o3": {
-     "x": 50,
-     "y": 30
+     "x": 41.42,
+     "y": 3.43
     },
     "d3": {
-     "x": 48,
-     "y": 29
+     "x": 41.17,
+     "y": 5.28
     },
     "o4": {
-     "x": 56,
-     "y": 14
+     "x": 54.07,
+     "y": 4.87
     },
     "d4": {
-     "x": 54,
-     "y": 15
+     "x": 45.31,
+     "y": 22.5
     },
     "o5": {
-     "x": 56,
-     "y": 26
+     "x": 53.81,
+     "y": 13.73
     },
     "d5": {
-     "x": 54,
-     "y": 25
+     "x": 52.82,
+     "y": 4.47
     },
     "o6": {
-     "x": 62,
-     "y": 20
+     "x": 56.16,
+     "y": 22.8
     },
     "d6": {
-     "x": 60,
-     "y": 20
+     "x": 54.06,
+     "y": 21.5
     },
     "o7": {
-     "x": 82,
-     "y": 20
+     "x": 58.98,
+     "y": 30.12
     },
     "d7": {
-     "x": 76,
-     "y": 20
+     "x": 64.48,
+     "y": 24.28
     }
    },
-   "holder": "o1"
+   "holder": "o3"
   }
  ]
 }

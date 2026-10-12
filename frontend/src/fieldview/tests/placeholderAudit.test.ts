@@ -77,15 +77,17 @@ describe("placeholder register", () => {
   });
 
   // Built-in files the Builder has authored for real (exported from Build): they
-  // are no longer placeholders and carry no `_placeholder` key. Add a file here
-  // when it is replaced with real content, and tick it off in the register.
-  const AUTHORED = new Set(["setups/02-horizontalStack.json"]);
+  // are no longer placeholders and carry no `_placeholder` key. Every setup is
+  // authored now (play/builtin/setups/); the multi-frame plays are still toy.
+  // Add a path here when a file is replaced with real content, and update the
+  // register.
+  const AUTHORED = new Set(["play/builtin/setups/"]);
 
   it("the toy plays carry the _placeholder key the audit looks for (unless authored for real)", () => {
     const plays = files.filter((f) => f.includes("play/builtin/") && f.endsWith(".json"));
     expect(plays.length).toBeGreaterThanOrEqual(3);
     for (const f of plays) {
-      const authored = [...AUTHORED].some((a) => f.endsWith(a));
+      const authored = [...AUTHORED].some((a) => f.includes(a));
       const key = JSON.parse(readFileSync(f, "utf8"))._placeholder;
       if (authored) expect(key, `${f} is authored; it must not be marked placeholder`).toBeUndefined();
       else expect(key, f).toBe(true);
