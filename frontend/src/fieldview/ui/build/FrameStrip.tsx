@@ -67,7 +67,7 @@ export function FrameStrip({ play, version, frameIndex, onSelect, onAdd, onDelet
       role="group"
       aria-label="Frames"
       onKeyDown={onKeyDown}
-      className="flex gap-3 overflow-x-auto pb-3"
+      className="flex gap-3 overflow-x-auto pb-1"
     >
       {play.frames.map((frame, i) => {
         const active = i === frameIndex;
@@ -80,8 +80,7 @@ export function FrameStrip({ play, version, frameIndex, onSelect, onAdd, onDelet
             aria-label={`Frame ${i + 1}${frame.label ? `: ${frame.label}` : ""}`}
             aria-current={active ? "step" : undefined}
             onClick={() => onSelect(i)}
-            style={{ flex: "0 0 calc((100% - 2.25rem) / 4)" }}
-            className={`relative border bg-white p-2 text-left ${
+            className={`relative flex-none basis-[calc((100%-2.25rem)/4)] desktop:basis-[calc((100%-3.75rem)/6)] border bg-white p-2 text-left ${
               active ? "border-film-accentPink ring-1 ring-film-accentPink" : "border-film-border hover:bg-film-panel"
             }`}
           >
@@ -113,8 +112,7 @@ export function FrameStrip({ play, version, frameIndex, onSelect, onAdd, onDelet
         onClick={onAdd}
         disabled={full}
         aria-label="Add frame"
-        style={{ flex: "0 0 calc((100% - 2.25rem) / 4)" }}
-        className="grid min-h-[6rem] place-items-center border border-dashed border-zinc-400 bg-white font-mono text-xs font-bold uppercase tracking-wider text-zinc-600 hover:bg-film-panel disabled:cursor-not-allowed disabled:text-zinc-300"
+        className="grid min-h-[5rem] flex-none basis-[calc((100%-2.25rem)/4)] desktop:basis-[calc((100%-3.75rem)/6)] place-items-center border border-dashed border-zinc-400 bg-white font-mono text-xs font-bold uppercase tracking-wider text-zinc-600 hover:bg-film-panel disabled:cursor-not-allowed disabled:text-zinc-300"
       >
         + Add frame
       </button>

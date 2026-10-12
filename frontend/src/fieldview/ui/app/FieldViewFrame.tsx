@@ -38,6 +38,9 @@ export interface FieldViewFrameProps {
   barRight?: ReactNode;
   // Desktop right sidebar content.
   sidebar?: ReactNode;
+  // When set, a desktop button with this label opens and closes the sidebar
+  // (it starts open). Without it the sidebar is always open.
+  collapsibleSidebar?: string;
   // A line directly under the field on every layout (Watch: the frame label).
   caption?: ReactNode;
   // Desktop content under the field.
@@ -71,6 +74,7 @@ export function FieldViewFrame({
   barCenter,
   barRight,
   sidebar,
+  collapsibleSidebar,
   caption,
   dock,
   menuExtras,
@@ -87,6 +91,11 @@ export function FieldViewFrame({
   const overlay = useOverlayState();
   const [menuOpen, setMenuOpen] = useState(false);
   const [guideOpen, setGuideOpen] = useState(false);
+  // The collapsible sidebar starts open where there is room for it beside the
+  // field, and closed on narrower desktop windows.
+  const [sidebarOpen, setSidebarOpen] = useState(
+    () => typeof window.matchMedia !== "function" || window.matchMedia("(min-width: 1400px)").matches,
+  );
 
   return (
     <div
@@ -157,6 +166,19 @@ export function FieldViewFrame({
         </div>
         <div className="hidden flex-1 desktop:block" />
         {barDesktop && <div className="hidden items-center gap-3 desktop:flex">{barDesktop}</div>}
+        {sidebar && collapsibleSidebar && (
+          <button
+            type="button"
+            aria-pressed={sidebarOpen}
+            aria-controls="fv-sidebar"
+            onClick={() => setSidebarOpen((o) => !o)}
+            className={`hidden h-10 items-center border px-3 font-mono text-xs font-bold uppercase tracking-wider desktop:inline-flex ${
+              sidebarOpen ? "border-zinc-900 bg-zinc-900 text-white" : "border-film-border bg-white text-zinc-900 hover:bg-film-panel"
+            }`}
+          >
+            {collapsibleSidebar}
+          </button>
+        )}
 
         <Legend colourBlind={overlay.colourBlind} onOpenGuide={() => setGuideOpen(true)} />
         <div className="flex shrink-0 items-center gap-2 desktop:hidden">{barRight}</div>
@@ -189,8 +211,9 @@ export function FieldViewFrame({
           {panel}
           {dock && <div className="mt-4 hidden w-full desktop:block">{dock}</div>}
         </main>
-        {sidebar && (
+        {sidebar && (!collapsibleSidebar || sidebarOpen) && (
           <aside
+            id="fv-sidebar"
             aria-label="Sidebar"
             className="hidden w-80 shrink-0 overflow-y-auto border-l border-film-border bg-white desktop:block"
           >

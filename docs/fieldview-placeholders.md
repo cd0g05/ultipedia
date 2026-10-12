@@ -40,7 +40,7 @@ Status: `open` = Builder must supply/confirm · `toy` = a development stand-in e
 |---|---|---|---|---|---|---|
 | 12 | **Piece radius** | 11.5 SVG units (≈21 px on a phone) — **in code**, marked `PLACEHOLDER` in `render/tokens.ts` (`PIECE_TOKENS`) | `render/tokens.ts` | Real-phone check in a huddle-distance context | P1/P5 | tune (in code) |
 | 13 | **Touch grab radius and lift distance** | target 44 px (`TOUCH_TARGET_PX`) and lift 30 units (`TOUCH_TOKENS.liftPx`) — **in code** | `render/pick.ts`, `render/tokens.ts` | Real-device check (`docs/fieldview-device-qa.md`) | P5 | tune (in code) |
-| 14 | **`desktop` breakpoint** | ≥1280 × ≥640 px — **in code** (also `--fv-chrome` in `index.css`) | `tailwind.config.js` | Real tablet/laptop check (canon already says the old 1024 px was never validated) | P2/P5 | tune |
+| 14 | **`desktop` breakpoint** | ≥1100 × ≥600 px (was 1280 × 640; lowered 2026-10-12 because a laptop window narrower than 1280 showed the phone layout) — **in code** (also `--fv-chrome` in `index.css`) | `tailwind.config.js` | Real tablet/laptop check (canon already says the old 1024 px was never validated) | P2/P5 | tune |
 | 15 | **Colour-blind palette** | orange `#e8731a` → neutral `#f3efe3` → blue `#2f7fd6` — **in code** | `space/constants.ts` (`CB_RAMP_STOPS`) | Confirm the colours (ideally check with a colour-blind player) | P2 | tune |
 | 16 | **Heat opacity / field look** | Existing `HEATMAP_ALPHA` 0.78 — marked in code | `render/heatmap.ts` | By-eye on sun/glare | P5 | tune (in code) |
 | 17 | **Playback feel** | speeds 0.5× / 1× / 2×; transition 1.2 s; hold 0.4 s — **in code** | `ui/playback/playback.ts` | Feel check | P4 | tune (in code) |

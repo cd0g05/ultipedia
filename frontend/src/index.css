@@ -91,7 +91,7 @@ body {
     --fv-piece-scale: 0.7;
   }
 }
-@media (min-width: 1280px) and (min-height: 640px) {
+@media (min-width: 1100px) and (min-height: 600px) {
   :root {
     --fv-piece-scale: 0.5;
   }
@@ -155,7 +155,7 @@ body {
     --fv-chrome: 450px;
   }
 }
-@media (min-width: 1280px) and (min-height: 640px) {
+@media (min-width: 1100px) and (min-height: 600px) {
   .fv-app,
   .fv-app[data-mode] {
     --fv-chrome: 380px;
@@ -163,7 +163,7 @@ body {
   /* Build's dock (frame strip + frame row, with the selected-player panel beside
      it) is taller than the other modes', and the field gives way to it. */
   .fv-app[data-mode="build"] {
-    --fv-chrome: 440px;
+    --fv-chrome: 460px;
   }
 }
 

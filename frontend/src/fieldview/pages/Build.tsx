@@ -18,7 +18,7 @@ import { playFromFileText } from "../play/share";
 import { PlayValidationError } from "../play/validate";
 import { FieldViewFrame } from "../ui/app/FieldViewFrame";
 import { useFieldViewApp } from "../ui/app/FieldViewApp";
-import { BuildPlayerCard, FrameBar, PlayMeta } from "../ui/build/cards";
+import { BuildPlayerCard, FrameCard, PlayMeta, PreviewCard } from "../ui/build/cards";
 import { BTN_PRIMARY, FrameChip, SavePill, UndoRedo } from "../ui/build/controls";
 import { FrameStrip } from "../ui/build/FrameStrip";
 import { LibraryList } from "../ui/build/LibraryList";
@@ -303,32 +303,47 @@ export function Build() {
           </>
         }
         sidebar={
+          // The plays list, the play's name and description, and Share — as in
+          // the approved mockup. It can be closed from the top bar.
           <div className="flex min-h-full flex-col">
-            <section aria-label="Play" className="border-b border-film-border">
+            {libraryPanel}
+            <section aria-label="Play" className="border-t border-film-border">
               <h2 className="px-4 pb-2 pt-4 font-mono text-[10px] font-bold uppercase tracking-wider text-zinc-400">Play</h2>
               <PlayMeta play={play} session={session} />
             </section>
-            {libraryPanel}
+            <section aria-label="Share" className="border-t border-film-border">
+              <h2 className="px-4 pb-2 pt-4 font-mono text-[10px] font-bold uppercase tracking-wider text-zinc-400">Share</h2>
+              <div className="px-4 pb-4">
+                <button type="button" className={`${BTN_PRIMARY} w-full`} onClick={() => setShareOpen(true)}>
+                  Share link, QR or file
+                </button>
+              </div>
+            </section>
           </div>
         }
-        // Under the field on every layout. Compact: the frame strip and frame
-        // row scroll with the page, the selected-player panel is pinned to the
-        // bottom of the screen. Desktop: two thirds frames, one third the player.
+        collapsibleSidebar="Plays"
+        // Under the field on every layout. Desktop (as in the mockup): three
+        // cards — Frame, Selected player, Preview — with the frame timeline,
+        // smaller, beneath them. Compact: the timeline, the frame and preview
+        // rows scroll with the page and the selected-player panel is pinned to
+        // the bottom of the screen.
         panel={
-          <div className="contents desktop:mt-4 desktop:grid desktop:w-full desktop:grid-cols-3 desktop:items-stretch desktop:gap-4">
-            <div className="mt-2 flex w-full min-w-0 shrink-0 flex-col gap-2 px-1 desktop:col-span-2 desktop:mt-0 desktop:px-0">
-              {strip}
-              <FrameBar
-                play={play}
+          <div className="contents desktop:mt-3 desktop:grid desktop:w-full desktop:grid-cols-3 desktop:items-stretch desktop:gap-3">
+            <div className="order-1 mt-2 w-full min-w-0 shrink-0 px-1 desktop:order-4 desktop:col-span-3 desktop:mt-0 desktop:px-0">{strip}</div>
+            <div className="order-2 mt-2 w-full min-w-0 shrink-0 px-1 desktop:order-1 desktop:mt-0 desktop:px-0">
+              <FrameCard play={play} frameIndex={frameIndex} session={session} previewing={previewing} />
+            </div>
+            <div className="order-3 mt-2 w-full min-w-0 shrink-0 px-1 desktop:order-3 desktop:mt-0 desktop:px-0">
+              <PreviewCard
                 frameIndex={frameIndex}
-                session={session}
+                frameCount={play.frames.length}
                 previewing={previewing}
                 onPlayAll={() => startPreview(0)}
                 onFromHere={() => startPreview(frameIndex)}
                 onStop={stopPreview}
               />
             </div>
-            <div className="sticky bottom-0 z-10 mt-2 w-full min-w-0 shrink-0 bg-film-panel px-1 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-1 desktop:static desktop:mt-0 desktop:px-0 desktop:pb-3 desktop:pt-0">
+            <div className="sticky bottom-0 z-10 order-4 mt-2 w-full min-w-0 shrink-0 bg-film-panel px-1 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-1 desktop:static desktop:order-2 desktop:mt-0 desktop:bg-transparent desktop:px-0 desktop:pb-0 desktop:pt-0">
               {playerCard(false)}
             </div>
           </div>

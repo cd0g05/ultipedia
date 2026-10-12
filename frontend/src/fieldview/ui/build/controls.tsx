@@ -54,7 +54,7 @@ export function SavePill({ status }: { status: SaveStatus }) {
       role="status"
       data-testid="save-status"
       data-status={status}
-      className={`hidden h-10 items-center border border-transparent px-2 font-mono text-[11px] font-bold uppercase tracking-wider desktop:inline-flex ${tone}`}
+      className={`hidden h-10 items-center border border-transparent px-2 font-mono text-[11px] font-bold uppercase tracking-wider min-[1280px]:inline-flex ${tone}`}
     >
       {SAVE_COPY[status]}
     </span>
