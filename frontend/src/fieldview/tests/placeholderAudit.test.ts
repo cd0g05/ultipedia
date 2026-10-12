@@ -76,9 +76,19 @@ describe("placeholder register", () => {
     expect(orphans, `register rows with no marker in code: ${orphans.join(", ")}`).toEqual([]);
   });
 
-  it("the toy plays carry the _placeholder key the audit looks for", () => {
+  // Built-in files the Builder has authored for real (exported from Build): they
+  // are no longer placeholders and carry no `_placeholder` key. Add a file here
+  // when it is replaced with real content, and tick it off in the register.
+  const AUTHORED = new Set(["setups/02-horizontalStack.json"]);
+
+  it("the toy plays carry the _placeholder key the audit looks for (unless authored for real)", () => {
     const plays = files.filter((f) => f.includes("play/builtin/") && f.endsWith(".json"));
     expect(plays.length).toBeGreaterThanOrEqual(3);
-    for (const f of plays) expect(JSON.parse(readFileSync(f, "utf8"))._placeholder, f).toBe(true);
+    for (const f of plays) {
+      const authored = [...AUTHORED].some((a) => f.endsWith(a));
+      const key = JSON.parse(readFileSync(f, "utf8"))._placeholder;
+      if (authored) expect(key, `${f} is authored; it must not be marked placeholder`).toBeUndefined();
+      else expect(key, f).toBe(true);
+    }
   });
 });
