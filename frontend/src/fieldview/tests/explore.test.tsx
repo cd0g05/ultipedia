@@ -72,16 +72,16 @@ describe("setups", () => {
 
   it("▶ loads the next setup, ◀ goes back, and both wrap", () => {
     renderExplore();
-    const before = transformOf("Offense 2");
+    const before = transformOf("Offense 3");
     fireEvent.click(screen.getByRole("button", { name: "Next setup" }));
-    const second = transformOf("Offense 2");
+    const second = transformOf("Offense 3");
     expect(second).not.toBe(before);
     expect(screen.getByRole("button", { name: "Choose a setup" })).toHaveTextContent(
       CURATED_SETUPS[1].label,
     );
 
     fireEvent.click(screen.getByRole("button", { name: "Previous setup" }));
-    expect(transformOf("Offense 2")).toBe(before);
+    expect(transformOf("Offense 3")).toBe(before);
 
     // Wrap backwards from the first to the last.
     fireEvent.click(screen.getByRole("button", { name: "Previous setup" }));
