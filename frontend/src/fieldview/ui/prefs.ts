@@ -35,6 +35,10 @@ export interface OverlayPrefs {
   // it yet (behaviour deferred, ADR-33 reserved).
   colourBlind: boolean;
   defenseFollows: boolean;
+  // Whether the space colours are painted at all. They are the point of Explore
+  // but a distraction when designing or watching a play, so they can be turned
+  // off (the legend is the switch). `on` above is the retired old-UI flag.
+  heat: boolean;
 }
 
 export const DEFAULT_PREFS: OverlayPrefs = {
@@ -47,6 +51,7 @@ export const DEFAULT_PREFS: OverlayPrefs = {
   visible: { offense: true, defense: true },
   colourBlind: false,
   defenseFollows: false,
+  heat: true,
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -87,6 +92,7 @@ export function parsePrefs(raw: unknown): OverlayPrefs {
 
   return {
     on: typeof raw.on === "boolean" ? raw.on : DEFAULT_PREFS.on,
+    heat: typeof raw.heat === "boolean" ? raw.heat : DEFAULT_PREFS.heat,
     colourBlind: typeof raw.colourBlind === "boolean" ? raw.colourBlind : DEFAULT_PREFS.colourBlind,
     defenseFollows:
       typeof raw.defenseFollows === "boolean" ? raw.defenseFollows : DEFAULT_PREFS.defenseFollows,
@@ -196,6 +202,7 @@ export interface OverlayState extends OverlayPrefs {
   setMotionParam: (param: keyof MotionParams, value: number) => void;
   setAdvancedExpanded: (expanded: boolean) => void;
   setVisible: (team: keyof TeamVisibility, shown: boolean) => void;
+  setHeat: (heat: boolean) => void;
   setColourBlind: (colourBlind: boolean) => void;
   setDefenseFollows: (defenseFollows: boolean) => void;
   resetParams: () => void;
@@ -244,6 +251,7 @@ export function useOverlayState(): OverlayState {
   const prefs = useSyncExternalStore(subscribe, getSnapshot);
 
   const setOn = useCallback((on: boolean) => setPrefsState((p) => ({ ...p, on })), []);
+  const setHeat = useCallback((heat: boolean) => setPrefsState((p) => ({ ...p, heat })), []);
   const setColourBlind = useCallback(
     (colourBlind: boolean) => setPrefsState((p) => ({ ...p, colourBlind })),
     [],
@@ -299,6 +307,7 @@ export function useOverlayState(): OverlayState {
     setMotionParam,
     setAdvancedExpanded,
     setVisible,
+    setHeat,
     setColourBlind,
     setDefenseFollows,
     resetParams,
