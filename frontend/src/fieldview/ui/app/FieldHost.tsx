@@ -40,7 +40,7 @@ export function FieldHost({ disabled = false, onTap, overlayLayer, placed, onGes
         players={identity.filter((p) => overlay.visible[p.team])}
         svgRef={svgRef}
         overlay={{
-          on: true,
+          on: overlay.heat,
           lens: overlay.lens,
           layers: overlay.layers,
           params: overlay.params,

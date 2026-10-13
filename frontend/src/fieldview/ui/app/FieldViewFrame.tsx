@@ -180,7 +180,12 @@ export function FieldViewFrame({
           </button>
         )}
 
-        <Legend colourBlind={overlay.colourBlind} onOpenGuide={() => setGuideOpen(true)} />
+        <Legend
+          colourBlind={overlay.colourBlind}
+          heat={overlay.heat}
+          onToggleHeat={() => overlay.setHeat(!overlay.heat)}
+          onOpenGuide={() => setGuideOpen(true)}
+        />
         <div className="flex shrink-0 items-center gap-2 desktop:hidden">{barRight}</div>
         <div className="hidden desktop:block">
           <SettingsPopover colourBlind={overlay.colourBlind} onColourBlind={overlay.setColourBlind} />
