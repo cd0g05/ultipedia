@@ -56,7 +56,7 @@ Status: `open` = Builder must supply/confirm · `toy` = a development stand-in e
 
 | # | Area | What's placeholder | Where | Builder must supply | Partition | Status |
 |---|---|---|---|---|---|---|
-| 20 | **New-play defaults** | A new play is named "Untitled play" and starts as the vertical-stack setup with unnamed players | `play/model.ts` `newPlay()` (`PLACEHOLDER(fieldview-build)`) | Final default name and starting formation | fieldview-build P1 | open (toy in code) |
+| 20 | **New-play defaults** | A new play is named "Untitled play" and starts as Vertical Stack 1 (the default layout everywhere; decided 2026-10-12) with unnamed players | `play/model.ts` `newPlay()` (`PLACEHOLDER(fieldview-build)`) | Final default name | fieldview-build P1 | open (toy in code) |
 | 21 | **Disc-holder ring colour** | Emerald ring (`#047857`) around the player holding the disc | `render/tokens.ts` `PIECE_TOKENS.holder` (`PLACEHOLDER(fieldview-build)`) | Final colour (confirm it reads on the heatmap and for colour-blind users) | fieldview-build P2 | tune |
 | 22 | **Piece sizes per device** | Phone 85%, tablet 70% (from 1000 px wide), desktop 50%; titles never below 65% | `index.css` `--fv-piece-scale` (`PLACEHOLDER(fieldview-build)`) | Sizes confirmed on real devices | fieldview-build P2 | tune |
 | 23 | **Build copy** | Save-state wording, "No changes — same as the previous frame.", "Select a player to name them…", the empty-state lines | `ui/build/controls.tsx`, `ui/build/cards.tsx` (`PLACEHOLDER(fieldview-build)`) | Final copy | fieldview-build P3 | open (toy in code) |

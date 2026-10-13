@@ -14,7 +14,7 @@ import { HelmetProvider } from "react-helmet-async";
 import { createSceneStore } from "../../scene/store";
 import type { SceneStore } from "../../scene/store";
 import type { Scene } from "../../scene/types";
-import { BUILTIN_SETUPS } from "../../play/plays";
+import { defaultSetup } from "../../play/plays";
 import { toScene } from "../../play/model";
 import type { PieceIdentity } from "../../render/pieceLayer";
 import { MotionDriverProvider } from "../motion/driverContext";
@@ -40,10 +40,9 @@ export function useFieldViewApp(): FieldViewAppValue {
   return value;
 }
 
-// The scene the app opens on until a mode page loads its own: the first
-// built-in setup. PLACEHOLDER(fieldview-build): whichever setup the Builder puts
-// first (docs/fieldview-placeholders.md #1).
-const openingScene = () => toScene(BUILTIN_SETUPS[0], 0);
+// The scene the app opens on until a mode page loads its own: the default
+// setup (Vertical Stack 1).
+const openingScene = () => toScene(defaultSetup(), 0);
 
 export function FieldViewApp() {
   const storeRef = useRef<SceneStore | null>(null);

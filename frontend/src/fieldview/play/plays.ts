@@ -68,4 +68,11 @@ if (problems.length > 0 && typeof console !== "undefined") {
 
 export const BUILTIN_PLAYS: readonly Play[] = loadedPlays.plays;
 export const BUILTIN_SETUPS: readonly Play[] = loadedSetups.plays;
+// The layout the app starts on everywhere: opening the site, Explore, a new
+// play in Build. Vertical Stack 1 (the first built-in setup).
+export const DEFAULT_SETUP_NAME = "Vertical Stack 1";
+export function defaultSetup(): Play {
+  return BUILTIN_SETUPS.find((p) => p.name === DEFAULT_SETUP_NAME) ?? BUILTIN_SETUPS[0];
+}
+
 export const BUILTIN_PLAY_PROBLEMS: readonly string[] = problems;

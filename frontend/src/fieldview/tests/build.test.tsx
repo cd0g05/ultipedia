@@ -12,6 +12,11 @@ import { routes } from "../../router";
 import { getStageViewBox, yardToPixel } from "../render/coords";
 import { FIELD_PX_HEIGHT, FIELD_PX_WIDTH } from "../render/fieldLayer";
 
+import { newPlay, resolve as resolveFrame } from "../play/model";
+const HOME = resolveFrame(newPlay(), 0).positions; // the default setup (Vertical Stack 1)
+const O2 = HOME.o2;
+const O3 = HOME.o3;
+const D2 = HOME.d2;
 const viewBox = getStageViewBox(FIELD_PX_WIDTH, FIELD_PX_HEIGHT);
 const rAF = () => new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
 
@@ -59,7 +64,7 @@ const transformOf = (name: string) => piece(name).getAttribute("transform");
 const first = (name: string | RegExp) => screen.getAllByRole("button", { name })[0];
 const click = (name: string | RegExp) => fireEvent.click(first(name));
 
-// o2 (the first cutter) in the default play stands at (50, 20) — see newPlay().
+// o2 (the first cutter) in the default play stands at O2 — see newPlay().
 async function drag(svg: SVGSVGElement, from: { x: number; y: number }, to: { x: number; y: number }, steps = 6) {
   fireEvent.pointerDown(svg, { pointerId: 1, ...clientFor(from) });
   for (let i = 1; i <= steps; i += 1) {
@@ -94,7 +99,7 @@ describe("Build — frames and inheritance", () => {
     click("Add frame");
     expect(screen.getAllByTestId("frame-chip")[0]).toHaveTextContent("2 / 2");
 
-    await drag(svg, { x: 50, y: 20 }, { x: 60, y: 8 });
+    await drag(svg, O2, { x: 60, y: 8 });
     expect(transformOf("Offense 2")).toBe(tf({ x: 60, y: 8 }));
     expect(screen.getAllByTestId("frame-badge")[0]).toHaveTextContent("1 placed");
     expect(screen.getByTestId("ghosts").querySelector('[data-ghost-for="o2"]')).not.toBeNull();
@@ -112,13 +117,13 @@ describe("Build — frames and inheritance", () => {
   it("editing an earlier frame moves everyone who inherits; a player placed later keeps their spot", async () => {
     const { svg } = renderBuild();
     click("Add frame");
-    await drag(svg, { x: 50, y: 20 }, { x: 60, y: 8 }); // o2 placed in frame 2
+    await drag(svg, O2, { x: 60, y: 8 }); // o2 placed in frame 2
     click("Frame 1");
     await act(async () => {
       await rAF();
     });
     // o3 (52, 20) is not placed in frame 2: moving it in frame 1 carries to frame 2.
-    await drag(svg, { x: 52, y: 20 }, { x: 52, y: 33 });
+    await drag(svg, O3, { x: 52, y: 33 });
     click("Frame 2");
     await act(async () => {
       await rAF();
@@ -130,7 +135,7 @@ describe("Build — frames and inheritance", () => {
   it("a whole drag is one undo step; redo brings it back", async () => {
     const { svg } = renderBuild();
     const home = transformOf("Offense 2");
-    await drag(svg, { x: 50, y: 20 }, { x: 70, y: 30 }, 12);
+    await drag(svg, O2, { x: 70, y: 30 }, 12);
     expect(transformOf("Offense 2")).toBe(tf({ x: 70, y: 30 }));
     click("Undo");
     await act(async () => {
@@ -147,15 +152,15 @@ describe("Build — frames and inheritance", () => {
 
   it("a tap that selects without travelling places nothing", async () => {
     const { svg } = renderBuild();
-    fireEvent.pointerDown(svg, { pointerId: 2, ...clientFor({ x: 50, y: 20 }) });
-    fireEvent.pointerUp(svg, { pointerId: 2, ...clientFor({ x: 50, y: 20 }) });
+    fireEvent.pointerDown(svg, { pointerId: 2, ...clientFor(O2) });
+    fireEvent.pointerUp(svg, { pointerId: 2, ...clientFor(O2) });
     expect(first("Undo")).toBeDisabled();
   });
 
   it("Duplicate adds an identical frame; Delete removes the current one; Reset frame clears its changes", async () => {
     const { svg } = renderBuild();
     click("Add frame");
-    await drag(svg, { x: 50, y: 20 }, { x: 60, y: 8 });
+    await drag(svg, O2, { x: 60, y: 8 });
     expect(screen.getAllByTestId("frame-badge")[0]).toHaveTextContent("1 placed");
 
     click("Reset frame");
@@ -163,7 +168,7 @@ describe("Build — frames and inheritance", () => {
       await rAF();
     });
     expect(screen.queryAllByTestId("frame-badge")).toHaveLength(0);
-    expect(transformOf("Offense 2")).toBe(tf({ x: 50, y: 20 }));
+    expect(transformOf("Offense 2")).toBe(tf(O2));
 
     click("Duplicate");
     expect(screen.getAllByTestId("frame-strip")[0].querySelectorAll("[data-frame]")).toHaveLength(3);
@@ -191,7 +196,7 @@ describe("Build — the disc, titles and the selected player", () => {
   it("Give disc in a later frame puts the holder ring on the new player and badges the frame", async () => {
     const { svg } = renderBuild();
     click("Add frame");
-    await select(svg, { x: 50, y: 20 });
+    await select(svg, O2);
     expect(screen.getAllByTestId("build-player")[0]).toHaveTextContent("Offense 2");
     click("Give disc");
     await act(async () => {
@@ -208,7 +213,7 @@ describe("Build — the disc, titles and the selected player", () => {
 
   it("Give disc is disabled for a defender", async () => {
     const { svg } = renderBuild();
-    await select(svg, { x: 54, y: 30 }); // Defense 4, on its own
+    await select(svg, D2); // Defense 2
     const card = screen.getAllByTestId("build-player")[0];
     expect(card).toHaveTextContent(/defense/i);
     expect(within(card).getByRole("button", { name: /give disc/i })).toBeDisabled();
@@ -217,7 +222,7 @@ describe("Build — the disc, titles and the selected player", () => {
   it("a title is typed once, shows on the piece, and is the same in every frame", async () => {
     const { svg } = renderBuild();
     click("Add frame");
-    await select(svg, { x: 50, y: 20 });
+    await select(svg, O2);
     const input = within(screen.getAllByTestId("build-player")[0]).getByRole("textbox", { name: "Player title" });
     fireEvent.change(input, { target: { value: "hk" } });
     await act(async () => {
@@ -234,14 +239,14 @@ describe("Build — the disc, titles and the selected player", () => {
   it("Reset player puts one player back to inheriting", async () => {
     const { svg } = renderBuild();
     click("Add frame");
-    await drag(svg, { x: 50, y: 20 }, { x: 60, y: 8 });
+    await drag(svg, O2, { x: 60, y: 8 });
     await select(svg, { x: 60, y: 8 });
     expect(screen.getAllByTestId("build-player")[0]).toHaveTextContent(/placed in this frame/i);
     click("Reset player");
     await act(async () => {
       await rAF();
     });
-    expect(transformOf("Offense 2")).toBe(tf({ x: 50, y: 20 }));
+    expect(transformOf("Offense 2")).toBe(tf(O2));
     expect(screen.queryAllByTestId("frame-badge")).toHaveLength(0);
   });
 });
@@ -250,7 +255,7 @@ describe("Build — preview and keyboard", () => {
   it("Preview plays the frames with editing disabled and returns to the edited frame", async () => {
     const { svg } = renderBuild();
     click("Add frame");
-    await drag(svg, { x: 50, y: 20 }, { x: 60, y: 8 });
+    await drag(svg, O2, { x: 60, y: 8 });
     click("Frame 1");
     await act(async () => {
       await rAF();
@@ -267,17 +272,17 @@ describe("Build — preview and keyboard", () => {
     await act(async () => {
       await rAF();
     });
-    expect(transformOf("Offense 2")).toBe(tf({ x: 50, y: 20 }));
+    expect(transformOf("Offense 2")).toBe(tf(O2));
   });
 
   it("Ctrl/⌘-Z undoes and Shift-Ctrl/⌘-Z redoes, but not while typing in a field", async () => {
     const { svg } = renderBuild();
-    await drag(svg, { x: 50, y: 20 }, { x: 70, y: 30 });
+    await drag(svg, O2, { x: 70, y: 30 });
     fireEvent.keyDown(window, { key: "z", ctrlKey: true });
     await act(async () => {
       await rAF();
     });
-    expect(transformOf("Offense 2")).toBe(tf({ x: 50, y: 20 }));
+    expect(transformOf("Offense 2")).toBe(tf(O2));
     fireEvent.keyDown(window, { key: "z", ctrlKey: true, shiftKey: true });
     await act(async () => {
       await rAF();
@@ -318,7 +323,7 @@ describe("Build — React stays out of the drag path (ADR-2)", () => {
       await rAF();
     });
 
-    fireEvent.pointerDown(svg, { pointerId: 9, ...clientFor({ x: 50, y: 20 }) });
+    fireEvent.pointerDown(svg, { pointerId: 9, ...clientFor(O2) });
     commits = 0; // the press selects (one legitimate commit); count only the moves
     for (let i = 1; i <= 30; i += 1) {
       fireEvent.pointerMove(svg, { pointerId: 9, ...clientFor({ x: 50 + i * 0.5, y: 20 - i * 0.2 }) });
@@ -345,7 +350,7 @@ describe("Build — accessibility", () => {
 
     click("Add frame");
     click("Add frame");
-    await drag(svg, { x: 50, y: 20 }, { x: 60, y: 8 });
+    await drag(svg, O2, { x: 60, y: 8 });
     fireEvent.pointerDown(svg, { pointerId: 4, ...clientFor({ x: 60, y: 8 }) });
     fireEvent.pointerUp(svg, { pointerId: 4, ...clientFor({ x: 60, y: 8 }) });
     await act(async () => {

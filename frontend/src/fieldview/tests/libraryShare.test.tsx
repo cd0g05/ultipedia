@@ -14,6 +14,8 @@ import { getStageViewBox, yardToPixel } from "../render/coords";
 import { FIELD_PX_HEIGHT, FIELD_PX_WIDTH } from "../render/fieldLayer";
 import { resolve } from "../play/model";
 
+import { newPlay as defaultNewPlay } from "../play/model";
+const O2 = resolve(defaultNewPlay(), 0).positions.o2; // the default setup (Vertical Stack 1)
 const viewBox = getStageViewBox(FIELD_PX_WIDTH, FIELD_PX_HEIGHT);
 const rAF = () => new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
 
@@ -54,7 +56,7 @@ const click = (name: string | RegExp) => fireEvent.click(first(name));
 const saveStatus = () => screen.getAllByTestId("save-status")[0].getAttribute("data-status");
 
 async function dragO2(svg: SVGSVGElement, to = { x: 60, y: 8 }) {
-  fireEvent.pointerDown(svg, { pointerId: 1, ...clientFor({ x: 50, y: 20 }) });
+  fireEvent.pointerDown(svg, { pointerId: 1, ...clientFor(O2) });
   fireEvent.pointerMove(svg, { pointerId: 1, ...clientFor(to) });
   fireEvent.pointerUp(svg, { pointerId: 1, ...clientFor(to) });
   await act(async () => {
@@ -148,7 +150,7 @@ describe("My plays", () => {
     click("+ New play");
     await waitFor(() => expect(where()).toBe("/fieldview/build"));
     expect(saveStatus()).toBe("new");
-    const home = yardToPixel({ x: 50, y: 20 });
+    const home = yardToPixel(O2);
     expect(screen.getByRole("button", { name: "Offense 2" }).getAttribute("transform")).toBe(`translate(${home.x}, ${home.y})`);
     expect(library.list()).toHaveLength(1); // the first play was not lost
 
