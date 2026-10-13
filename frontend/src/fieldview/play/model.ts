@@ -9,7 +9,7 @@
 import type { Player, Scene, Vec2 } from "../scene/types";
 import { clampToField } from "../scene/field";
 import { autoAssign } from "../scene/matchups";
-import { getPreset } from "../scene/presets";
+import { defaultSetup } from "./plays";
 import {
   MAX_FRAMES,
   MAX_LABEL_LENGTH,
@@ -228,10 +228,16 @@ export function playFromScene(scene: Scene, name: string): Play {
   };
 }
 
-// PLACEHOLDER(fieldview-build): the default name and starting formation of a
-// new play are stand-ins (docs/fieldview-placeholders.md #20).
+// A new play starts as the default setup (Vertical Stack 1), unnamed players.
+// PLACEHOLDER(fieldview-build): the default NAME is a stand-in
+// (docs/fieldview-placeholders.md #20).
 export function newPlay(): Play {
-  const scene = getPreset("vertStackForceSide");
-  for (const p of scene.players) delete p.label;
-  return playFromScene(scene, "Untitled play");
+  const setup = defaultSetup();
+  const { description: _description, ...rest } = setup;
+  return {
+    ...rest,
+    name: "Untitled play",
+    players: setup.players.map((p) => ({ ...p })),
+    frames: [{ moved: Object.fromEntries(Object.entries(setup.frames[0].moved).map(([id, v]) => [id, { ...v }])), holder: setup.frames[0].holder }],
+  };
 }
