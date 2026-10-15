@@ -83,9 +83,11 @@ describe("§8.1 — vert/force-side: the open-side lane is the greenest region",
     const top = argmax(grid);
     // "Roughly 5–15 yards upfield" — the peak sits in the open-side band
     // just past the stack front; allow the blob its real extent.
+    // Defenders no longer stack (the strongest one decides), so the blob sits
+    // a little deeper than when five in a line closed the middle.
     expect(top.x).toBeGreaterThan(44);
-    expect(top.x).toBeLessThan(60);
-    expect(top.y).toBeLessThan(18); // open side of the force
+    expect(top.x).toBeLessThan(70);
+    expect(top.y).toBeLessThan(20); // open side of the force
   });
 
   it("the open-side lane outscores dump, break side, and deep", () => {
@@ -152,11 +154,19 @@ describe("§8.4 — deep space: live without a deep defender, shut by deep help,
     expect(deep).toBeLessThan(0.8);
   });
 
-  it("the deep help preset shuts the deep third", () => {
+  it("a deep defender with nobody deep to challenge them shuts the deep third", () => {
     const noDeepDefender = computeGrid(getPreset("flatMark"), P, ALL_LAYERS, "offense");
     const reference = sampleGrid(noDeepDefender, deepCell);
-    const deepHelp = computeGrid(getPreset("deepHelp"), P, ALL_LAYERS, "offense");
+    const help = getPreset("deepHelp");
+    help.players.find((p) => p.role === "cutter" && p.pos.x > 75)!.pos = { x: 58, y: 20 };
+    const deepHelp = computeGrid(help, P, ALL_LAYERS, "offense");
     expect(sampleGrid(deepHelp, deepCell)).toBeLessThan(reference * 0.5);
+  });
+
+  it("a deep cutter who beats the sagging defender to the spot keeps it open", () => {
+    // The Builder's complaint: a beaten deep defender must not keep red space.
+    const deepHelp = computeGrid(getPreset("deepHelp"), P, ALL_LAYERS, "offense");
+    expect(gammaScore(sampleGrid(deepHelp, deepCell))).toBeGreaterThanOrEqual(LABEL_STRONG_FROM);
   });
 
   it("a cutter challenging the poach pries the deep back open", () => {

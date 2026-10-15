@@ -86,6 +86,21 @@ export const VALUE_SPAN = 0.7;
 export const VALUE_GAIN_OFFSET = 15;
 export const VALUE_GAIN_SCALE = 55;
 
+// Reset zone (Builder request, after fieldview-build): backward and square
+// throws are good throws, so the value layer holds a plateau instead of
+// punishing every yard behind the thrower. Plateau RESET_VALUE from
+// RESET_FLAT_BACK yards behind the thrower up to wherever the forward ramp
+// overtakes it, then it fades to the floor over RESET_FADE further yards.
+// (0.62 gammas to ~0.72: past the green stop, never the full-strength green.)
+export const RESET_VALUE = 0.62;
+export const RESET_FLAT_BACK = 8;
+export const RESET_FADE = 17;
+
+// Lane shading from a defender the best cutter would beat to the cell anyway
+// is mostly void: a beaten deep defender must not keep the lane closed. 0 =
+// lanes ignore the beat term (the original behaviour), 1 = fully voided.
+export const LANE_BEAT_VOID = 0.75;
+
 // --- Grid (ADR-4: the one fidelity/frames dial) ---
 export const GRID_STEP = 0.5; // yards → 220 × 80 cells
 

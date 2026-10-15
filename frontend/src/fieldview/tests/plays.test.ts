@@ -6,17 +6,16 @@ import { describe, expect, it } from "vitest";
 import { BUILTIN_PLAYS, BUILTIN_PLAY_PROBLEMS, BUILTIN_SETUPS, isSetup, loadPlays } from "../play/plays";
 
 describe("built-in plays", () => {
-  it("loads at least three, one of them with five or more frames", () => {
-    expect(BUILTIN_PLAYS.length).toBeGreaterThanOrEqual(3);
-    expect(BUILTIN_PLAYS.some((p) => p.frames.length >= 5)).toBe(true);
+  it("loads the authored plays, Vertical Stack Flow 1 first", () => {
+    expect(BUILTIN_PLAYS.map((p) => p.name)).toEqual(["Vertical Stack Flow 1", "Horizontal Stack Flow 1"]);
     expect(BUILTIN_PLAY_PROBLEMS).toEqual([]);
   });
 
-  it("gives every play a name and labelled frames, and none is a setup", () => {
+  it("gives every play a name and a description, and none is a setup", () => {
     for (const play of BUILTIN_PLAYS) {
       expect(play.name.length).toBeGreaterThan(0);
+      expect(play.description).toBeTruthy();
       expect(isSetup(play)).toBe(false);
-      for (const f of play.frames) expect(f.label).toBeTruthy();
     }
   });
 
@@ -29,12 +28,14 @@ describe("built-in plays", () => {
 });
 
 describe("built-in setups", () => {
-  it("are one-frame plays, unnamed by default", () => {
-    expect(BUILTIN_SETUPS.length).toBeGreaterThanOrEqual(4);
-    for (const s of BUILTIN_SETUPS) {
+  it("are the opening frame of each built-in play, one-frame and unnamed", () => {
+    expect(BUILTIN_SETUPS.map((s) => s.name)).toEqual(BUILTIN_PLAYS.map((p) => p.name));
+    BUILTIN_SETUPS.forEach((s, i) => {
       expect(isSetup(s)).toBe(true);
+      expect(s.frames[0].moved).toEqual(BUILTIN_PLAYS[i].frames[0].moved);
+      expect(s.frames[0].holder).toBe(BUILTIN_PLAYS[i].frames[0].holder);
       expect(s.players.every((p) => p.title === undefined)).toBe(true);
-    }
+    });
   });
 });
 

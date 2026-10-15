@@ -17,11 +17,11 @@ Status: `open` = Builder must supply/confirm · `toy` = a development stand-in e
 
 | # | Area | What's placeholder | Planned location | Builder must supply | Partition | Status |
 |---|---|---|---|---|---|---|
-| 1 | Curated **setups** — **real, authored in Build by the Builder (2026-10-12):** Horizontal Stack 1–3, Vertical Stack 1–3, Side Stack 1 and 2 (the old toy setups were deleted). Only the takeaway sentences (#2) and their order are still placeholders. | `play/builtin/setups/*.json` | Order and any further setups |  P3 | open (toy in code) |
-| 2 | Setup **takeaways** | One-line "what to notice" per setup (the play's `description`) — one toy sentence per setup, written by the Agent from the positions — not yet reviewed | `play/builtin/setups/*.json` | Final one-sentence copy per setup | P3 | open (toy in code) |
-| 3 | Curated **plays** | Entire play content — seven toy plays (`play/builtin/01…07-*.json`), generated from the old presets (the disc stays with the first holder in all seven) | `play/builtin/*.json` (`"_placeholder": true`) | Real plays, authored in the new Build page once it ships and exported | P4 | open (toy in code) |
-| 4 | Play **names / descriptions** | Play list titles and one-liners | `play/builtin/*.json` | Final names and descriptions | P4 | open (toy in code) |
-| 5 | Frame **labels** | Optional per-keyframe labels shown in the filmstrip ("Cut under", "Clear"…) | `play/builtin/*.json` (`label`) | Final labels (or decide to omit) | P4 | open (toy in code) |
+| 1 | Curated **setups** — **real (2026-10-15):** a setup is now the opening frame of a built-in play, so Explore lists *Vertical Stack Flow 1* and *Horizontal Stack Flow 1*. The earlier Horizontal/Vertical/Side Stack setups were deleted at the Builder's request; more arrive as plays are authored. | `play/plays.ts` (derived from `play/builtin/*.json`) | Add further plays as the Builder authors them | P3 | resolved (authored) |
+| 2 | Setup **takeaways** | The play's own description, written by the Builder | `play/builtin/*.json` (`description`) | — | P3 | resolved (authored) |
+| 3 | Curated **plays** | **Real (2026-10-15):** Vertical Stack Flow 1 and Horizontal Stack Flow 1, exported from Build. The seven toy plays were deleted. | `play/builtin/*.json` | More plays as authored | P4 | resolved (authored) |
+| 4 | Play **names / descriptions** | Authored with the plays | `play/builtin/*.json` | — | P4 | resolved (authored) |
+| 5 | Frame **labels** | The authored plays carry none; the filmstrip shows frame numbers | `play/builtin/*.json` | Decide whether to add labels | P4 | resolved (omitted) |
 
 ## Copy
 

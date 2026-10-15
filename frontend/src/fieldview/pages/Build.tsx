@@ -13,7 +13,7 @@ import { Seo } from "../../encyclopedia/seo/Seo";
 import type { Play } from "../play/format";
 import { library, newPlayId, useLibrary } from "../play/library";
 import { addFrame, deleteFrame, newPlay, placedIds, renamePlay } from "../play/model";
-import { BUILTIN_PLAYS, BUILTIN_SETUPS } from "../play/plays";
+import { BUILTIN_PLAYS } from "../play/plays";
 import { playFromFileText } from "../play/share";
 import { PlayValidationError } from "../play/validate";
 import { FieldViewFrame } from "../ui/app/FieldViewFrame";
@@ -42,7 +42,7 @@ function readFileText(file: File): Promise<string> {
     reader.readAsText(file);
   });
 }
-const EXAMPLES: readonly Play[] = [...BUILTIN_PLAYS, ...BUILTIN_SETUPS];
+const EXAMPLES: readonly Play[] = BUILTIN_PLAYS;
 
 export function Build() {
   const { store, loadScene } = useFieldViewApp();

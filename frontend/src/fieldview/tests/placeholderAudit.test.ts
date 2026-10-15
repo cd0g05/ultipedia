@@ -25,7 +25,10 @@ function walk(dir: string, out: string[] = []): string[] {
 // Rows that are deliberately not a marker in code: a deferred feature with no
 // code behind it yet (#19 Advanced settings).
 // #8 (the Build placeholder card) was resolved by the real Build page.
-const NOT_IN_CODE = new Set([8, 19]);
+// #1–#5 (setups, takeaways, plays, names, frame labels) were resolved when the
+// Builder's authored plays replaced the toy content: it is real data now, with
+// nothing in code left to mark.
+const NOT_IN_CODE = new Set([1, 2, 3, 4, 5, 8, 19]);
 
 const files = [...walk(SRC), TAILWIND].filter(
   (f) => !f.includes("/tests/") && !f.endsWith("placeholderAudit.test.ts"),
@@ -76,21 +79,14 @@ describe("placeholder register", () => {
     expect(orphans, `register rows with no marker in code: ${orphans.join(", ")}`).toEqual([]);
   });
 
-  // Built-in files the Builder has authored for real (exported from Build): they
-  // are no longer placeholders and carry no `_placeholder` key. Every setup is
-  // authored now (play/builtin/setups/); the multi-frame plays are still toy.
-  // Add a path here when a file is replaced with real content, and update the
-  // register.
-  const AUTHORED = new Set(["play/builtin/setups/"]);
-
-  it("the toy plays carry the _placeholder key the audit looks for (unless authored for real)", () => {
+  // Every built-in file is authored by the Builder (exported from Build): none
+  // may carry the toy `_placeholder` key. A toy file added later would have to
+  // restore the audit for it (and its register row).
+  it("no built-in play is marked as a placeholder", () => {
     const plays = files.filter((f) => f.includes("play/builtin/") && f.endsWith(".json"));
-    expect(plays.length).toBeGreaterThanOrEqual(3);
+    expect(plays.length).toBeGreaterThanOrEqual(2);
     for (const f of plays) {
-      const authored = [...AUTHORED].some((a) => f.includes(a));
-      const key = JSON.parse(readFileSync(f, "utf8"))._placeholder;
-      if (authored) expect(key, `${f} is authored; it must not be marked placeholder`).toBeUndefined();
-      else expect(key, f).toBe(true);
+      expect(JSON.parse(readFileSync(f, "utf8"))._placeholder, f).toBeUndefined();
     }
   });
 });

@@ -177,7 +177,7 @@ describe("My plays", () => {
   it("opens an example only as a copy (Duplicate to edit)", async () => {
     renderAt("/fieldview/build");
     const examples = screen.getAllByTestId("example-list")[0];
-    expect(within(examples).getAllByRole("listitem").length).toBe(BUILTIN_PLAYS.length + BUILTIN_SETUPS.length);
+    expect(within(examples).getAllByRole("listitem").length).toBe(BUILTIN_PLAYS.length);
     fireEvent.click(within(examples).getByRole("button", { name: `Duplicate ${BUILTIN_PLAYS[0].name} to edit` }));
     await waitFor(() => expect(library.list()).toHaveLength(1));
     expect(library.list()[0].play.name).toBe(`${BUILTIN_PLAYS[0].name} copy`);
@@ -267,7 +267,7 @@ describe("Share dialog", () => {
 
 describe("Watch opens shared links", () => {
   it("plays the shared play first, offers Save to my plays, then Open in Build", async () => {
-    const shared = { ...BUILTIN_PLAYS[2], name: "From a friend" };
+    const shared = { ...BUILTIN_PLAYS[1], name: "From a friend" };
     renderAt(`/fieldview/watch#p=${encodePlay(shared)}`);
     const banners = screen.getAllByTestId("shared-banner");
     expect(banners.length).toBeGreaterThan(0);

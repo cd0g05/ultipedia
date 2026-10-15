@@ -1,5 +1,6 @@
-// score(cell) = comp(d) · mark(cell) · Π coverage_i(cell) · Π lane_i(cell) · value(cell)
-// (brief §4.3). scoreCell is the single-cell public entry; computeGrid is the
+// score(cell) = comp(d) · mark(cell) · coverage(cell) · lane(cell) · value(cell)
+// (brief §4.3, except that coverage and lane take the single strongest
+// defender instead of the product over all of them — see the loop below). scoreCell is the single-cell public entry; computeGrid is the
 // hot path: per-defender/per-cutter positions and the shadow bearing are
 // precomputed once outside the cell loop, and the output Float32Array is
 // reused across calls so repeated grids allocate nothing.
@@ -14,8 +15,11 @@ import {
   arrivalTime,
   comp,
   coverageKernel,
+  beatKernel,
   flightTime,
-  laneFactorFast,
+  laneBumpFast,
+  laneFactorFromBump,
+  laneVoided,
   markKernel,
   valueKernel,
 } from "./layers";
@@ -114,17 +118,33 @@ function scoreCellKernel(
   const reach = (tf - COV_SS_LO - p.react) * p.vmax + ARRIVAL_SLACK;
   const reach2 = reach > 0 ? reach * reach : 0;
 
+  // Defenders do not stack (Builder change): the cell is as closed as its
+  // single strongest defender makes it. Multiplying every defender's factor
+  // made a line of five defenders redden the whole field behind them, though a
+  // second defender covering the same ground adds nothing the first did not.
   let coverageProduct = 1;
   let laneProduct = 1;
   for (let i = 0; i < roster.defenderCount; i++) {
     const cellDx = roster.defenderX[i] - cellX;
     const cellDy = roster.defenderY[i] - cellY;
     const dist2 = cellDx * cellDx + cellDy * cellDy;
+    let tauI = -1; // computed at most once per defender
     if (dist2 < reach2) {
-      const tauI = arrivalTime(Math.sqrt(dist2), p);
-      coverageProduct *= coverageKernel(tf, tauI, tauO, p.head, lens);
+      tauI = arrivalTime(Math.sqrt(dist2), p);
+      const c = coverageKernel(tf, tauI, tauO, p.head, lens);
+      if (c < coverageProduct) coverageProduct = c;
     }
-    laneProduct *= laneFactorFast(roster.defenderRelX[i], roster.defenderRelY[i], dirX, dirY, len2);
+    const bump = laneBumpFast(roster.defenderRelX[i], roster.defenderRelY[i], dirX, dirY, len2);
+    if (bump > 0) {
+      // A defender the best cutter beats to the cell only half-holds the lane.
+      let voided = 0;
+      if (lens === "offense") {
+        if (tauI < 0) tauI = arrivalTime(Math.sqrt(dist2), p);
+        voided = laneVoided(beatKernel(tauI, tauO, p.head));
+      }
+      const l = laneFactorFromBump(bump, voided);
+      if (l < laneProduct) laneProduct = l;
+    }
   }
 
   // FR-3.6 / ADR-5: a disabled layer is substituted with 1.0 HERE, at the
