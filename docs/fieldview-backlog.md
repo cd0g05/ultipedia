@@ -248,8 +248,9 @@ still work); Explore's card edits (title, Give disc) are live-only and are not s
   stay up through the dwell; when the next frame's movement starts they ease to the new holder's view (the cutters
   move for the first 30 % of the transition, then the colours follow). Costs two grids per frame while easing.
 - **Defenders no longer stack:** coverage and lanes take the single strongest defender instead of the product over
-  all of them; a defender the best cutter beats to the cell keeps only 25 % of their lane shade
-  (`LANE_BEAT_VOID`). Five defenders in a line no longer redden everything behind them.
+  all of them; a defender the best cutter beats to the cell keeps 75 % of their lane shade
+  (`LANE_BEAT_VOID` = 0.25) and 45 % of their coverage (`COVERAGE_BEAT_VOID` = 0.55; the original brief voided it
+  fully). So a cutter standing just behind a defender reads contested, not open. Five defenders in a line no longer redden everything behind them.
 - **Reset zone:** the value layer holds a plateau (0.62) from 8 yd behind the thrower, fading to the floor by 25 yd
   (`RESET_VALUE`, `RESET_FLAT_BACK`, `RESET_FADE`).
 - All of these constants are in `space/constants.ts` and are by-feel values for the Builder to tune.

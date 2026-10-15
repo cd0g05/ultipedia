@@ -19,6 +19,7 @@ import {
   BEAT_SS_LO,
   COMP_DEPTH,
   COMP_NEAR,
+  COVERAGE_BEAT_VOID,
   COMP_RANGE,
   COVERAGE_CAP,
   COV_SS_HI,
@@ -112,7 +113,7 @@ export function mark(cell: Vec2, scene: Scene, p: SpaceParams): number {
 //   cov  = ss(−0.35, 0.35, t_f(d) − τ_i)              # can defender i beat the disc here
 //   if offense on:
 //     beat = ss(−0.15, 0.55, τ_i − τ_O + head)        # would the best cutter beat THIS defender
-//     cov  = cov · (1 − beat)                         # contested coverage is voided coverage
+//     cov  = cov · (1 − 0.55 · beat)                  # contested coverage is mostly voided (Builder change: was fully)
 //   coverage_i = 1 − 0.92 · cov
 // beat = ss(−0.15, 0.55, τ_i − τ_O + head): would the best cutter beat THIS
 // defender to the cell. Shared by coverage and (partially) by lanes.
@@ -130,7 +131,7 @@ export function coverageKernel(
   let cov = ss(COV_SS_LO, COV_SS_HI, tf - tauI);
   if (lens === "offense") {
     // ADR-6: "defense-only" skips only this beat term — same pipeline otherwise.
-    cov = cov * (1 - beatKernel(tauI, tauO, head));
+    cov = cov * (1 - COVERAGE_BEAT_VOID * beatKernel(tauI, tauO, head));
   }
   return 1 - COVERAGE_CAP * cov;
 }

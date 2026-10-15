@@ -163,10 +163,16 @@ describe("§8.4 — deep space: live without a deep defender, shut by deep help,
     expect(sampleGrid(deepHelp, deepCell)).toBeLessThan(reference * 0.5);
   });
 
-  it("a deep cutter who beats the sagging defender to the spot keeps it open", () => {
-    // The Builder's complaint: a beaten deep defender must not keep red space.
-    const deepHelp = computeGrid(getPreset("deepHelp"), P, ALL_LAYERS, "offense");
-    expect(gammaScore(sampleGrid(deepHelp, deepCell))).toBeGreaterThanOrEqual(LABEL_STRONG_FROM);
+  it("a deep cutter who beats the sagging defender to the spot opens it up, though not fully", () => {
+    // A beaten deep defender must not keep the space shut, but they can still
+    // recover a stride behind the cutter, so it reads contested rather than green.
+    const withCutter = scoreCell(deepCell, getPreset("deepHelp"), P, ALL_LAYERS, "offense");
+    const help = getPreset("deepHelp");
+    help.players.find((p) => p.role === "cutter" && p.pos.x > 75)!.pos = { x: 58, y: 20 };
+    const withoutCutter = scoreCell(deepCell, help, P, ALL_LAYERS, "offense");
+    expect(withCutter).toBeGreaterThan(withoutCutter * 3);
+    expect(gammaScore(withCutter)).toBeGreaterThan(0.3);
+    expect(gammaScore(withCutter)).toBeLessThan(LABEL_STRONG_FROM);
   });
 
   it("a cutter challenging the poach pries the deep back open", () => {
