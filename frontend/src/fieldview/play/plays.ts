@@ -1,17 +1,14 @@
-// The curated content, as validated v3 JSON: multi-frame plays in
-// play/builtin/ and one-frame setups in play/builtin/setups/ (a setup is just a
-// one-frame play — fieldview-build ADR-43).
+// The curated content, as validated v3 JSON in play/builtin/. The Builder
+// authors plays in Build and hands the exports over; each lands here as one
+// numbered file. The one-frame SETUPS (Explore's list, the default layout, the
+// start of a new play) are not separate files: a setup is frame 0 of a built-in
+// play (fieldview-build ADR-43), derived below.
 //
 // Every file goes through the same boundary validator as an imported play
 // (ADR-7). A file that fails is SKIPPED and reported, never thrown — one bad
 // file must not take the whole mode down. Loaded plays are deep-frozen so
 // nothing can mutate them (a write throws in strict mode); the pure operations
 // in model.ts return new plays instead.
-//
-// PLACEHOLDER(fieldview-build): every file under play/builtin/ is toy content
-// carrying `"_placeholder": true` (the validator drops that key; it is there
-// for the audit). The Builder replaces them with real plays authored in Build
-// (docs/fieldview-placeholders.md #1–#5).
 
 import { PlayValidationError, validatePlay } from "./validate";
 import type { Play } from "./format";
@@ -54,25 +51,40 @@ const playFiles = import.meta.glob("./builtin/*.json", { eager: true, import: "d
   string,
   unknown
 >;
-const setupFiles = import.meta.glob("./builtin/setups/*.json", { eager: true, import: "default" }) as Record<
-  string,
-  unknown
->;
 
 const loadedPlays = loadPlays(playFiles);
-const loadedSetups = loadPlays(setupFiles);
-const problems = [...loadedPlays.problems, ...loadedSetups.problems];
+const problems = [...loadedPlays.problems];
 if (problems.length > 0 && typeof console !== "undefined") {
   console.warn("Field View: skipped invalid built-in plays:\n" + problems.join("\n"));
 }
 
 export const BUILTIN_PLAYS: readonly Play[] = loadedPlays.plays;
-export const BUILTIN_SETUPS: readonly Play[] = loadedSetups.plays;
+
+// Frame 0 of a play, as a one-frame play named after it. The play's description
+// rides along: Explore shows it as the setup's takeaway.
+function setupOf(play: Play): Play {
+  const first = play.frames[0];
+  return deepFreeze({
+    formatVersion: play.formatVersion,
+    name: play.name,
+    ...(play.description ? { description: play.description } : {}),
+    players: play.players.map((p) => ({ ...p })),
+    frames: [
+      {
+        moved: Object.fromEntries(Object.entries(first.moved).map(([id, v]) => [id, { ...v }])),
+        holder: first.holder,
+      },
+    ],
+  });
+}
+
+export const BUILTIN_SETUPS: readonly Play[] = BUILTIN_PLAYS.map(setupOf);
+
 // The layout the app starts on everywhere: opening the site, Explore, a new
-// play in Build. Vertical Stack 1 (the first built-in setup).
-export const DEFAULT_SETUP_NAME = "Vertical Stack 1";
+// play in Build. Vertical Stack Flow 1's opening frame (the first built-in).
+export const DEFAULT_SETUP_NAME = BUILTIN_SETUPS[0]?.name ?? "";
 export function defaultSetup(): Play {
-  return BUILTIN_SETUPS.find((p) => p.name === DEFAULT_SETUP_NAME) ?? BUILTIN_SETUPS[0];
+  return BUILTIN_SETUPS[0];
 }
 
 export const BUILTIN_PLAY_PROBLEMS: readonly string[] = problems;

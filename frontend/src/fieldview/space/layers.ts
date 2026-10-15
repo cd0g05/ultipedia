@@ -27,12 +27,16 @@ import {
   FLIGHT_HANG_COEFF,
   FLIGHT_HANG_SCALE,
   FLIGHT_LINEAR_SCALE,
+  LANE_BEAT_VOID,
   LANE_RADIUS,
   LANE_STRENGTH,
   LANE_T_MAX,
   LANE_T_MIN,
   MARK_RAMP_FAR,
   MARK_RAMP_NEAR,
+  RESET_FADE,
+  RESET_FLAT_BACK,
+  RESET_VALUE,
   VALUE_FLOOR,
   VALUE_GAIN_OFFSET,
   VALUE_GAIN_SCALE,
@@ -110,6 +114,12 @@ export function mark(cell: Vec2, scene: Scene, p: SpaceParams): number {
 //     beat = ss(−0.15, 0.55, τ_i − τ_O + head)        # would the best cutter beat THIS defender
 //     cov  = cov · (1 − beat)                         # contested coverage is voided coverage
 //   coverage_i = 1 − 0.92 · cov
+// beat = ss(−0.15, 0.55, τ_i − τ_O + head): would the best cutter beat THIS
+// defender to the cell. Shared by coverage and (partially) by lanes.
+export function beatKernel(tauI: number, tauO: number, head: number): number {
+  return ss(BEAT_SS_LO, BEAT_SS_HI, tauI - tauO + head);
+}
+
 export function coverageKernel(
   tf: number,
   tauI: number,
@@ -120,8 +130,7 @@ export function coverageKernel(
   let cov = ss(COV_SS_LO, COV_SS_HI, tf - tauI);
   if (lens === "offense") {
     // ADR-6: "defense-only" skips only this beat term — same pipeline otherwise.
-    const beat = ss(BEAT_SS_LO, BEAT_SS_HI, tauI - tauO + head);
-    cov = cov * (1 - beat);
+    cov = cov * (1 - beatKernel(tauI, tauO, head));
   }
   return 1 - COVERAGE_CAP * cov;
 }
@@ -147,6 +156,37 @@ export function coverage(
 //   lane_i = 1 − 0.55 · bump
 // Fast form for the per-cell loop: rel = defender − thrower is precomputed
 // per grid, dir/len2 per cell, and the bump uses d⊥² directly (no sqrt).
+// The bump alone (0 = this defender is not in the lane). Callers that discount
+// the lane (score.ts: beaten defenders) scale it before applying the strength.
+export function laneBumpFast(
+  relX: number,
+  relY: number,
+  dirX: number,
+  dirY: number,
+  len2: number,
+): number {
+  if (len2 === 0) return 0;
+  const t = (relX * dirX + relY * dirY) / len2;
+  if (t <= LANE_T_MIN || t >= LANE_T_MAX) return 0;
+  const perpX = relX - t * dirX;
+  const perpY = relY - t * dirY;
+  const dPerp2 = perpX * perpX + perpY * perpY;
+  const radius2 = LANE_RADIUS * LANE_RADIUS;
+  if (dPerp2 >= radius2) return 0;
+  const base = 1 - dPerp2 / radius2; // = 1 − (d⊥ / 2.2)²
+  return base * base;
+}
+
+// The lane factor from a bump; `voided` (0..1) is how much of it the best
+// cutter's beat cancels (LANE_BEAT_VOID · beat in score.ts, 0 elsewhere).
+export function laneFactorFromBump(bump: number, voided: number): number {
+  return 1 - LANE_STRENGTH * bump * (1 - voided);
+}
+
+export function laneVoided(beat: number): number {
+  return LANE_BEAT_VOID * beat;
+}
+
 export function laneFactorFast(
   relX: number,
   relY: number,
@@ -154,16 +194,7 @@ export function laneFactorFast(
   dirY: number,
   len2: number,
 ): number {
-  if (len2 === 0) return 1;
-  const t = (relX * dirX + relY * dirY) / len2;
-  if (t <= LANE_T_MIN || t >= LANE_T_MAX) return 1;
-  const perpX = relX - t * dirX;
-  const perpY = relY - t * dirY;
-  const dPerp2 = perpX * perpX + perpY * perpY;
-  const radius2 = LANE_RADIUS * LANE_RADIUS;
-  if (dPerp2 >= radius2) return 1;
-  const base = 1 - dPerp2 / radius2; // = 1 − (d⊥ / 2.2)²
-  return 1 - LANE_STRENGTH * base * base;
+  return laneFactorFromBump(laneBumpFast(relX, relY, dirX, dirY, len2), 0);
 }
 
 export function laneKernel(
@@ -194,10 +225,17 @@ export function lane(cell: Vec2, defender: Player, scene: Scene): number {
 //   gain  = cell.x − thrower.x
 //   value = 0.3 + 0.7 · clamp((gain + 15) / 55, 0, 1)
 //   value = 1.0 inside the attacking endzone
+//   value = max(value, reset(gain))                   # Builder change: reset plateau
+//   reset = RESET_VALUE from −RESET_FLAT_BACK yd forward; below that it fades
+//           to the floor over RESET_FADE yd
 export function valueKernel(cellX: number, throwerX: number): number {
   if (cellX >= GOAL_LINE_ATTACKING) return 1;
   const gain = cellX - throwerX;
-  return VALUE_FLOOR + VALUE_SPAN * clamp((gain + VALUE_GAIN_OFFSET) / VALUE_GAIN_SCALE, 0, 1);
+  const forward = VALUE_FLOOR + VALUE_SPAN * clamp((gain + VALUE_GAIN_OFFSET) / VALUE_GAIN_SCALE, 0, 1);
+  const reset =
+    VALUE_FLOOR +
+    (RESET_VALUE - VALUE_FLOOR) * ss(-(RESET_FLAT_BACK + RESET_FADE), -RESET_FLAT_BACK, gain);
+  return forward > reset ? forward : reset;
 }
 
 export function value(cell: Vec2, scene: Scene): number {

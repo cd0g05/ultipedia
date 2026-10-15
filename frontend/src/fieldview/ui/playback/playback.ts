@@ -24,12 +24,13 @@
 // integrated (it would teleport the pieces).
 
 import type { SceneStore } from "../../scene/store";
-import type { Vec2 } from "../../scene/types";
+import type { Scene, Vec2 } from "../../scene/types";
 import type { Play } from "../../play/format";
 import { resolveAll } from "../../play/model";
 import { samplePositions } from "../../play/interpolate";
 import { normalize, throwTo } from "../../scene/possession";
 import { setFlightPos } from "../shell/throwMode";
+import { releaseWeight, setHeatHold, snapshotScene } from "./heatHold";
 
 export type PlaybackStatus = "idle" | "playing" | "paused";
 export type PlaybackSpeed = 0.5 | 1 | 2;
@@ -115,6 +116,9 @@ export function createPlaybackController(
   } | null = null;
   // Seconds left to dwell on a frame while playing (counts down between moves).
   let hold = 0;
+  // The scene the on-screen space is being held at, until the next move
+  // releases it (heatHold.ts). Null when the space is simply live.
+  let held: Scene | null = null;
   let handle: number | null = null;
   let lastTime = 0;
 
@@ -152,6 +156,8 @@ export function createPlaybackController(
   // Lands cleanly ON a frame: its pose, its holder, no disc in the air.
   function snapTo(index: number) {
     setFlightPos(null);
+    setHeatHold(null);
+    held = null;
     store.mutate((draft) => {
       for (const p of draft.players) {
         const to = frames[index].positions[p.id];
@@ -230,6 +236,16 @@ export function createPlaybackController(
     if (motion) {
       motion.elapsed += dt;
       const u = Math.min(1, motion.elapsed / TRANSITION_SECONDS);
+      // Eases the held space over to the live one while the pieces move.
+      if (held) {
+        const weight = releaseWeight(u);
+        if (weight >= 1) {
+          held = null;
+          setHeatHold(null);
+        } else {
+          setHeatHold({ anchor: held, weight });
+        }
+      }
       write(samplePositions(motion.fromPositions, frames[motion.to].positions, u));
       if (motion.pass) {
         const { from, to } = motion.pass;
@@ -238,6 +254,10 @@ export function createPlaybackController(
       if (u >= 1) {
         if (motion.pass) {
           setFlightPos(null);
+          // The throw's space stays up after the catch, until the next
+          // frame's movement releases it.
+          held = snapshotScene(store.getScene());
+          setHeatHold({ anchor: held, weight: 0 });
           giveTo(motion.pass.receiver);
         }
         motion = null;
@@ -324,7 +344,9 @@ export function createPlaybackController(
       stopClock();
       listeners.clear();
       motion = null;
+      held = null;
       setFlightPos(null);
+      setHeatHold(null);
     },
   };
 }

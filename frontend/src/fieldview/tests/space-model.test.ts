@@ -19,6 +19,7 @@ import {
   MARK_RAMP_FAR,
   MARK_RAMP_NEAR,
   RAMP_STOPS,
+  RESET_VALUE,
   VALUE_FLOOR,
 } from "../space/constants";
 import { bearing, clamp, dist, segPerpDistance, segProjectionT, ss, wrap } from "../space/math";
@@ -235,11 +236,24 @@ describe("value — what separates strong from merely open", () => {
   const s = scene();
 
   it("floors at 0.3 far behind the thrower — never zero", () => {
-    expect(value({ x: 20, y: 20 }, s)).toBeCloseTo(VALUE_FLOOR, 10);
+    expect(value({ x: 10, y: 20 }, s)).toBeCloseTo(VALUE_FLOOR, 10);
+  });
+
+  it("holds the reset plateau from 8 yd behind the thrower out to the forward ramp", () => {
+    expect(value({ x: 32, y: 20 }, s)).toBeCloseTo(RESET_VALUE, 10); // 8 behind
+    expect(value({ x: 36, y: 20 }, s)).toBeCloseTo(RESET_VALUE, 10);
+    expect(value({ x: 40, y: 20 }, s)).toBeCloseTo(RESET_VALUE, 10); // square
+  });
+
+  it("fades from the plateau to the floor between 8 and 25 yd behind", () => {
+    const mid = value({ x: 40 - 16.5, y: 20 }, s); // halfway down the fade
+    expect(mid).toBeGreaterThan(VALUE_FLOOR);
+    expect(mid).toBeLessThan(RESET_VALUE);
+    expect(value({ x: 40 - 12, y: 20 }, s)).toBeGreaterThan(value({ x: 40 - 20, y: 20 }, s));
   });
 
   it("ramps with yardage gained", () => {
-    expect(value({ x: 40, y: 20 }, s)).toBeCloseTo(0.3 + 0.7 * (15 / 55), 10);
+    expect(value({ x: 60, y: 20 }, s)).toBeCloseTo(0.3 + 0.7 * (35 / 55), 10);
     expect(value({ x: 80, y: 20 }, s)).toBeCloseTo(1, 10); // gain 40 → clamped
   });
 
@@ -375,5 +389,61 @@ describe("palette", () => {
     scoreToRgba(Math.pow(0.2, 1 / GAMMA), out, 0);
     expect(out[0]).toBeGreaterThan(out[2]); // more red than blue
     expect(out[3]).toBe(255);
+  });
+});
+
+describe("defenders do not stack (Builder change)", () => {
+  // A line of defenders straight down the throwing lane, thrower at (40, 20).
+  const line = (n: number) =>
+    scene(Array.from({ length: n }, (_, i) => player(`d${i}`, "defense", "defender", 50 + i * 3, 20)));
+
+  it("five defenders in the lane close a cell no more than the strongest one", () => {
+    const cell = { x: 75, y: 20 };
+    const one = scoreCell(cell, line(1), P, ALL_LAYERS, "defense-only");
+    const five = scoreCell(cell, line(5), P, ALL_LAYERS, "defense-only");
+    // Lanes cannot compound; coverage can only differ by whichever defender is
+    // closest to the cell, which is the added last one here — so allow for it
+    // by checking lanes alone.
+    const lanesOnly = { markForce: false, coverage: false, lanes: true, value: false };
+    expect(scoreCell(cell, line(5), P, lanesOnly, "defense-only")).toBeCloseTo(
+      scoreCell(cell, line(1), P, lanesOnly, "defense-only"),
+      10,
+    );
+    expect(five).toBeGreaterThan(0);
+    expect(one).toBeGreaterThan(0);
+  });
+
+  it("the lane is never darker than one defender's 0.55", () => {
+    const lanesOnly = { markForce: false, coverage: false, lanes: true, value: false };
+    // lanes-only still carries the completion decay at that range
+    expect(scoreCell({ x: 75, y: 20 }, line(5), P, lanesOnly, "defense-only") / comp(35)).toBeCloseTo(1 - LANE_STRENGTH, 10);
+  });
+
+  it("a deep defender the best cutter beats to the spot barely holds the lane", () => {
+    const lanesOnly = { markForce: false, coverage: false, lanes: true, value: false };
+    const cell = { x: 75, y: 20 };
+    const defender = player("d", "defense", "defender", 70, 20);
+    const beaten = scene([defender, player("c", "offense", "cutter", 76, 20)]);
+    const alone = scene([defender]);
+    const withCutter = scoreCell(cell, beaten, P, lanesOnly, "offense");
+    const without = scoreCell(cell, alone, P, lanesOnly, "offense");
+    expect(withCutter).toBeGreaterThan(without);
+    expect(withCutter).toBeGreaterThan(1 - LANE_STRENGTH * 0.5);
+  });
+});
+
+describe("the reset zone behind the thrower reads green", () => {
+  it("a square or short-back reset scores like a green throw with nobody near", () => {
+    const s = scene([], { x: 41, y: 20 }); // the mark is in front: backfield is free
+    for (const cell of [{ x: 32, y: 20 }, { x: 36, y: 26 }, { x: 40, y: 28 }, { x: 31, y: 14 }]) {
+      expect(gammaScore(scoreCell(cell, s, P, ALL_LAYERS, "offense")), `${cell.x},${cell.y}`).toBeGreaterThanOrEqual(0.68);
+    }
+  });
+
+  it("fades back toward closed well behind the thrower", () => {
+    const s = scene([], { x: 41, y: 20 });
+    const near = scoreCell({ x: 32, y: 28 }, s, P, ALL_LAYERS, "offense");
+    const far = scoreCell({ x: 12, y: 28 }, s, P, ALL_LAYERS, "offense");
+    expect(far).toBeLessThan(near);
   });
 });

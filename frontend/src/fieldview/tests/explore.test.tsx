@@ -67,7 +67,6 @@ describe("setups", () => {
       .map((b) => Number.parseInt((b as HTMLElement).style.height, 10));
     expect(new Set(rowHeights).size).toBe(1);
     expect(cap).toBe(rowHeights[0] * 5);
-    expect(CURATED_SETUPS.length).toBeGreaterThan(5); // so there is something to scroll to
   });
 
   it("▶ loads the next setup, ◀ goes back, and both wrap", () => {
@@ -101,9 +100,9 @@ describe("setups", () => {
     chip.focus();
     fireEvent.click(chip);
     const dialog = screen.getByRole("dialog", { name: "Setup" });
-    fireEvent.click(within(dialog).getByRole("button", { name: new RegExp(CURATED_SETUPS[2].label, "i") }));
+    fireEvent.click(within(dialog).getByRole("button", { name: new RegExp(CURATED_SETUPS[1].label, "i") }));
     expect(screen.queryByRole("dialog", { name: "Setup" })).not.toBeInTheDocument();
-    expect(chip).toHaveTextContent(CURATED_SETUPS[2].label);
+    expect(chip).toHaveTextContent(CURATED_SETUPS[1].label);
 
     fireEvent.click(chip);
     expect(screen.getByRole("dialog", { name: "Setup" })).toBeInTheDocument();

@@ -237,3 +237,18 @@ selected-player card in Explore (it lives only in the desktop dock today).
 **Known follow-ups from the build:** the share link has no expiry or revocation by design (it is a snapshot);
 a very long play near 30 frames with long labels may exceed QR capacity (the dialog says so and the link/file
 still work); Explore's card edits (title, Give disc) are live-only and are not saved to the library.
+
+## Space model and playback changes (2026-10-15, Builder request)
+
+- **Built-in content is now exactly two authored plays:** Vertical Stack Flow 1 and Horizontal Stack Flow 1
+  (`play/builtin/*.json`). Setups are derived from each play's frame 0; the default layout is Vertical Stack Flow 1's
+  opening frame. More plays get added to `play/builtin/` as the Builder authors them.
+- **Held space in playback** (`ui/playback/heatHold.ts`, `space/blend.ts`): after a catch the colours of the throw
+  stay up through the dwell; when the next frame's movement starts they ease to the new holder's view (the cutters
+  move for the first 30 % of the transition, then the colours follow). Costs two grids per frame while easing.
+- **Defenders no longer stack:** coverage and lanes take the single strongest defender instead of the product over
+  all of them; a defender the best cutter beats to the cell keeps only 25 % of their lane shade
+  (`LANE_BEAT_VOID`). Five defenders in a line no longer redden everything behind them.
+- **Reset zone:** the value layer holds a plateau (0.62) from 8 yd behind the thrower, fading to the floor by 25 yd
+  (`RESET_VALUE`, `RESET_FLAT_BACK`, `RESET_FADE`).
+- All of these constants are in `space/constants.ts` and are by-feel values for the Builder to tune.

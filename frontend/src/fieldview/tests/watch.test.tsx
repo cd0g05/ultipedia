@@ -83,7 +83,7 @@ describe("filmstrip (desktop)", () => {
       expect(flex).toContain("3rem");
       expect(flex).toMatch(/0\.25|\/ 4/);
     }
-    expect(frames[0]).toHaveAccessibleName(/frame 1: set/i);
+    expect(frames[0]).toHaveAccessibleName(/^frame 1$/i);
   });
 
   it("clicking a frame jumps to it and marks it current", () => {
@@ -106,7 +106,6 @@ describe("play list", () => {
     const rows = within(list).getAllByRole("button", { hidden: true });
     const rowPx = Number.parseInt((rows[0] as HTMLElement).style.height, 10);
     expect(Number.parseInt((list as HTMLElement).style.maxHeight, 10)).toBe(rowPx * 5);
-    expect(BUILTIN_PLAYS.length).toBeGreaterThan(5);
   });
 
   it("picking a play from the sidebar loads it at frame 1", () => {
@@ -124,9 +123,9 @@ describe("play list", () => {
     renderWatch();
     fireEvent.click(screen.getByRole("button", { name: "Choose a play" }));
     const dialog = screen.getByRole("dialog", { name: "Plays" });
-    fireEvent.click(within(dialog).getByRole("button", { name: new RegExp(BUILTIN_PLAYS[2].name, "i") }));
+    fireEvent.click(within(dialog).getByRole("button", { name: new RegExp(BUILTIN_PLAYS[1].name, "i") }));
     expect(screen.queryByRole("dialog", { name: "Plays" })).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Choose a play" })).toHaveTextContent(BUILTIN_PLAYS[2].name);
+    expect(screen.getByRole("button", { name: "Choose a play" })).toHaveTextContent(BUILTIN_PLAYS[1].name);
     fireEvent.click(screen.getByRole("button", { name: "Choose a play" }));
     fireEvent.keyDown(document, { key: "Escape" });
     expect(screen.queryByRole("dialog", { name: "Plays" })).not.toBeInTheDocument();
@@ -193,13 +192,13 @@ describe("ADR-2: playback keeps React out of the animation frame", () => {
         </Profiler>
       </MemoryRouter>,
     );
-    const cutterBefore = screen.getByRole("button", { name: "Offense 2" }).getAttribute("transform");
+    const cutterBefore = screen.getByRole("button", { name: "Offense 5" }).getAttribute("transform");
     fireEvent.click(screen.getAllByRole("button", { name: "Next frame", hidden: true })[0]); // one structural commit
     commits = 0;
     // ~25 real animation frames, well inside the 1.2 s transition.
     await new Promise((resolve) => setTimeout(resolve, 400));
     await waitFor(() =>
-      expect(screen.getByRole("button", { name: "Offense 2" }).getAttribute("transform")).not.toBe(cutterBefore),
+      expect(screen.getByRole("button", { name: "Offense 5" }).getAttribute("transform")).not.toBe(cutterBefore),
     );
     expect(commits).toBe(0);
   });
