@@ -1,0 +1,126 @@
+{
+ "formatVersion": 3,
+ "name": "Vertical Stack 1",
+ "description": "Cutters have the deep and under lanes to themselves.",
+ "players": [
+  {
+   "id": "o1",
+   "team": "offense"
+  },
+  {
+   "id": "d1",
+   "team": "defense"
+  },
+  {
+   "id": "o2",
+   "team": "offense"
+  },
+  {
+   "id": "d2",
+   "team": "defense"
+  },
+  {
+   "id": "o3",
+   "team": "offense"
+  },
+  {
+   "id": "d3",
+   "team": "defense"
+  },
+  {
+   "id": "o4",
+   "team": "offense"
+  },
+  {
+   "id": "d4",
+   "team": "defense"
+  },
+  {
+   "id": "o5",
+   "team": "offense"
+  },
+  {
+   "id": "d5",
+   "team": "defense"
+  },
+  {
+   "id": "o6",
+   "team": "offense"
+  },
+  {
+   "id": "d6",
+   "team": "defense"
+  },
+  {
+   "id": "o7",
+   "team": "offense"
+  },
+  {
+   "id": "d7",
+   "team": "defense"
+  }
+ ],
+ "frames": [
+  {
+   "moved": {
+    "o1": {
+     "x": 34.37,
+     "y": 19.93
+    },
+    "d1": {
+     "x": 36.3,
+     "y": 21.04
+    },
+    "o2": {
+     "x": 45.77,
+     "y": 21.43
+    },
+    "d2": {
+     "x": 52.8,
+     "y": 19.6
+    },
+    "o3": {
+     "x": 35.2,
+     "y": 30.05
+    },
+    "d3": {
+     "x": 37.43,
+     "y": 29.03
+    },
+    "o4": {
+     "x": 55.43,
+     "y": 21.41
+    },
+    "d4": {
+     "x": 44.88,
+     "y": 20.32
+    },
+    "o5": {
+     "x": 51.83,
+     "y": 21.28
+    },
+    "d5": {
+     "x": 49.12,
+     "y": 19.79
+    },
+    "o6": {
+     "x": 48.62,
+     "y": 21.28
+    },
+    "d6": {
+     "x": 59.95,
+     "y": 19.65
+    },
+    "o7": {
+     "x": 59.26,
+     "y": 21.31
+    },
+    "d7": {
+     "x": 56.07,
+     "y": 19.68
+    }
+   },
+   "holder": "o1"
+  }
+ ]
+}

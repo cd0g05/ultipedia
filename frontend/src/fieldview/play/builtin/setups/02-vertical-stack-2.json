@@ -1,0 +1,126 @@
+{
+ "formatVersion": 3,
+ "name": "Vertical Stack 2",
+ "description": "Defenders sag into the lane: see where the open space moves.",
+ "players": [
+  {
+   "id": "o1",
+   "team": "offense"
+  },
+  {
+   "id": "d1",
+   "team": "defense"
+  },
+  {
+   "id": "o2",
+   "team": "offense"
+  },
+  {
+   "id": "d2",
+   "team": "defense"
+  },
+  {
+   "id": "o3",
+   "team": "offense"
+  },
+  {
+   "id": "d3",
+   "team": "defense"
+  },
+  {
+   "id": "o4",
+   "team": "offense"
+  },
+  {
+   "id": "d4",
+   "team": "defense"
+  },
+  {
+   "id": "o5",
+   "team": "offense"
+  },
+  {
+   "id": "d5",
+   "team": "defense"
+  },
+  {
+   "id": "o6",
+   "team": "offense"
+  },
+  {
+   "id": "d6",
+   "team": "defense"
+  },
+  {
+   "id": "o7",
+   "team": "offense"
+  },
+  {
+   "id": "d7",
+   "team": "defense"
+  }
+ ],
+ "frames": [
+  {
+   "moved": {
+    "o1": {
+     "x": 34.37,
+     "y": 19.93
+    },
+    "d1": {
+     "x": 35.01,
+     "y": 21.62
+    },
+    "o2": {
+     "x": 45.77,
+     "y": 21.43
+    },
+    "d2": {
+     "x": 51.52,
+     "y": 16.8
+    },
+    "o3": {
+     "x": 35.07,
+     "y": 29.96
+    },
+    "d3": {
+     "x": 36.74,
+     "y": 28.79
+    },
+    "o4": {
+     "x": 55.43,
+     "y": 21.41
+    },
+    "d4": {
+     "x": 43.34,
+     "y": 21.32
+    },
+    "o5": {
+     "x": 51.83,
+     "y": 21.28
+    },
+    "d5": {
+     "x": 47.08,
+     "y": 18.47
+    },
+    "o6": {
+     "x": 48.62,
+     "y": 21.28
+    },
+    "d6": {
+     "x": 62.3,
+     "y": 20.05
+    },
+    "o7": {
+     "x": 58.54,
+     "y": 21.14
+    },
+    "d7": {
+     "x": 47.58,
+     "y": 27.47
+    }
+   },
+   "holder": "o1"
+  }
+ ]
+}
