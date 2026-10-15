@@ -1,0 +1,126 @@
+{
+ "formatVersion": 3,
+ "name": "Side Stack 1",
+ "description": "Everyone on one side \u2014 the open side is free to attack.",
+ "players": [
+  {
+   "id": "o1",
+   "team": "offense"
+  },
+  {
+   "id": "d1",
+   "team": "defense"
+  },
+  {
+   "id": "o2",
+   "team": "offense"
+  },
+  {
+   "id": "d2",
+   "team": "defense"
+  },
+  {
+   "id": "o3",
+   "team": "offense"
+  },
+  {
+   "id": "d3",
+   "team": "defense"
+  },
+  {
+   "id": "o4",
+   "team": "offense"
+  },
+  {
+   "id": "d4",
+   "team": "defense"
+  },
+  {
+   "id": "o5",
+   "team": "offense"
+  },
+  {
+   "id": "d5",
+   "team": "defense"
+  },
+  {
+   "id": "o6",
+   "team": "offense"
+  },
+  {
+   "id": "d6",
+   "team": "defense"
+  },
+  {
+   "id": "o7",
+   "team": "offense"
+  },
+  {
+   "id": "d7",
+   "team": "defense"
+  }
+ ],
+ "frames": [
+  {
+   "moved": {
+    "o1": {
+     "x": 34.37,
+     "y": 19.93
+    },
+    "d1": {
+     "x": 35.43,
+     "y": 21.24
+    },
+    "o2": {
+     "x": 45.24,
+     "y": 2.82
+    },
+    "d2": {
+     "x": 54.54,
+     "y": 6.66
+    },
+    "o3": {
+     "x": 34.27,
+     "y": 29.71
+    },
+    "d3": {
+     "x": 37.34,
+     "y": 28.04
+    },
+    "o4": {
+     "x": 58.33,
+     "y": 3.27
+    },
+    "d4": {
+     "x": 42.97,
+     "y": 4.69
+    },
+    "o5": {
+     "x": 54.48,
+     "y": 3.11
+    },
+    "d5": {
+     "x": 48.56,
+     "y": 5.95
+    },
+    "o6": {
+     "x": 49.91,
+     "y": 3.18
+    },
+    "d6": {
+     "x": 62.17,
+     "y": 5.36
+    },
+    "o7": {
+     "x": 54.09,
+     "y": 17.23
+    },
+    "d7": {
+     "x": 52.29,
+     "y": 18.05
+    }
+   },
+   "holder": "o1"
+  }
+ ]
+}

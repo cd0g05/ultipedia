@@ -28,14 +28,18 @@ describe("built-in plays", () => {
 });
 
 describe("built-in setups", () => {
-  it("are the opening frame of each built-in play, one-frame and unnamed", () => {
-    expect(BUILTIN_SETUPS.map((s) => s.name)).toEqual(BUILTIN_PLAYS.map((p) => p.name));
-    BUILTIN_SETUPS.forEach((s, i) => {
+  it("are one-frame plays, unnamed by default", () => {
+    expect(BUILTIN_SETUPS.length).toBeGreaterThanOrEqual(4);
+    for (const s of BUILTIN_SETUPS) {
       expect(isSetup(s)).toBe(true);
-      expect(s.frames[0].moved).toEqual(BUILTIN_PLAYS[i].frames[0].moved);
-      expect(s.frames[0].holder).toBe(BUILTIN_PLAYS[i].frames[0].holder);
       expect(s.players.every((p) => p.title === undefined)).toBe(true);
-    });
+    }
+  });
+
+  it("are separate from the Flow plays", () => {
+    const names = BUILTIN_SETUPS.map((s) => s.name);
+    expect(names).toContain("Vertical Stack 1");
+    expect(names).not.toContain("Vertical Stack Flow 1");
   });
 });
 

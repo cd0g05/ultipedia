@@ -1,0 +1,126 @@
+{
+ "formatVersion": 3,
+ "name": "Horizontal Stack 2",
+ "description": "Wide and flat, the handler a touch off-centre: the middle still opens up.",
+ "players": [
+  {
+   "id": "o1",
+   "team": "offense"
+  },
+  {
+   "id": "d1",
+   "team": "defense"
+  },
+  {
+   "id": "o2",
+   "team": "offense"
+  },
+  {
+   "id": "d2",
+   "team": "defense"
+  },
+  {
+   "id": "o3",
+   "team": "offense"
+  },
+  {
+   "id": "d3",
+   "team": "defense"
+  },
+  {
+   "id": "o4",
+   "team": "offense"
+  },
+  {
+   "id": "d4",
+   "team": "defense"
+  },
+  {
+   "id": "o5",
+   "team": "offense"
+  },
+  {
+   "id": "d5",
+   "team": "defense"
+  },
+  {
+   "id": "o6",
+   "team": "offense"
+  },
+  {
+   "id": "d6",
+   "team": "defense"
+  },
+  {
+   "id": "o7",
+   "team": "offense"
+  },
+  {
+   "id": "d7",
+   "team": "defense"
+  }
+ ],
+ "frames": [
+  {
+   "moved": {
+    "o1": {
+     "x": 39.82,
+     "y": 20.67
+    },
+    "d1": {
+     "x": 41.0,
+     "y": 22.35
+    },
+    "o2": {
+     "x": 40.93,
+     "y": 32.43
+    },
+    "d2": {
+     "x": 52.69,
+     "y": 14.85
+    },
+    "o3": {
+     "x": 35.44,
+     "y": 12.97
+    },
+    "d3": {
+     "x": 36.94,
+     "y": 14.51
+    },
+    "o4": {
+     "x": 53.86,
+     "y": 6.11
+    },
+    "d4": {
+     "x": 42.46,
+     "y": 30.55
+    },
+    "o5": {
+     "x": 53.65,
+     "y": 15.55
+    },
+    "d5": {
+     "x": 52.07,
+     "y": 6.38
+    },
+    "o6": {
+     "x": 54.13,
+     "y": 24.6
+    },
+    "d6": {
+     "x": 52.81,
+     "y": 23.31
+    },
+    "o7": {
+     "x": 54.07,
+     "y": 31.81
+    },
+    "d7": {
+     "x": 52.66,
+     "y": 30.76
+    }
+   },
+   "holder": "o1"
+  }
+ ]
+}

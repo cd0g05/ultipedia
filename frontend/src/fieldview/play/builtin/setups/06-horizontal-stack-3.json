@@ -1,0 +1,126 @@
+{
+ "formatVersion": 3,
+ "name": "Horizontal Stack 3",
+ "description": "The handler swings to the break side \u2014 watch the space it opens.",
+ "players": [
+  {
+   "id": "o1",
+   "team": "offense"
+  },
+  {
+   "id": "d1",
+   "team": "defense"
+  },
+  {
+   "id": "o2",
+   "team": "offense"
+  },
+  {
+   "id": "d2",
+   "team": "defense"
+  },
+  {
+   "id": "o3",
+   "team": "offense"
+  },
+  {
+   "id": "d3",
+   "team": "defense"
+  },
+  {
+   "id": "o4",
+   "team": "offense"
+  },
+  {
+   "id": "d4",
+   "team": "defense"
+  },
+  {
+   "id": "o5",
+   "team": "offense"
+  },
+  {
+   "id": "d5",
+   "team": "defense"
+  },
+  {
+   "id": "o6",
+   "team": "offense"
+  },
+  {
+   "id": "d6",
+   "team": "defense"
+  },
+  {
+   "id": "o7",
+   "team": "offense"
+  },
+  {
+   "id": "d7",
+   "team": "defense"
+  }
+ ],
+ "frames": [
+  {
+   "moved": {
+    "o1": {
+     "x": 41.5,
+     "y": 15.14
+    },
+    "d1": {
+     "x": 42.9,
+     "y": 13.82
+    },
+    "o2": {
+     "x": 41.29,
+     "y": 26.49
+    },
+    "d2": {
+     "x": 52.3,
+     "y": 13.0
+    },
+    "o3": {
+     "x": 41.42,
+     "y": 3.43
+    },
+    "d3": {
+     "x": 41.17,
+     "y": 5.28
+    },
+    "o4": {
+     "x": 54.07,
+     "y": 4.87
+    },
+    "d4": {
+     "x": 45.31,
+     "y": 22.5
+    },
+    "o5": {
+     "x": 53.81,
+     "y": 13.73
+    },
+    "d5": {
+     "x": 52.82,
+     "y": 4.47
+    },
+    "o6": {
+     "x": 56.16,
+     "y": 22.8
+    },
+    "d6": {
+     "x": 54.06,
+     "y": 21.5
+    },
+    "o7": {
+     "x": 58.98,
+     "y": 30.12
+    },
+    "d7": {
+     "x": 64.48,
+     "y": 24.28
+    }
+   },
+   "holder": "o3"
+  }
+ ]
+}

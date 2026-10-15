@@ -240,9 +240,10 @@ still work); Explore's card edits (title, Give disc) are live-only and are not s
 
 ## Space model and playback changes (2026-10-15, Builder request)
 
-- **Built-in content is now exactly two authored plays:** Vertical Stack Flow 1 and Horizontal Stack Flow 1
-  (`play/builtin/*.json`). Setups are derived from each play's frame 0; the default layout is Vertical Stack Flow 1's
-  opening frame. More plays get added to `play/builtin/` as the Builder authors them.
+- **Built-in content:** the eight authored one-frame setups (`play/builtin/setups/`) are Explore's permanent presets
+  and the default layout (Vertical Stack 1). Vertical Stack Flow 1 and Horizontal Stack Flow 1
+  (`play/builtin/*.json`) are the built-in plays for Watch and the Play Builder's examples. The old toy plays were
+  deleted. More plays get added to `play/builtin/` as the Builder authors them.
 - **Held space in playback** (`ui/playback/heatHold.ts`, `space/blend.ts`): after a catch the colours of the throw
   stay up through the dwell; when the next frame's movement starts they ease to the new holder's view (the cutters
   move for the first 30 % of the transition, then the colours follow). Costs two grids per frame while easing.
