@@ -98,8 +98,13 @@ export const RESET_FADE = 17;
 
 // Lane shading from a defender the best cutter would beat to the cell anyway
 // is mostly void: a beaten deep defender must not keep the lane closed. 0 =
-// lanes ignore the beat term (the original behaviour), 1 = fully voided.
-export const LANE_BEAT_VOID = 0.75;
+// lanes ignore the beat term, 1 = fully voided.
+export const LANE_BEAT_VOID = 0.25;
+
+// Coverage the best cutter "beats" is only partly voided: a defender a stride
+// behind the cutter's spot can still get there, whatever the head start says.
+// 1 = fully voided (the original brief), 0 = the beat term is ignored.
+export const COVERAGE_BEAT_VOID = 0.55;
 
 // --- Grid (ADR-4: the one fidelity/frames dial) ---
 export const GRID_STEP = 0.5; // yards → 220 × 80 cells

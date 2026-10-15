@@ -419,7 +419,7 @@ describe("defenders do not stack (Builder change)", () => {
     expect(scoreCell({ x: 75, y: 20 }, line(5), P, lanesOnly, "defense-only") / comp(35)).toBeCloseTo(1 - LANE_STRENGTH, 10);
   });
 
-  it("a deep defender the best cutter beats to the spot barely holds the lane", () => {
+  it("a defender the best cutter beats to the spot holds the lane a little less", () => {
     const lanesOnly = { markForce: false, coverage: false, lanes: true, value: false };
     const cell = { x: 75, y: 20 };
     const defender = player("d", "defense", "defender", 70, 20);
@@ -428,7 +428,7 @@ describe("defenders do not stack (Builder change)", () => {
     const withCutter = scoreCell(cell, beaten, P, lanesOnly, "offense");
     const without = scoreCell(cell, alone, P, lanesOnly, "offense");
     expect(withCutter).toBeGreaterThan(without);
-    expect(withCutter).toBeGreaterThan(1 - LANE_STRENGTH * 0.5);
+    expect(withCutter / comp(35)).toBeGreaterThan(1 - LANE_STRENGTH * 0.9); // only partly voided
   });
 });
 
@@ -445,5 +445,21 @@ describe("the reset zone behind the thrower reads green", () => {
     const near = scoreCell({ x: 32, y: 28 }, s, P, ALL_LAYERS, "offense");
     const far = scoreCell({ x: 12, y: 28 }, s, P, ALL_LAYERS, "offense");
     expect(far).toBeLessThan(near);
+  });
+});
+
+describe("a defender can still recover to a cutter standing just behind them", () => {
+  it("a cutter right behind a defender reads contested, not green — but better than nobody there", () => {
+    for (const dx of [30, 45]) {
+      const base = [
+        player("d", "defense", "defender", 40 + dx, 20),
+      ];
+      const cell = { x: 40 + dx + 1.5, y: 20 };
+      const without = scene(base, { x: 41, y: 23 });
+      const withCutter = scene([...base, player("c", "offense", "cutter", cell.x, cell.y)], { x: 41, y: 23 });
+      const open = scoreCell(cell, withCutter, P, ALL_LAYERS, "offense");
+      expect(gammaScore(open), `${dx} yd out`).toBeLessThan(0.68);
+      expect(open).toBeGreaterThan(scoreCell(cell, without, P, ALL_LAYERS, "offense"));
+    }
   });
 });
