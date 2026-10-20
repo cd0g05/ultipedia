@@ -45,7 +45,7 @@ import { colorizerFor } from "../space/palette";
 import type { HeatmapPainter } from "../render/heatmap";
 import { computeGrid } from "../space/score";
 import { blendHeld } from "../space/blend";
-import { getHeatHold } from "./playback/heatHold";
+import { getHeatHold, withHolder } from "./playback/heatHold";
 import { explainCell } from "../space/explain";
 import type { LayerFlags, Lens, SpaceParams } from "../space/types";
 import type { CellReadoutHandle } from "./CellReadout";
@@ -305,14 +305,17 @@ export function FieldCanvas({
     const gridStart = performance.now();
     // The grid buffer is reused across calls (ADR-4) — painted immediately,
     // never retained.
-    let grid = computeGrid(scene, settings.params, settings.layers, settings.lens);
-    // Playback is holding the space of the last throw (heatHold.ts): ease from
-    // that to the live one instead of jumping.
+    // Playback is holding the space of the last throw (heatHold.ts): either
+    // scoring the live poses for an earlier thrower, or easing from a frozen
+    // throw to the live one instead of jumping.
     const held = getHeatHold();
-    if (held && held.weight < 1 && held.anchor.possession !== null) {
+    const scored = held?.holder ? withHolder(scene, held.holder) : scene;
+    let grid = computeGrid(scored, settings.params, settings.layers, settings.lens);
+    const anchor = held?.anchor;
+    if (held && anchor && held.weight < 1 && anchor.possession !== null) {
       grid = blendHeld(
         grid,
-        () => computeGrid(held.anchor, settings.params, settings.layers, settings.lens),
+        () => computeGrid(anchor, settings.params, settings.layers, settings.lens),
         held.weight,
       );
     }

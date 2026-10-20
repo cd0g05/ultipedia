@@ -113,12 +113,15 @@ export function createPlaybackController(
     elapsed: number;
     // The pass, when this transition changes the holder.
     pass: { from: Vec2; to: Vec2; receiver: string } | null;
+    // Stepping to an EARLIER frame: the space is never held for that.
+    back: boolean;
   } | null = null;
   // Seconds left to dwell on a frame while playing (counts down between moves).
   let hold = 0;
   // The scene the on-screen space is being held at, until the next move
   // releases it (heatHold.ts). Null when the space is simply live.
   let held: Scene | null = null;
+  let heldWeight = 0; // how far the held space has eased out (0..1)
   let handle: number | null = null;
   let lastTime = 0;
 
@@ -158,6 +161,7 @@ export function createPlaybackController(
     setFlightPos(null);
     setHeatHold(null);
     held = null;
+    heldWeight = 0;
     store.mutate((draft) => {
       for (const p of draft.players) {
         const to = frames[index].positions[p.id];
@@ -205,7 +209,18 @@ export function createPlaybackController(
         : null;
     // A holder who is unchanged simply keeps the disc (and the frame's holder
     // is applied on arrival, so a stale one can never survive a step).
-    motion = { fromIndex, fromPositions, to, elapsed: 0, pass };
+    const back = to < fromIndex;
+    motion = { fromIndex, fromPositions, to, elapsed: 0, pass, back };
+    if (back && pass) {
+      // Going back across a pass: the earlier thrower's space on the live
+      // poses for the whole move, and nothing is held afterwards.
+      held = null;
+      heldWeight = 0;
+      setHeatHold({ anchor: null, holder: receiver, weight: 1 });
+    } else {
+      // A fresh move: drop any earlier override, keep a space still easing out.
+      setHeatHold(held ? { anchor: held, holder: null, weight: heldWeight } : null);
+    }
     startClock();
   }
 
@@ -241,9 +256,11 @@ export function createPlaybackController(
         const weight = releaseWeight(u);
         if (weight >= 1) {
           held = null;
+          heldWeight = 0;
           setHeatHold(null);
         } else {
-          setHeatHold({ anchor: held, weight });
+          heldWeight = weight;
+          setHeatHold({ anchor: held, holder: null, weight });
         }
       }
       write(samplePositions(motion.fromPositions, frames[motion.to].positions, u));
@@ -252,14 +269,22 @@ export function createPlaybackController(
         setFlightPos({ x: from.x + (to.x - from.x) * u, y: from.y + (to.y - from.y) * u });
       }
       if (u >= 1) {
-        if (motion.pass) {
-          setFlightPos(null);
+        // Whoever the frame names holds the disc on arrival, whether or not a
+        // pass was flying: an interrupted step can leave possession behind.
+        const arrived = frames[motion.to].holder;
+        if (motion.pass) setFlightPos(null);
+        if (motion.pass && !motion.back) {
           // The throw's space stays up after the catch, until the next
           // frame's movement releases it.
           held = snapshotScene(store.getScene());
-          setHeatHold({ anchor: held, weight: 0 });
-          giveTo(motion.pass.receiver);
+          heldWeight = 0;
+          setHeatHold({ anchor: held, holder: null, weight: 0 });
+        } else if (motion.back) {
+          held = null;
+          heldWeight = 0;
+          setHeatHold(null);
         }
+        if (store.getScene().possession !== arrived) giveTo(arrived);
         motion = null;
         hold = HOLD_SECONDS;
       }
@@ -345,6 +370,7 @@ export function createPlaybackController(
       listeners.clear();
       motion = null;
       held = null;
+      heldWeight = 0;
       setFlightPos(null);
       setHeatHold(null);
     },

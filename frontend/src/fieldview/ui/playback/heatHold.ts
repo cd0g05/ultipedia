@@ -12,12 +12,18 @@
 //   anchor — the scene the held space is computed from (the pose at the end
 //            of the throw, with the thrower still the thrower)
 //   weight — 0 = all held space, 1 = all live space
+//   holder — instead of an anchor: the LIVE poses, scored as if this player
+//            held the disc. Used when stepping BACK across a pass: the disc
+//            flies home, but the space belongs to the earlier thrower the whole
+//            way, so it never shows the later thrower's view on an earlier frame.
 
 import type { Scene } from "../../scene/types";
+import { normalize } from "../../scene/possession";
 import { ss } from "../../space/math";
 
 export interface HeatHold {
-  anchor: Scene;
+  anchor: Scene | null;
+  holder: string | null;
   weight: number;
 }
 
@@ -43,4 +49,12 @@ export function releaseWeight(u: number): number {
 // A private copy: the live scene keeps changing under the hold.
 export function snapshotScene(scene: Scene): Scene {
   return { ...scene, players: scene.players.map((p) => ({ ...p, pos: { ...p.pos } })) };
+}
+
+// The live scene scored as if `holder` had the disc (roles re-derived).
+export function withHolder(scene: Scene, holder: string): Scene {
+  const copy = snapshotScene(scene);
+  copy.possession = holder;
+  normalize(copy);
+  return copy;
 }
