@@ -83,9 +83,9 @@ describe("holding the space of the last throw", () => {
     const hold = getHeatHold()!;
     expect(hold).not.toBeNull();
     expect(hold.weight).toBe(0);
-    expect(hold.anchor.possession).toBe("o1"); // still the thrower's view
+    expect(hold.anchor!.possession).toBe("o1"); // still the thrower's view
     // ...at the pose of the end of the throw, not wherever the pieces go next.
-    expect(hold.anchor.players.find((p) => p.id === "o2")!.pos).toEqual({ x: 70, y: 10 });
+    expect(hold.anchor!.players.find((p) => p.id === "o2")!.pos).toEqual({ x: 70, y: 10 });
   });
 
   it("holds through the dwell, then eases over once the next move starts, cutters first", () => {
@@ -114,6 +114,68 @@ describe("holding the space of the last throw", () => {
     expect(getHeatHold()).not.toBeNull();
     controller.goto(0);
     expect(getHeatHold()).toBeNull();
+  });
+});
+
+describe("stepping back across a pass", () => {
+  it("keeps the earlier thrower's space on the way back and holds nothing afterwards", () => {
+    const { c, controller, store } = setup();
+    controller.next();
+    c.run(TRANSITION_SECONDS + 0.2); // frame 1: o2 holds, o1's space held
+    controller.prev();
+    c.run(TRANSITION_SECONDS / 2);
+    // Mid-move the disc is still with o2, but the space is o1's, not o2's.
+    expect(getHeatHold()).toMatchObject({ holder: "o1", anchor: null });
+    c.run(TRANSITION_SECONDS);
+    expect(store.getScene().possession).toBe("o1");
+    expect(getHeatHold()).toBeNull(); // frame 0 is just frame 0
+  });
+
+  it("never shows the later thrower's view on the earlier frame", () => {
+    const { c, controller, store } = setup();
+    controller.goto(1);
+    controller.prev();
+    c.run(TRANSITION_SECONDS * 2);
+    expect(controller.getState().frameIndex).toBe(0);
+    expect(getHeatHold()).toBeNull();
+    expect(store.getScene().possession).toBe("o1");
+  });
+});
+
+describe("clicking through fast", () => {
+  it("forward to the end then straight back before anything animates lands cleanly on frame 0", () => {
+    const { c, controller, store } = setup();
+    controller.next();
+    controller.next();
+    controller.prev();
+    controller.next();
+    controller.next();
+    controller.prev();
+    controller.prev();
+    controller.prev();
+    c.run(TRANSITION_SECONDS * 3);
+    const scene = store.getScene();
+    const frame0 = toScene(throwThenMove(), 0);
+    expect(controller.getState().frameIndex).toBe(0);
+    expect(getHeatHold()).toBeNull();
+    expect(scene.possession).toBe("o1");
+    for (const p of scene.players) {
+      expect(p.pos, p.id).toEqual(frame0.players.find((q) => q.id === p.id)!.pos);
+    }
+    // Exactly one thrower and a mark that follows the geometry.
+    expect(scene.players.filter((p) => p.role === "thrower").map((p) => p.id)).toEqual(["o1"]);
+  });
+
+  it("a half-finished pass never leaves the disc holder out of step with the frame it lands on", () => {
+    const { c, controller, store } = setup();
+    controller.next();
+    c.run(TRANSITION_SECONDS * 0.5); // pass in the air
+    controller.next(); // interrupted: on to frame 2
+    c.run(TRANSITION_SECONDS * 2);
+    expect(controller.getState().frameIndex).toBe(2);
+    expect(store.getScene().possession).toBe("o2"); // frame 2 inherits o2
+    // The interrupted throw completes on this landing, so its space is held.
+    expect(getHeatHold()?.anchor?.possession).toBe("o1");
   });
 });
 
