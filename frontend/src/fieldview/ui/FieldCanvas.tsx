@@ -305,11 +305,11 @@ export function FieldCanvas({
     const gridStart = performance.now();
     // The grid buffer is reused across calls (ADR-4) — painted immediately,
     // never retained.
-    // Playback is holding the space of the last throw (heatHold.ts): either
-    // scoring the live poses for an earlier thrower, or easing from a frozen
-    // throw to the live one instead of jumping.
+    // Playback is pinning the space to the last throw (heatHold.ts): scoring the
+    // poses at the throw instead of the live ones, scoring the live poses for an
+    // earlier thrower, or easing between two such spaces instead of jumping.
     const held = getHeatHold();
-    const scored = held?.holder ? withHolder(scene, held.holder) : scene;
+    const scored = held?.holder ? withHolder(scene, held.holder) : (held?.target ?? scene);
     let grid = computeGrid(scored, settings.params, settings.layers, settings.lens);
     const anchor = held?.anchor;
     if (held && anchor && held.weight < 1 && anchor.possession !== null) {
