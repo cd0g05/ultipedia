@@ -30,6 +30,7 @@ import { resolveAll } from "../../play/model";
 import { samplePositions } from "../../play/interpolate";
 import { normalize, throwTo } from "../../scene/possession";
 import { setFlightPos } from "../shell/throwMode";
+import { readPrefs } from "../prefs";
 import { crossfadeWeight, releaseWeight, setHeatHold, snapshotScene } from "./heatHold";
 
 export type PlaybackStatus = "idle" | "playing" | "paused";
@@ -57,6 +58,9 @@ export interface PlaybackOptions {
   schedule?: (cb: () => void) => number;
   cancel?: (handle: number) => void;
   prefersReducedMotion?: () => boolean;
+  // Whether to pin the space at each throw (heatHold.ts). Defaults to the
+  // user's pref, read at the start of every move so a change applies at once.
+  pinSpaceAtThrow?: () => boolean;
 }
 
 export interface PlaybackController {
@@ -89,6 +93,7 @@ export function createPlaybackController(
   const schedule = options.schedule ?? ((cb) => requestAnimationFrame(cb));
   const cancel = options.cancel ?? ((h) => cancelAnimationFrame(h));
   const reduced = options.prefersReducedMotion ?? defaultReducedMotion;
+  const pinSpace = options.pinSpaceAtThrow ?? (() => readPrefs().pinSpaceAtThrow);
 
   const frames = resolveAll(play);
   const last = frames.length - 1;
@@ -214,7 +219,13 @@ export function createPlaybackController(
     // is applied on arrival, so a stale one can never survive a step).
     const back = to < fromIndex;
     motion = { fromIndex, fromPositions, to, elapsed: 0, pass, back };
-    if (back && pass) {
+    if (!pinSpace()) {
+      // Pinning is off: the space simply follows the live scene.
+      held = null;
+      fadeFrom = null;
+      heldWeight = 0;
+      setHeatHold(null);
+    } else if (back && pass) {
       // Going back across a pass: the earlier thrower's space on the live
       // poses for the whole move, and nothing is held afterwards.
       held = null;

@@ -257,3 +257,16 @@ still work); Explore's card edits (title, Give disc) are live-only and are not s
 - **Reset zone:** the value layer holds a plateau (0.62) from 8 yd behind the thrower, fading to the floor by 25 yd
   (`RESET_VALUE`, `RESET_FLAT_BACK`, `RESET_FADE`).
 - All of these constants are in `space/constants.ts` and are by-feel values for the Builder to tune.
+
+## Future: settings and tuning menu
+
+There is no settings page yet. The plan is one tuning menu where the user can customise everything, with the
+existing preferences as its first entries (all already persisted in `ui/prefs.ts`):
+
+- **Pin the space at the throw** (`pinSpaceAtThrow`, on by default; the switch exists in code, no UI yet)
+- Show the space colours (`heat`; today only the legend toggle), colour-blind palette, which teams are drawn
+- The six space-model sliders (`params`) and the layer switches / lens, plus the tuning constants that are
+  fixed today: coverage and lane beat-void (`COVERAGE_BEAT_VOID`, `LANE_BEAT_VOID`), the reset plateau
+  (`RESET_*`), how long the colours take to ease after a throw (`HOLD_RELEASE_START`, `CROSSFADE_END`)
+- Playback pace (`TRANSITION_SECONDS`, `HOLD_SECONDS`) and piece sizes
+- A "reset to defaults" for all of it

@@ -10,6 +10,7 @@ import { TRANSITION_SECONDS, createPlaybackController } from "../ui/playback/pla
 import type { PlaybackOptions } from "../ui/playback/playback";
 import { HOLD_RELEASE_START, getHeatHold, releaseWeight, setHeatHold } from "../ui/playback/heatHold";
 import { blendHeld } from "../space/blend";
+import { DEFAULT_PREFS, parsePrefs } from "../ui/prefs";
 import { setFlightPos } from "../ui/shell/throwMode";
 import type { ScoreGrid } from "../space/types";
 
@@ -54,11 +55,11 @@ function clock() {
   };
 }
 
-function setup() {
+function setup(options: Partial<PlaybackOptions> = {}) {
   const play = throwThenMove();
   const c = clock();
   const store = createSceneStore(toScene(play, 0));
-  const controller = createPlaybackController(store, play, c.options);
+  const controller = createPlaybackController(store, play, { ...c.options, ...options });
   return { c, store, controller };
 }
 
@@ -190,6 +191,41 @@ describe("clicking through fast", () => {
     expect(store.getScene().possession).toBe("o2"); // frame 2 inherits o2
     // The interrupted throw completes on this landing, so its space is held.
     expect(getHeatHold()?.target?.possession).toBe("o1");
+  });
+});
+
+describe("the pref", () => {
+  it("is on by default", () => {
+    expect(DEFAULT_PREFS.pinSpaceAtThrow).toBe(true);
+    expect(parsePrefs({}).pinSpaceAtThrow).toBe(true);
+    expect(parsePrefs({ pinSpaceAtThrow: false }).pinSpaceAtThrow).toBe(false);
+    expect(parsePrefs({ pinSpaceAtThrow: "no" }).pinSpaceAtThrow).toBe(true);
+  });
+
+  it("when off, nothing is pinned: the space follows the live scene through a throw", () => {
+    const { c, controller, store } = setup({ pinSpaceAtThrow: () => false });
+    controller.next();
+    c.run(TRANSITION_SECONDS / 2);
+    expect(getHeatHold()).toBeNull();
+    c.run(TRANSITION_SECONDS);
+    expect(getHeatHold()).toBeNull();
+    expect(store.getScene().possession).toBe("o2");
+    controller.prev();
+    c.run(TRANSITION_SECONDS * 2);
+    expect(getHeatHold()).toBeNull();
+    expect(store.getScene().possession).toBe("o1");
+  });
+
+  it("is read at the start of each move", () => {
+    let on = true;
+    const { c, controller } = setup({ pinSpaceAtThrow: () => on });
+    controller.next();
+    c.run(TRANSITION_SECONDS + 0.3);
+    expect(getHeatHold()).not.toBeNull();
+    on = false;
+    controller.next();
+    c.run(TRANSITION_SECONDS * 0.1);
+    expect(getHeatHold()).toBeNull();
   });
 });
 
