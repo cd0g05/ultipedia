@@ -244,9 +244,12 @@ still work); Explore's card edits (title, Give disc) are live-only and are not s
   and the default layout (Vertical Stack 1). Vertical Stack Flow 1 and Horizontal Stack Flow 1
   (`play/builtin/*.json`) are the built-in plays for Watch and the Play Builder's examples. The old toy plays were
   deleted. More plays get added to `play/builtin/` as the Builder authors them.
-- **Held space in playback** (`ui/playback/heatHold.ts`, `space/blend.ts`): after a catch the colours of the throw
-  stay up through the dwell; when the next frame's movement starts they ease to the new holder's view (the cutters
-  move for the first 30 % of the transition, then the colours follow). Costs two grids per frame while easing.
+- **Space pinned at the throw** (`ui/playback/heatHold.ts`, `space/blend.ts`): the heatmap is judged at the moment the
+  disc leaves the thrower's hand and stays that way through the flight, the catch and the dwell, so the receiver
+  stands in the green they were thrown into even if the defender caught up. When the next frame's movement starts
+  the colours ease to the new holder's view (cutters move for the first 30 % of the transition). A back-to-back
+  throw crossfades from the previous throw's space within the first 25 % of its move. Stepping back across a pass
+  scores the live poses for the earlier thrower. Costs two grids per frame while easing.
 - **Defenders no longer stack:** coverage and lanes take the single strongest defender instead of the product over
   all of them; a defender the best cutter beats to the cell keeps 75 % of their lane shade
   (`LANE_BEAT_VOID` = 0.25) and 45 % of their coverage (`COVERAGE_BEAT_VOID` = 0.55; the original brief voided it
@@ -254,3 +257,16 @@ still work); Explore's card edits (title, Give disc) are live-only and are not s
 - **Reset zone:** the value layer holds a plateau (0.62) from 8 yd behind the thrower, fading to the floor by 25 yd
   (`RESET_VALUE`, `RESET_FLAT_BACK`, `RESET_FADE`).
 - All of these constants are in `space/constants.ts` and are by-feel values for the Builder to tune.
+
+## Future: settings and tuning menu
+
+There is no settings page yet. The plan is one tuning menu where the user can customise everything, with the
+existing preferences as its first entries (all already persisted in `ui/prefs.ts`):
+
+- **Pin the space at the throw** (`pinSpaceAtThrow`, on by default; the switch exists in code, no UI yet)
+- Show the space colours (`heat`; today only the legend toggle), colour-blind palette, which teams are drawn
+- The six space-model sliders (`params`) and the layer switches / lens, plus the tuning constants that are
+  fixed today: coverage and lane beat-void (`COVERAGE_BEAT_VOID`, `LANE_BEAT_VOID`), the reset plateau
+  (`RESET_*`), how long the colours take to ease after a throw (`HOLD_RELEASE_START`, `CROSSFADE_END`)
+- Playback pace (`TRANSITION_SECONDS`, `HOLD_SECONDS`) and piece sizes
+- A "reset to defaults" for all of it

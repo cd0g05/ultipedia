@@ -10,6 +10,7 @@ import { TRANSITION_SECONDS, createPlaybackController } from "../ui/playback/pla
 import type { PlaybackOptions } from "../ui/playback/playback";
 import { HOLD_RELEASE_START, getHeatHold, releaseWeight, setHeatHold } from "../ui/playback/heatHold";
 import { blendHeld } from "../space/blend";
+import { DEFAULT_PREFS, parsePrefs } from "../ui/prefs";
 import { setFlightPos } from "../ui/shell/throwMode";
 import type { ScoreGrid } from "../space/types";
 
@@ -54,11 +55,11 @@ function clock() {
   };
 }
 
-function setup() {
+function setup(options: Partial<PlaybackOptions> = {}) {
   const play = throwThenMove();
   const c = clock();
   const store = createSceneStore(toScene(play, 0));
-  const controller = createPlaybackController(store, play, c.options);
+  const controller = createPlaybackController(store, play, { ...c.options, ...options });
   return { c, store, controller };
 }
 
@@ -67,25 +68,39 @@ afterEach(() => {
   setHeatHold(null);
 });
 
-describe("holding the space of the last throw", () => {
-  it("is live until a pass lands", () => {
+describe("pinning the space at the throw", () => {
+  it("is live while nobody throws", () => {
     const { c, controller } = setup();
-    controller.next();
+    controller.goto(1);
+    controller.goto(2);
     c.run(TRANSITION_SECONDS / 2);
     expect(getHeatHold()).toBeNull();
   });
 
-  it("keeps the thrower's space up after the catch", () => {
+  it("judges the space at the START of a throw and keeps it through the flight", () => {
+    const { c, controller, store } = setup();
+    const start = toScene(throwThenMove(), 0).players.find((p) => p.id === "o2")!.pos;
+    controller.next();
+    c.run(1 / 60);
+    const pinned = getHeatHold()!;
+    expect(pinned.target!.possession).toBe("o1"); // the thrower's view
+    expect(pinned.weight).toBe(1);
+    expect(pinned.anchor).toBeNull();
+    // At the start poses: the receiver has not run to the catch spot yet.
+    expect(pinned.target!.players.find((p) => p.id === "o2")!.pos).toEqual(start);
+    c.run(TRANSITION_SECONDS / 2);
+    expect(getHeatHold()!.target).toBe(pinned.target); // not recomputed as everyone moves
+    expect(store.getScene().players.find((p) => p.id === "o2")!.pos).not.toEqual(start);
+  });
+
+  it("keeps it after the catch, with the receiver standing in the space they were thrown into", () => {
     const { c, controller, store } = setup();
     controller.next();
     c.run(TRANSITION_SECONDS + 0.2);
     expect(store.getScene().possession).toBe("o2");
     const hold = getHeatHold()!;
-    expect(hold).not.toBeNull();
-    expect(hold.weight).toBe(0);
-    expect(hold.anchor!.possession).toBe("o1"); // still the thrower's view
-    // ...at the pose of the end of the throw, not wherever the pieces go next.
-    expect(hold.anchor!.players.find((p) => p.id === "o2")!.pos).toEqual({ x: 70, y: 10 });
+    expect(hold.target!.possession).toBe("o1");
+    expect(hold.weight).toBe(1);
   });
 
   it("holds through the dwell, then eases over once the next move starts, cutters first", () => {
@@ -175,7 +190,76 @@ describe("clicking through fast", () => {
     expect(controller.getState().frameIndex).toBe(2);
     expect(store.getScene().possession).toBe("o2"); // frame 2 inherits o2
     // The interrupted throw completes on this landing, so its space is held.
-    expect(getHeatHold()?.anchor?.possession).toBe("o1");
+    expect(getHeatHold()?.target?.possession).toBe("o1");
+  });
+});
+
+describe("the pref", () => {
+  it("is on by default", () => {
+    expect(DEFAULT_PREFS.pinSpaceAtThrow).toBe(true);
+    expect(parsePrefs({}).pinSpaceAtThrow).toBe(true);
+    expect(parsePrefs({ pinSpaceAtThrow: false }).pinSpaceAtThrow).toBe(false);
+    expect(parsePrefs({ pinSpaceAtThrow: "no" }).pinSpaceAtThrow).toBe(true);
+  });
+
+  it("when off, nothing is pinned: the space follows the live scene through a throw", () => {
+    const { c, controller, store } = setup({ pinSpaceAtThrow: () => false });
+    controller.next();
+    c.run(TRANSITION_SECONDS / 2);
+    expect(getHeatHold()).toBeNull();
+    c.run(TRANSITION_SECONDS);
+    expect(getHeatHold()).toBeNull();
+    expect(store.getScene().possession).toBe("o2");
+    controller.prev();
+    c.run(TRANSITION_SECONDS * 2);
+    expect(getHeatHold()).toBeNull();
+    expect(store.getScene().possession).toBe("o1");
+  });
+
+  it("is read at the start of each move", () => {
+    let on = true;
+    const { c, controller } = setup({ pinSpaceAtThrow: () => on });
+    controller.next();
+    c.run(TRANSITION_SECONDS + 0.3);
+    expect(getHeatHold()).not.toBeNull();
+    on = false;
+    controller.next();
+    c.run(TRANSITION_SECONDS * 0.1);
+    expect(getHeatHold()).toBeNull();
+  });
+});
+
+describe("a second throw takes over from the first", () => {
+  // o1 → o2 (frame 1), then o2 → o3 (frame 2).
+  function twoThrows(): Play {
+    let p = newPlay();
+    p = addFrame(addFrame(p, 0), 1);
+    p = placePlayers(p, 1, { o2: { x: 70, y: 10 } });
+    p = giveDisc(p, 1, "o2");
+    p = placePlayers(p, 2, { o3: { x: 60, y: 30 } });
+    p = giveDisc(p, 2, "o3");
+    return p;
+  }
+
+  it("pins the new throw's space at its own start, crossfading from the last one", () => {
+    const play = twoThrows();
+    const c = clock();
+    const store = createSceneStore(toScene(play, 0));
+    const controller = createPlaybackController(store, play, c.options);
+    controller.next();
+    c.run(TRANSITION_SECONDS + 0.3);
+    const first = getHeatHold()!.target!;
+    controller.next();
+    c.run(TRANSITION_SECONDS * 0.05);
+    const mid = getHeatHold()!;
+    expect(mid.anchor).toBe(first); // the old throw is still easing out…
+    expect(mid.target!.possession).toBe("o2"); // …into the new thrower's, judged now
+    expect(mid.weight).toBeLessThan(1);
+    c.run(TRANSITION_SECONDS * 0.4);
+    const later = getHeatHold()!;
+    expect(later.anchor).toBeNull();
+    expect(later.weight).toBe(1);
+    expect(later.target).toBe(mid.target);
   });
 });
 

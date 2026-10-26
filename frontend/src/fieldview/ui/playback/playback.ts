@@ -30,7 +30,8 @@ import { resolveAll } from "../../play/model";
 import { samplePositions } from "../../play/interpolate";
 import { normalize, throwTo } from "../../scene/possession";
 import { setFlightPos } from "../shell/throwMode";
-import { releaseWeight, setHeatHold, snapshotScene } from "./heatHold";
+import { readPrefs } from "../prefs";
+import { crossfadeWeight, releaseWeight, setHeatHold, snapshotScene } from "./heatHold";
 
 export type PlaybackStatus = "idle" | "playing" | "paused";
 export type PlaybackSpeed = 0.5 | 1 | 2;
@@ -57,6 +58,9 @@ export interface PlaybackOptions {
   schedule?: (cb: () => void) => number;
   cancel?: (handle: number) => void;
   prefersReducedMotion?: () => boolean;
+  // Whether to pin the space at each throw (heatHold.ts). Defaults to the
+  // user's pref, read at the start of every move so a change applies at once.
+  pinSpaceAtThrow?: () => boolean;
 }
 
 export interface PlaybackController {
@@ -89,6 +93,7 @@ export function createPlaybackController(
   const schedule = options.schedule ?? ((cb) => requestAnimationFrame(cb));
   const cancel = options.cancel ?? ((h) => cancelAnimationFrame(h));
   const reduced = options.prefersReducedMotion ?? defaultReducedMotion;
+  const pinSpace = options.pinSpaceAtThrow ?? (() => readPrefs().pinSpaceAtThrow);
 
   const frames = resolveAll(play);
   const last = frames.length - 1;
@@ -118,9 +123,11 @@ export function createPlaybackController(
   } | null = null;
   // Seconds left to dwell on a frame while playing (counts down between moves).
   let hold = 0;
-  // The scene the on-screen space is being held at, until the next move
-  // releases it (heatHold.ts). Null when the space is simply live.
+  // The scene the on-screen space is pinned to (the poses at the last throw),
+  // until the next move releases it (heatHold.ts). Null when the space is live.
   let held: Scene | null = null;
+  // The previous pin, while a new throw's space is taking over from it.
+  let fadeFrom: Scene | null = null;
   let heldWeight = 0; // how far the held space has eased out (0..1)
   let handle: number | null = null;
   let lastTime = 0;
@@ -161,6 +168,7 @@ export function createPlaybackController(
     setFlightPos(null);
     setHeatHold(null);
     held = null;
+    fadeFrom = null;
     heldWeight = 0;
     store.mutate((draft) => {
       for (const p of draft.players) {
@@ -211,15 +219,29 @@ export function createPlaybackController(
     // is applied on arrival, so a stale one can never survive a step).
     const back = to < fromIndex;
     motion = { fromIndex, fromPositions, to, elapsed: 0, pass, back };
-    if (back && pass) {
+    if (!pinSpace()) {
+      // Pinning is off: the space simply follows the live scene.
+      held = null;
+      fadeFrom = null;
+      heldWeight = 0;
+      setHeatHold(null);
+    } else if (back && pass) {
       // Going back across a pass: the earlier thrower's space on the live
       // poses for the whole move, and nothing is held afterwards.
       held = null;
+      fadeFrom = null;
       heldWeight = 0;
-      setHeatHold({ anchor: null, holder: receiver, weight: 1 });
+      setHeatHold({ target: null, anchor: null, holder: receiver, weight: 1 });
+    } else if (pass) {
+      // A throw: the space is judged NOW, at the start of the move, and stays
+      // that way until the next move releases it.
+      fadeFrom = held;
+      held = snapshotScene(store.getScene());
+      heldWeight = 0;
+      setHeatHold({ target: held, anchor: fadeFrom, holder: null, weight: fadeFrom ? 0 : 1 });
     } else {
       // A fresh move: drop any earlier override, keep a space still easing out.
-      setHeatHold(held ? { anchor: held, holder: null, weight: heldWeight } : null);
+      setHeatHold(held ? { target: null, anchor: held, holder: null, weight: heldWeight } : null);
     }
     startClock();
   }
@@ -251,8 +273,16 @@ export function createPlaybackController(
     if (motion) {
       motion.elapsed += dt;
       const u = Math.min(1, motion.elapsed / TRANSITION_SECONDS);
-      // Eases the held space over to the live one while the pieces move.
-      if (held) {
+      if (held && motion.pass && !motion.back) {
+        // This move is the throw: its own space is pinned, taking over from
+        // the previous throw's over the first moments.
+        if (fadeFrom) {
+          const weight = crossfadeWeight(u);
+          if (weight >= 1) fadeFrom = null;
+          setHeatHold({ target: held, anchor: fadeFrom, holder: null, weight: fadeFrom ? weight : 1 });
+        }
+      } else if (held) {
+        // Eases the pinned space over to the live one while the pieces move.
         const weight = releaseWeight(u);
         if (weight >= 1) {
           held = null;
@@ -260,7 +290,7 @@ export function createPlaybackController(
           setHeatHold(null);
         } else {
           heldWeight = weight;
-          setHeatHold({ anchor: held, holder: null, weight });
+          setHeatHold({ target: null, anchor: held, holder: null, weight });
         }
       }
       write(samplePositions(motion.fromPositions, frames[motion.to].positions, u));
@@ -273,17 +303,14 @@ export function createPlaybackController(
         // pass was flying: an interrupted step can leave possession behind.
         const arrived = frames[motion.to].holder;
         if (motion.pass) setFlightPos(null);
-        if (motion.pass && !motion.back) {
-          // The throw's space stays up after the catch, until the next
-          // frame's movement releases it.
-          held = snapshotScene(store.getScene());
-          heldWeight = 0;
-          setHeatHold({ anchor: held, holder: null, weight: 0 });
-        } else if (motion.back) {
+        if (motion.back) {
           held = null;
+          fadeFrom = null;
           heldWeight = 0;
           setHeatHold(null);
         }
+        // (A forward throw keeps its pinned space through the catch and the
+        // dwell; the next move releases it.)
         if (store.getScene().possession !== arrived) giveTo(arrived);
         motion = null;
         hold = HOLD_SECONDS;
