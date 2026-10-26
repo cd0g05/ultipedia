@@ -54,6 +54,16 @@ export const routes: RouteObject[] = [
   { path: "/contribute/*", element: <IntakeApp /> },
 ];
 
+// Only Field View is public for now. Production serves it alone and sends
+// every other path (home, encyclopedia, /contribute, ...) to /fieldview; dev
+// keeps the full tree so the rest of the site stays workable locally.
+// `routes` stays complete so the encyclopedia/intake tests are unaffected.
+export const fieldViewOnlyRoutes: RouteObject[] = [
+  ...routes.filter((r) => r.path === "/fieldview"),
+  { path: "*", element: <Navigate to="/fieldview" replace /> },
+];
+
 export function Router() {
-  return <RouterProvider router={createBrowserRouter(routes)} />;
+  const active = import.meta.env.DEV ? routes : fieldViewOnlyRoutes;
+  return <RouterProvider router={createBrowserRouter(active)} />;
 }
